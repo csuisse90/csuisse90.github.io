@@ -134,7 +134,7 @@ export function Normalisation() {
       title="Why normalise"
       meta="A3"
       width={620}
-      height={230}
+      height={262}
       caption="On the left the tutor's room is stored three times. Change it once and the other two are now wrong — that is an update anomaly. On the right it is stored once, and there is nothing to disagree with."
     >
       <Caption x={150} y={26} size={11} colour={ACCENT}>
@@ -168,7 +168,8 @@ export function Normalisation() {
         y={148}
         w={240}
         name="Tutor"
-        cols={[{ label: "tutorId", key: "PK" }, { label: "tutorName" }]}
+        cols={[{ label: "tutorId", key: "PK" }, { label: "tutorName" },
+          { label: "tutorRoom" }]}
       />
       <Arrow x1={290} y1={100} x2={344} y2={100} accent />
     </Figure>

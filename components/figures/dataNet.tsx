@@ -221,14 +221,26 @@ export function OsiStack() {
           { label: "1 · Physical", note: "cable, radio" },
         ]}
       />
-      <Arrow x1={108} y1={30} x2={108} y2={300} />
-      <Caption x={100} y={165} anchor="end">
+      <Arrow x1={112} y1={30} x2={112} y2={300} />
+      <text
+        transform="translate(102 165) rotate(-90)"
+        textAnchor="middle"
+        fontFamily="var(--font-mono), monospace"
+        fontSize={10}
+        fill={FAINT}
+      >
         down at the sender
-      </Caption>
-      <Arrow x1={510} y1={300} x2={510} y2={30} />
-      <Caption x={520} y={165} anchor="start">
+      </text>
+      <Arrow x1={508} y1={300} x2={508} y2={30} />
+      <text
+        transform="translate(518 165) rotate(-90)"
+        textAnchor="middle"
+        fontFamily="var(--font-mono), monospace"
+        fontSize={10}
+        fill={FAINT}
+      >
         up at the receiver
-      </Caption>
+      </text>
     </Figure>
   );
 }
@@ -294,12 +306,11 @@ export function Encapsulation() {
           </text>
         </g>
       ))}
-      <Caption x={40} y={50} anchor="start">
-        layer 7
-      </Caption>
-      <Caption x={40} y={200} anchor="start">
-        layer 2
-      </Caption>
+      {layers.map((l, i) => (
+        <Caption key={`name-${l.label}`} x={280 - l.w / 2 - 12} y={52 + i * 50} anchor="end">
+          {["application", "transport", "network", "link"][i]}
+        </Caption>
+      ))}
     </Figure>
   );
 }
@@ -461,9 +472,17 @@ export function Segmentation() {
               strokeWidth={1.7}
             />
           ))}
-          <Arrow x1={g.x + 78} y1={134} x2={g.x + 78} y2={166} />
+          {/* All three segments meet at the firewall, so the outer two
+              elbow inwards rather than pointing at nothing. */}
+          <path
+            d={`M${g.x + 78},134 L${g.x + 78},150 L310,150`}
+            fill="none"
+            stroke={LINE}
+            strokeWidth={1.8}
+          />
         </g>
       ))}
+      <Arrow x1={310} y1={150} x2={310} y2={166} />
       <Box x={230} y={166} w={160} h={38} label="Firewall / router" accent />
     </Figure>
   );

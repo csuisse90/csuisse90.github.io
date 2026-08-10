@@ -15,7 +15,7 @@ export function ComputingModel() {
       title="The general model"
       meta="four parts"
       width={520}
-      height={186}
+      height={206}
       caption="Every computer, from a washing machine to a data centre, is these four boxes. Storage is drawn below because it serves both the processing stage and the long term."
     >
       {stages.map((label, i) => (
@@ -34,7 +34,7 @@ export function ComputingModel() {
       <Caption x={520} y={26} anchor="end" colour={SOFT}>
         the world outside
       </Caption>
-      <Caption x={260} y={176}>
+      <Caption x={260} y={196}>
         held for later, not just for now
       </Caption>
     </Figure>
@@ -75,7 +75,7 @@ export function StoredProgram() {
         PC points at
       </Caption>
 
-      <Arrow x1={110} y1={142} x2={left - 8} y2={142} accent />
+      <Arrow x1={110} y1={142} x2={left - 4} y2={142} accent />
 
       {cells.map((c, i) => {
         const y = 40 + i * cell;
@@ -92,9 +92,8 @@ export function StoredProgram() {
               strokeWidth={1.2}
             />
             <text
-              x={left - 10}
+              x={left + 8}
               y={y + cell / 2}
-              textAnchor="end"
               dominantBaseline="middle"
               fontFamily="var(--font-mono), monospace"
               fontSize={9}
@@ -103,7 +102,7 @@ export function StoredProgram() {
               {i}
             </text>
             <text
-              x={left + 12}
+              x={left + 24}
               y={y + cell / 2}
               dominantBaseline="middle"
               fontFamily="var(--font-mono), monospace"
@@ -337,7 +336,7 @@ export function HuffmanTree() {
       title="A Huffman tree"
       meta="variable-length codes"
       width={560}
-      height={296}
+      height={326}
       caption="The commonest symbol sits one edge from the root and gets a one-bit code; the rarest sits three edges away. No codeword is a prefix of another, because every symbol is a leaf."
     >
       {edges.map(([from, to, bit]) => {
@@ -399,11 +398,11 @@ export function HuffmanTree() {
         );
       })}
 
-      <Caption x={40} y={278} anchor="start" colour={SOFT}>
+      <Caption x={20} y={310} anchor="start" colour={SOFT}>
         fixed 2-bit codes: 36 bits
       </Caption>
-      <Caption x={330} y={278} anchor="start" colour={ACCENT}>
-        huffman: 8(1) + 5(2) + 3(3) + 2(3) = 33 bits
+      <Caption x={540} y={310} anchor="end" colour={ACCENT}>
+        huffman: 8+10+9+6 = 33 bits
       </Caption>
     </Figure>
   );
@@ -431,10 +430,17 @@ export function ThreeViews() {
         </g>
       ))}
 
-      <Arrow x1={214} y1={62} x2={148} y2={158} label="sum of products" labelSide="above" />
+      <Arrow x1={214} y1={62} x2={148} y2={158} />
       <Arrow x1={120} y1={158} x2={202} y2={62} />
       <Arrow x1={346} y1={62} x2={412} y2={158} />
-      <Arrow x1={440} y1={158} x2={358} y2={62} label="enumerate inputs" labelSide="above" />
+      <Arrow x1={440} y1={158} x2={358} y2={62} />
+      <Caption x={138} y={112} anchor="end">
+        sum of products
+      </Caption>
+      <Caption x={422} y={112} anchor="start">
+        enumerate inputs
+      </Caption>
+
       <Arrow x1={202} y1={190} x2={356} y2={190} label="draw the gates" labelSide="above" />
       <Arrow x1={356} y1={204} x2={202} y2={204} label="read gate by gate" labelSide="below" />
 
