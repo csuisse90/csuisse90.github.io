@@ -1,0 +1,326 @@
+---
+code: A1.2.7
+title: Truth tables and Boolean algebra
+lede: >-
+  Writing down everything a circuit does, then finding a smaller circuit that does exactly the same thing.
+prereqs:
+  - A1.2.6
+cards:
+  - q: >-
+      How many rows does a truth table with $n$ inputs have?
+    a: >-
+      $2^n$. Three inputs give eight rows, four give sixteen. Each extra input doubles the work.
+  - q: >-
+      How should the input columns of a truth table be ordered?
+    a: >-
+      Counting in binary from $000\ldots$ upwards. It guarantees every combination appears exactly once and makes the table easy to check.
+  - q: >-
+      What is a minterm?
+    a: >-
+      A row of the truth table where the output is $1$, written as a product of every variable, each inverted if it is $0$ in that row.
+  - q: >-
+      What is sum-of-products form?
+    a: >-
+      An OR of the minterms — one AND term per row where the output is $1$. Every truth table can be written this way directly.
+  - q: >-
+      State the identity laws.
+    a: >-
+      $A \cdot 1 = A$ and $A + 0 = A$.
+  - q: >-
+      State the null laws.
+    a: >-
+      $A \cdot 0 = 0$ and $A + 1 = 1$. An AND with zero, or an OR with one, ignores the other input entirely.
+  - q: >-
+      State the complement laws.
+    a: >-
+      $A \cdot \overline{A} = 0$ and $A + \overline{A} = 1$. Something cannot be both true and false, and must be one of them.
+  - q: >-
+      State the idempotent laws.
+    a: >-
+      $A \cdot A = A$ and $A + A = A$. Repeating an input changes nothing.
+  - q: >-
+      State the absorption laws.
+    a: >-
+      $A + A \cdot B = A$ and $A \cdot (A + B) = A$. The second term adds no information the first does not already carry.
+  - q: >-
+      State De Morgan's laws.
+    a: >-
+      $\overline{A \cdot B} = \overline{A} + \overline{B}$ and $\overline{A + B} = \overline{A} \cdot \overline{B}$. Break the bar, change the sign.
+  - q: >-
+      What is the distributive law in Boolean algebra?
+    a: >-
+      $A \cdot (B + C) = A\cdot B + A \cdot C$, and unusually also $A + B \cdot C = (A+B)(A+C)$, which has no arithmetic counterpart.
+  - q: >-
+      Why simplify a Boolean expression at all?
+    a: >-
+      Fewer gates means lower cost, less power, less heat, less board space, and a shorter path so the circuit settles sooner.
+practice:
+  - marks: 4
+    q: >-
+      Construct a truth table for $F = A \cdot \overline{B} + C$.
+    points:
+      - >-
+          Table has three inputs and therefore eight rows, listed in binary order.
+      - >-
+          Intermediate column for $A \cdot \overline{B}$ is correct.
+      - >-
+          Output is 1 for rows where $C = 1$.
+      - >-
+          Output is also 1 for $A=1, B=0, C=0$, giving outputs $0,1,0,1,1,1,0,1$.
+  - marks: 3
+    q: >-
+      Use De Morgan's laws to simplify $\overline{\overline{A} + \overline{B}}$.
+    points:
+      - >-
+          Applies De Morgan to give $\overline{\overline{A}} \cdot \overline{\overline{B}}$.
+      - >-
+          Removes the double negations.
+      - >-
+          Final answer $A \cdot B$.
+  - marks: 4
+    q: >-
+      Simplify $A \cdot B + A \cdot \overline{B}$, naming the laws used.
+    points:
+      - >-
+          Factorises to $A \cdot (B + \overline{B})$ by the distributive law.
+      - >-
+          $B + \overline{B} = 1$ by the complement law.
+      - >-
+          $A \cdot 1 = A$ by the identity law.
+      - >-
+          Final answer $A$.
+  - marks: 4
+    q: >-
+      Simplify $\overline{A}\cdot B + A \cdot B + A \cdot \overline{B}$.
+    points:
+      - >-
+          Groups the first two terms as $B(\overline{A} + A)$.
+      - >-
+          Simplifies to $B$ using complement and identity laws.
+      - >-
+          Expression becomes $B + A\overline{B}$.
+      - >-
+          Final answer $A + B$, since $B + A\overline{B} = B + A$.
+  - marks: 3
+    q: >-
+      Write the sum-of-products expression for a function that is 1 for the input combinations $A\overline{B}C$, $AB\overline{C}$ and $ABC$ only.
+    points:
+      - >-
+          One product term written per specified combination.
+      - >-
+          Terms correctly formed with complements where a variable is 0.
+      - >-
+          Expression $A\overline{B}C + AB\overline{C} + ABC$, joined by OR.
+  - marks: 4
+    q: >-
+      Explain why simplifying a Boolean expression before building the circuit is worthwhile, giving three distinct reasons.
+    points:
+      - >-
+          Fewer gates are needed, so the circuit costs less to manufacture.
+      - >-
+          Fewer gates consume less power and generate less heat.
+      - >-
+          Less physical space is needed on the chip or board.
+      - >-
+          A shorter path from input to output means fewer gate delays, so the circuit settles faster.
+  - marks: 5
+    q: >-
+      A circuit implements $F = (A + B) \cdot (A + C)$. Show that this equals $A + B \cdot C$ and comment on which implementation is preferable.
+    points:
+      - >-
+          Expands the brackets to $A\cdot A + A \cdot C + B \cdot A + B \cdot C$.
+      - >-
+          Uses $A \cdot A = A$ to give $A + AC + AB + BC$.
+      - >-
+          Applies absorption, since $A + AC + AB = A$.
+      - >-
+          Result is $A + B\cdot C$, confirming the identity.
+      - >-
+          The simplified form uses two gates rather than three, so it is cheaper and has a shorter delay.
+---
+
+A gate is defined by its truth table. A *circuit* of gates is also defined by a
+truth table — just a bigger one. So a truth table is the complete, unambiguous
+specification of any combinational circuit, and everything in this topic is about
+moving between that table and an expression that produces it.
+
+## Building a truth table
+
+List every combination of inputs, work out the output for each.
+
+With $n$ inputs there are $2^n$ combinations, so the table doubles in height with
+each input added. Two inputs give four rows; four give sixteen; ten give 1024.
+This growth is the reason simplification matters and, later, the reason Karnaugh
+maps stop being practical.
+
+Always list the inputs **counting in binary**. It guarantees you have every
+combination exactly once, and it makes an error visible at a glance.
+
+The reliable method for a compound expression is to add a column for each
+intermediate result rather than trying to evaluate the whole thing in your head.
+For $F = A\cdot\overline{B} + C$:
+
+| $A$ | $B$ | $C$ | $\overline{B}$ | $A\cdot\overline{B}$ | $F$ |
+| --- | --- | --- | --- | --- | --- |
+| 0 | 0 | 0 | 1 | 0 | 0 |
+| 0 | 0 | 1 | 1 | 0 | 1 |
+| 0 | 1 | 0 | 0 | 0 | 0 |
+| 0 | 1 | 1 | 0 | 0 | 1 |
+| 1 | 0 | 0 | 1 | 1 | 1 |
+| 1 | 0 | 1 | 1 | 1 | 1 |
+| 1 | 1 | 0 | 0 | 0 | 0 |
+| 1 | 1 | 1 | 0 | 0 | 1 |
+
+## From table to expression
+
+Given a table, you can always write an expression that produces it, mechanically.
+
+For each row where the output is $1$, write a **minterm**: the product of all
+variables, with a bar over any that is $0$ in that row. Then OR the minterms
+together. The result is **sum-of-products** form.
+
+From the table above, the rows with output $1$ are 001, 011, 100, 101, 111, giving
+
+$$F = \overline{A}\,\overline{B}C + \overline{A}BC + A\overline{B}\,\overline{C} + A\overline{B}C + ABC$$
+
+This is guaranteed correct and almost always far larger than necessary — five AND
+gates of three inputs each, plus a five-input OR, where two gates would do. Which
+is the point of the rest of this page.
+
+## The laws
+
+Boolean algebra is a set of identities that let you rewrite an expression without
+changing its truth table.
+
+| Law | AND form | OR form |
+| --- | --- | --- |
+| Identity | $A \cdot 1 = A$ | $A + 0 = A$ |
+| Null | $A \cdot 0 = 0$ | $A + 1 = 1$ |
+| Idempotent | $A \cdot A = A$ | $A + A = A$ |
+| Complement | $A \cdot \overline{A} = 0$ | $A + \overline{A} = 1$ |
+| Double negation | $\overline{\overline{A}} = A$ | |
+| Commutative | $AB = BA$ | $A + B = B + A$ |
+| Associative | $A(BC) = (AB)C$ | $A + (B+C) = (A+B)+C$ |
+| Distributive | $A(B+C) = AB + AC$ | $A + BC = (A+B)(A+C)$ |
+| Absorption | $A(A+B) = A$ | $A + AB = A$ |
+| De Morgan | $\overline{AB} = \overline{A} + \overline{B}$ | $\overline{A+B} = \overline{A}\cdot\overline{B}$ |
+
+Most of these behave like ordinary algebra with $\cdot$ as multiplication and $+$
+as addition. Three do not, and those are the ones worth attention.
+
+**$A + A = A$.** In arithmetic that would be $2A$. There is no $2$ here; there are
+only $0$ and $1$.
+
+**$A + 1 = 1$.** An OR with a $1$ is always $1$, whatever the other input. Nothing
+in arithmetic behaves like this.
+
+**$A + BC = (A+B)(A+C)$.** Distribution over OR. The arithmetic analogue,
+$a + bc = (a+b)(a+c)$, is simply false. This is the law people forget exists.
+
+<Aside kind="why" title="Why absorption is obvious once you read it aloud">
+$A + A\cdot B = A$ looks like something to memorise. Read it in words instead:
+"$A$ is true, or both $A$ and $B$ are true."
+
+If $A$ is true, the whole thing is true because of the first term. If $A$ is
+false, the second term is false too, since it needs $A$. So the value is exactly
+the value of $A$, and $B$ never gets a say.
+
+Most Boolean identities become obvious this way. Try $A(A+B) = A$: "$A$ is true,
+and either $A$ or $B$ is true." The second condition is guaranteed by the first.
+</Aside>
+
+## De Morgan's laws
+
+These are the two that appear most in exams, because they are the only way to move
+an inversion across a gate.
+
+$$\overline{A \cdot B} = \overline{A} + \overline{B} \qquad \overline{A + B} = \overline{A} \cdot \overline{B}$$
+
+The mnemonic is **break the bar, change the sign**: split the long bar into two
+short ones, and swap AND for OR.
+
+In words, the first says: "not both" is the same as "at least one is missing". The
+second: "neither" is the same as "not this and not that".
+
+Both are worth verifying rather than trusting, and the circuits below do that — the
+truth tables are identical, gate for gate.
+
+<Circuit id="demorgan-nand" table animate />
+
+<Circuit id="demorgan-orNots" table animate />
+
+<Aside kind="trap" title="The most common De Morgan error">
+$\overline{A + B}$ is **not** $\overline{A} + \overline{B}$. Half the marks lost on
+this topic are that single slip.
+
+Check it on one row. Let $A = 1$, $B = 0$.
+$\overline{A+B} = \overline{1} = 0$, but $\overline{A}+\overline{B} = 0 + 1 = 1$.
+
+A single counterexample settles it, and constructing one takes ten seconds. When
+unsure in an exam, do exactly that rather than trusting recall.
+</Aside>
+
+## Simplifying, worked
+
+The goal is fewer gates. The method is: look for a law that applies, apply it,
+repeat.
+
+$$\overline{A}B + AB + A\overline{B}$$
+
+Take the first two terms. Both contain $B$, so factorise:
+
+$$B(\overline{A} + A) + A\overline{B}$$
+
+By the complement law $\overline{A} + A = 1$, and by identity $B \cdot 1 = B$:
+
+$$B + A\overline{B}$$
+
+Now a useful and less obvious step. $B + A\overline{B} = B + A$, because if $B$ is
+false then $\overline{B}$ is true and the second term reduces to $A$; if $B$ is
+true the whole thing is true anyway. So:
+
+$$F = A + B$$
+
+Three AND gates, two NOTs and two ORs have become a single OR gate. The circuits
+below are the before and after — same truth table, very different hardware.
+
+<Circuit id="worked-unsimplified" table animate />
+
+<Circuit id="worked-simplified" table animate />
+
+<Py caption="Checking a simplification by brute force. This is what you should do whenever you are unsure: two expressions are equal only if they agree on every row.">{`
+from itertools import product
+
+def evaluate(expr, values):
+    return eval(expr, {}, values)
+
+def same(one, two, variables):
+    rows = []
+    for combo in product([0, 1], repeat=len(variables)):
+        env = dict(zip(variables, combo))
+        a, b = evaluate(one, env), evaluate(two, env)
+        rows.append((combo, a, b, a == b))
+    return rows
+
+# Python's operators stand in: & is AND, | is OR, ^ is XOR, 1 - x is NOT.
+pairs = [
+    ("(~A & B) | (A & B) | (A & ~B)", "A | B", "AB"),
+    ("~(A & B)", "~A | ~B", "AB"),
+    ("~(A | B)", "~A | ~B", "AB"),
+    ("A | (B & C)", "(A | B) & (A | C)", "ABC"),
+]
+
+for one, two, variables in pairs:
+    rows = same(one.replace("~", "1-"), two.replace("~", "1-"), list(variables))
+    verdict = "equal" if all(r[3] for r in rows) else "NOT equal"
+    print(f"{one:>34}  ==  {two:<22} {verdict}")
+    if not all(r[3] for r in rows):
+        bad = next(r for r in rows if not r[3])
+        print(f"    counterexample at {dict(zip(variables, bad[0]))}: {bad[1]} vs {bad[2]}")
+`}</Py>
+
+<Takeaway>
+A truth table says what a circuit must do. Boolean algebra finds the cheapest
+circuit that does it. The two are always interchangeable, and the sum-of-products
+form is the bridge between them.
+</Takeaway>

@@ -1,0 +1,299 @@
+---
+code: A1.2.4
+title: Images and sound
+lede: >-
+  Turning something continuous — a scene, a pressure wave — into a finite list of numbers, and what is unavoidably lost in the process.
+prereqs:
+  - A1.2.1
+cards:
+  - q: >-
+      What is a pixel?
+    a: >-
+      The smallest addressable element of a bitmap image. The whole image is a grid of them, each storing one colour.
+  - q: >-
+      What is image resolution?
+    a: >-
+      The number of pixels in the image, usually given as width $\times$ height. More pixels means more detail and a proportionally larger file.
+  - q: >-
+      What is colour depth?
+    a: >-
+      The number of bits used per pixel. $n$ bits give $2^n$ possible colours; 24-bit colour gives $2^{24} \approx 16.7$ million.
+  - q: >-
+      Give the formula for the size of an uncompressed bitmap.
+    a: >-
+      $\text{size} = \text{width} \times \text{height} \times \text{colour depth}$, in bits. Divide by $8$ for bytes.
+  - q: >-
+      What is metadata in an image file?
+    a: >-
+      Data about the image rather than the image itself — dimensions, colour depth, date, camera settings. The file needs it to be interpretable at all.
+  - q: >-
+      What is sampling, in the context of sound?
+    a: >-
+      Measuring the amplitude of the sound wave at regular intervals and storing each measurement as a number.
+  - q: >-
+      What is sample rate?
+    a: >-
+      How many samples are taken per second, in hertz. CD audio uses $44{,}100\,\text{Hz}$.
+  - q: >-
+      What is bit depth in audio?
+    a: >-
+      How many bits store each sample. More bits give finer amplitude steps and a lower quantisation error.
+  - q: >-
+      Give the formula for the size of an uncompressed audio file.
+    a: >-
+      $\text{size} = \text{sample rate} \times \text{bit depth} \times \text{channels} \times \text{seconds}$, in bits.
+  - q: >-
+      What is the Nyquist theorem?
+    a: >-
+      To reconstruct a wave faithfully you must sample at more than **twice** its highest frequency. Human hearing reaches about $20\,\text{kHz}$, hence a $44.1\,\text{kHz}$ sample rate.
+  - q: >-
+      What is aliasing?
+    a: >-
+      When sampling too slowly makes a high frequency indistinguishable from a lower one, so the reconstruction contains a tone that was never there.
+  - q: >-
+      What is quantisation error?
+    a: >-
+      The difference between the true amplitude and the nearest value the bit depth can represent. It is heard as noise, and halves with each extra bit.
+practice:
+  - marks: 3
+    q: >-
+      An uncompressed image is $1920 \times 1080$ pixels with a colour depth of 24 bits. Calculate its file size in megabytes.
+    points:
+      - >-
+          $1920 \times 1080 = 2{,}073{,}600$ pixels.
+      - >-
+          $2{,}073{,}600 \times 24 = 49{,}766{,}400$ bits, that is $6{,}220{,}800$ bytes.
+      - >-
+          Approximately $6.22\,\text{MB}$, or $5.93\,\text{MiB}$.
+  - marks: 3
+    q: >-
+      Explain the effect on file size and on image quality of doubling both the width and the height of an image in pixels.
+    points:
+      - >-
+          The number of pixels increases by a factor of four, not two.
+      - >-
+          File size therefore quadruples, assuming colour depth is unchanged.
+      - >-
+          More detail can be captured, though quality only improves if the extra detail was present in the original.
+  - marks: 4
+    q: >-
+      A 30-second stereo recording uses a sample rate of 44.1 kHz and a bit depth of 16. Calculate the uncompressed file size in megabytes.
+    points:
+      - >-
+          $44{,}100 \times 16 = 705{,}600$ bits per second per channel.
+      - >-
+          Two channels gives $1{,}411{,}200$ bits per second.
+      - >-
+          Over 30 seconds that is $42{,}336{,}000$ bits.
+      - >-
+          $= 5{,}292{,}000$ bytes, approximately $5.29\,\text{MB}$.
+  - marks: 4
+    q: >-
+      Explain, with reference to the Nyquist theorem, why audio is sampled at 44.1 kHz rather than 20 kHz.
+    points:
+      - >-
+          Human hearing extends to roughly $20\,\text{kHz}$.
+      - >-
+          Nyquist requires a sample rate more than twice the highest frequency to be reproduced.
+      - >-
+          Sampling at $20\,\text{kHz}$ would only capture frequencies up to $10\,\text{kHz}$, losing much of the audible range.
+      - >-
+          $44.1\,\text{kHz}$ exceeds twice $20\,\text{kHz}$, leaving margin for the filters used before sampling.
+  - marks: 3
+    q: >-
+      Explain what aliasing is and how it can be avoided.
+    points:
+      - >-
+          Sampling below the Nyquist rate causes a high frequency to be indistinguishable from a lower one.
+      - >-
+          The reconstructed signal therefore contains a tone that was not in the original.
+      - >-
+          It is avoided by raising the sample rate, or by filtering out frequencies above half the sample rate before sampling.
+  - marks: 4
+    q: >-
+      Explain the trade-off involved in choosing a bit depth for audio.
+    points:
+      - >-
+          Each sample must be rounded to the nearest representable value, producing quantisation error.
+      - >-
+          A greater bit depth gives finer steps, so the error and the resulting noise are smaller.
+      - >-
+          Each additional bit doubles the number of levels and improves the signal-to-noise ratio by about 6 dB.
+      - >-
+          However file size grows in proportion to bit depth, so beyond the point where error is inaudible the extra data is wasted.
+  - marks: 5
+    q: >-
+      A school is digitising an archive of audio tapes of spoken interviews. Recommend a sample rate and bit depth, justifying your choices.
+    points:
+      - >-
+          Speech occupies a much narrower frequency range than music, roughly up to $8\,\text{kHz}$ for intelligibility.
+      - >-
+          A sample rate of around $16$–$22\,\text{kHz}$ therefore satisfies Nyquist for speech.
+      - >-
+          A bit depth of 16 gives ample dynamic range; 8 would introduce audible noise on quiet passages.
+      - >-
+          Mono is sufficient, since an interview has no meaningful stereo content, halving the size.
+      - >-
+          A clear recommendation is given and justified against the competing demand of archive storage cost.
+---
+
+A photograph and a sound are both **continuous**: infinitely detailed, infinitely
+divisible. A computer stores a **finite** list of numbers. Getting from one to the
+other means throwing information away, deliberately and in a controlled fashion.
+Everything in this topic is about how much to throw away and what it costs.
+
+## Bitmap images
+
+A **bitmap** divides the image into a grid of **pixels** and stores one colour per
+pixel. Two numbers describe the arrangement.
+
+**Resolution** is how many pixels there are, given as width $\times$ height. Note
+that doubling both dimensions **quadruples** the pixel count — a mistake that
+costs marks routinely.
+
+**Colour depth** is how many bits store each pixel's colour. With $n$ bits you get
+$2^n$ colours.
+
+| Depth | Colours | Used for |
+| --- | --- | --- |
+| 1 bit | 2 | Pure black and white, fax |
+| 8 bit | 256 | Old GIFs, indexed palettes |
+| 24 bit | 16,777,216 | Standard photographs — 8 bits each of red, green, blue |
+| 32 bit | as above, plus transparency | Images that composite over others |
+
+<Figure caption="At low colour depth, smooth gradients become visible bands, because there is no available value between the two shown.">
+  <ColourDepth />
+</Figure>
+
+The uncompressed size follows directly:
+
+$$\text{size (bits)} = \text{width} \times \text{height} \times \text{depth}$$
+
+A $1920 \times 1080$ photograph at 24-bit colour is $1920 \times 1080 \times 24 =
+49{,}766{,}400$ bits, about $6.2\,\text{MB}$. A phone camera at 48 megapixels
+produces about $144\,\text{MB}$ per shot uncompressed — which is why nothing is
+ever stored uncompressed.
+
+Files also carry **metadata**: the dimensions, the colour depth, often the date
+and camera settings. This is not optional decoration. Without the width, a
+decoder receiving three million colour values has no way to know whether they
+form a wide image or a tall one.
+
+<Aside kind="deeper" title="Why 24-bit is called “true colour” and roughly is">
+The eye can distinguish somewhere around ten million colours, so $16.7$ million
+was chosen as comfortably beyond the limit. It mostly is — but not entirely. In a
+smooth gradient, such as a clear sky, adjacent bands differ by one step in one
+channel, and the eye is unusually good at spotting edges. The result is visible
+**banding**, which is why professional workflows use 10 or 12 bits per channel
+and why HDR formats exist.
+
+The general lesson is that "enough resolution" depends on what you are looking
+at, not only on how much the eye can resolve in the abstract.
+</Aside>
+
+## Sound
+
+Sound is a pressure wave: a continuously varying quantity. Digitising it means
+**sampling** — measuring the amplitude at regular intervals and storing each
+measurement.
+
+<Figure caption="The smooth wave is the original. The bars are the samples. Everything between two bars is guessed on playback.">
+  <Sampling />
+</Figure>
+
+**Sample rate** is how many measurements per second, in hertz. **Bit depth** is
+how many bits store each measurement. The size follows:
+
+$$\text{size (bits)} = \text{rate} \times \text{depth} \times \text{channels} \times \text{seconds}$$
+
+CD audio is $44{,}100\,\text{Hz}$, 16 bits, 2 channels: $1{,}411{,}200$ bits per
+second, or about $10\,\text{MB}$ a minute.
+
+## Nyquist, and the number 44,100
+
+Why $44.1\,\text{kHz}$? It looks arbitrary and is not.
+
+The **Nyquist–Shannon sampling theorem** states that to reconstruct a wave you
+must sample at more than **twice** its highest frequency component. Below that,
+the samples are consistent with more than one wave and there is no way to tell
+which was recorded.
+
+Human hearing tops out around $20\,\text{kHz}$, so the minimum is
+$40\,\text{kHz}$. The extra $4.1\,\text{kHz}$ leaves room for the anti-aliasing
+filter, which cannot cut off perfectly sharply at exactly $20\,\text{kHz}$.
+
+<Aside kind="why" title="Aliasing is not just an audio phenomenon">
+Sample too slowly and a high frequency becomes indistinguishable from a low one.
+The recording then contains a tone that was never played.
+
+You have seen this with your eyes. A wheel filmed at 24 frames per second appears
+to slow, stop, then turn backwards as it speeds up: the camera is sampling the
+wheel's rotation, and once the rotation exceeds half the frame rate, the samples
+fit a slower backwards rotation just as well. Same theorem, same failure.
+
+It is also why old computer graphics had jagged edges: an image is a spatial
+sampling of a scene, and a diagonal line contains spatial frequencies higher than
+the pixel grid can represent. "Anti-aliasing" in a game's settings is the same
+filter, applied to space rather than time.
+</Aside>
+
+<Py caption="Sampling and quantisation, made visible. Run it to see the reconstruction error fall as bit depth rises, and watch aliasing appear when the rate drops below Nyquist.">{`
+import math
+
+def sample(freq, rate, depth, seconds=1.0):
+    """Sample a sine wave and quantise it, returning the mean error."""
+    levels = 2 ** depth
+    total_error = 0.0
+    n = int(rate * seconds)
+    for i in range(n):
+        t = i / rate
+        true = math.sin(2 * math.pi * freq * t)
+        step = round((true + 1) / 2 * (levels - 1))
+        stored = step / (levels - 1) * 2 - 1
+        total_error += abs(true - stored)
+    return total_error / n
+
+print("quantisation error against bit depth, 1 kHz tone")
+for depth in (2, 4, 8, 12, 16):
+    err = sample(1000, 44100, depth)
+    print(f"  {depth:>2} bits  {2**depth:>6} levels  mean error {err:.6f}")
+
+print()
+print("file size for one minute of stereo audio")
+for rate, depth in ((8000, 8), (22050, 16), (44100, 16), (96000, 24)):
+    bits = rate * depth * 2 * 60
+    print(f"  {rate:>6} Hz, {depth:>2}-bit -> {bits / 8 / 1_000_000:>6.2f} MB")
+`}</Py>
+
+## Quantisation error
+
+Sampling fixes *when* you measure. **Quantisation** is what happens to the
+measurement itself: the true amplitude is a real number, and it must be rounded
+to one of the $2^n$ values the bit depth allows.
+
+The difference is **quantisation error**, and it is heard as a faint noise
+underlying the recording. Each extra bit halves the step size and so halves the
+error — improving the signal-to-noise ratio by about $6\,\text{dB}$ per bit.
+Sixteen bits puts the noise below the threshold of hearing for ordinary listening,
+which is why it became the standard.
+
+<Aside kind="trap" title="Sample rate and bit depth are not the same knob">
+A common confusion: raising the sample rate does not reduce quantisation error,
+and raising the bit depth does not capture higher frequencies.
+
+- **Sample rate** governs the highest *frequency* you can record. Too low, and
+  you get aliasing.
+- **Bit depth** governs the *precision* of each measurement. Too low, and you get
+  audible noise.
+
+They are independent axes and questions often test whether you know which is
+which. If the problem mentions treble, cymbals or frequency, it is sample rate.
+If it mentions noise, dynamic range or quiet passages, it is bit depth.
+</Aside>
+
+<Takeaway>
+Both images and sound are the same operation in different dimensions: chop a
+continuous thing into regular pieces, and round each piece to the nearest number
+you can afford to store. Resolution and sample rate control how finely you chop;
+colour depth and bit depth control how finely you round.
+</Takeaway>
