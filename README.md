@@ -1,97 +1,69 @@
-# eeshaan teaches cs
+# IB CS HL
 
-A written course for IB Computer Science HL (first assessment 2027).
-Theme A is complete — A1 computer fundamentals, A2 networks, A3 databases,
-A4 machine learning — and Theme B (B1–B4) is framed as an outline.
+A written course for IB Computer Science Higher Level, first assessment 2027.
 
-Features an interactive logic simulator, runnable Python in the page, SVG
-figures throughout, and an optional AI helper backed by your own Claude Code.
+Theme A is written out in full — A1 computer fundamentals, A2 networks,
+A3 databases, A4 machine learning. Theme B (B1–B4) is an outline.
 
 Live at **https://csuisse90.github.io**
 
-## How it works
+## What is in it
 
-The simulation engine is written in C++ and compiled to WebAssembly. It owns
-everything computational:
-
-- **Netlist evaluation** with three-valued logic (`0`, `1`, unknown). Feedback
-  loops are allowed, which is what makes an SR latch representable.
-- **Unit-delay propagation tracing.** Every gate reads the previous state and
-  writes the next, so one sweep is exactly one gate delay everywhere at once.
-  The animations show a real wavefront, and genuine hazard glitches emerge
-  without being scripted.
-- **Quine–McCluskey minimisation** with essential-prime extraction.
-- **Boolean expression parsing** covering the notations a student meets
-  (`A.B`, `AB`, `A'`, `¬A`, `A⊕B`, `A NAND B`).
-- **Layout and gate geometry.** Outlines are generated from the IEEE Std
-  91-1984 distinctive shapes — the AND body is a true semicircle of radius
-  *h*/2, the OR is three circular arcs — rather than drawn by hand.
-
-React renders the result as real SVG, so diagrams stay selectable, accessible
-and printable.
-
-## Runnable Python
-
-Code examples use `components/PyRunner.tsx`, which loads Pyodide (CPython
-compiled to WebAssembly) from a CDN on first use and runs the code in the
-browser. Nothing is installed and nothing is uploaded.
-
-Parts of the standard library are unvendored in Pyodide and must be requested
-by name — pass them via the `packages` prop:
-
-    <PyRunner packages={["sqlite3"]} code={...} />
-
-## The Ask Claude panel
-
-The published site is static, so there is no server to answer questions. The
-panel instead calls a bridge running on the reader's own machine:
-
-    bun run tools/claudeBridge.mjs
-
-The bridge listens on `127.0.0.1:8787` only, and shells out to the Claude Code
-CLI with Haiku 4.5. No API key is stored in the site, and nothing is sent
-anywhere except to your own Claude session. Loopback addresses are exempt from
-mixed-content blocking, so the HTTPS site is allowed to call it.
-
-Without the bridge running the panel degrades gracefully: it reports that it
-cannot connect and tells the reader how to start it. Visitors who are not you
-will simply see that message.
-
-Override the model with `CLAUDE_MODEL`, or the port with `PORT`.
-
-## Repository layout
-
-    core/         C++ engine and its native test suite
-    lib/wasm/     compiled WebAssembly (committed)
-    lib/          catalogue, types, generated circuit data (committed)
-    scripts/      build-time circuit generation
-    components/   renderer, truth tables, K-map, builder, expression lab
-    components/figures/  static SVG diagrams
-    tools/        local Claude Code bridge
-    app/          Next.js App Router pages
+- An interactive logic simulator you can slow down to watch signals propagate,
+  one gate delay at a time.
+- Eight labs: numbers, a CPU you step through, scheduling, sampling, circuit
+  building, Boolean expressions, Karnaugh maps and SQL.
+- Editable Python throughout, executed in the browser.
+- Practice questions with worked mark schemes at the end of every topic page.
+- An assistant that explains the current page as an analogy or sets you a
+  question.
 
 ## Building
-
-Day to day, only the web build is needed — the WebAssembly module and the
-generated circuit data are committed, so CI needs no C++ toolchain:
 
     bun install
     bun run dev          # or: bunx next build
 
-### Changing the C++
+The engine is committed as a compiled artifact, so CI needs no C++ toolchain.
+If you change anything under `core/`:
 
-    ./core/build.sh --test     # native build, runs the engine test suite
-    ./core/build.sh            # emscripten build -> lib/wasm/logicCore.js
-    bun run scripts/generate.ts   # regenerate lib/generated/circuits.json
+    ./core/build.sh --test        # native build, runs the engine test suite
+    ./core/build.sh --sprite      # regenerates lib/generated/sprite.json
+    ./core/build.sh               # emscripten build -> lib/wasm/logicCore.js
+    bun run scripts/generate.ts   # regenerates the circuit data
+    bun run scripts/siteContext.ts
 
-The emscripten build needs `em++` on the PATH. Install the prebuilt SDK from
-<https://github.com/emscripten-core/emscripten> — do not build it from source,
-which takes hours.
-
-Commit `lib/wasm/logicCore.js` and `lib/generated/circuits.json` alongside the
-C++ change, or the deployed site will keep using the old engine.
+Commit the regenerated files alongside the change, or the deployed site keeps
+using the old engine. The emscripten step needs `em++` on the PATH — install the
+prebuilt SDK rather than building it from source.
 
 ## Deployment
 
-Pushing to `main` triggers `.github/workflows/deploy.yml`, which runs the
-static export and publishes it with GitHub Pages.
+Pushing to `main` runs `.github/workflows/deploy.yml`, which builds the static
+export and publishes it.
+
+**Pages must be set to build from the workflow, not from a branch.** If it is
+set to a branch, GitHub also runs Jekyll over the repository root and the two
+deployments race — with the README ending up as the homepage:
+
+    gh api -X PUT repos/<owner>/<repo>/pages -f build_type=workflow
+
+## The assistant
+
+`lib/ai.ts` calls OpenRouter directly with an embedded key. The key is
+obfuscated, not secret: anything in a static bundle can be read from the network
+tab. It is restricted to free models so the exposure is quota abuse rather than
+spend, and it is rotated by replacing the packed string.
+
+`workers/openrouterProxy.js` is a Cloudflare Worker that fronts OpenRouter with
+the key held as a secret, which keeps it off the client entirely. Deploy it and
+rebuild with `NEXT_PUBLIC_AI_PROXY` set to its URL to use that route instead.
+
+## Layout
+
+    core/         engine and its native test suite
+    lib/wasm/     compiled engine (committed)
+    lib/generated/  circuit data, sprite geometry, site digest (committed)
+    scripts/      build-time generation
+    components/   renderer, labs, figures, assistant
+    workers/      optional API proxy
+    app/          pages
