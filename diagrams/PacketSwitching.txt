@@ -1,0 +1,1 @@
+The three packets take three different routes and arrive out of order. Sequence numbers in each header let the receiver put them back together — and if one never turns up, only that packet is resent.

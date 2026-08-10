@@ -1,0 +1,1 @@
+Three instructions take nine cycles run one after another, but only five when the stages overlap. Each instruction still takes three cycles — more of them simply finish per second.

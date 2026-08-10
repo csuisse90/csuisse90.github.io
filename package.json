@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "bun run scripts/content.ts && next build",
+    "build": "bun run scripts/content.ts && bun run scripts/siteContext.ts && next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "content": "bun run scripts/content.ts",

@@ -1,0 +1,1 @@
+The CPU on the left, memory and devices on the right, joined by three buses. The address bus is one-way — memory never chooses its own address — while the data bus carries values in both directions.

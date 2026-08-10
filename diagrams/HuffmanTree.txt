@@ -1,0 +1,1 @@
+The commonest symbol sits one edge from the root and gets a one-bit code; the rarest sits three edges away. No codeword is a prefix of another, because every symbol is a leaf.

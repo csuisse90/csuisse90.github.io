@@ -1,0 +1,1 @@
+The feedback arrow is what makes it a control system rather than a one-off command: the effect of the actuator changes what the sensor next measures.

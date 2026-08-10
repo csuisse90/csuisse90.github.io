@@ -1,0 +1,1 @@
+On the left every request goes through one machine — easy to secure and back up, and catastrophic when it fails. On the right there is no centre to lose, and no centre to control either.

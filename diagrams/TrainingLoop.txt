@@ -1,0 +1,1 @@
+The loop runs thousands of times. Nothing about it is intelligent — it is a very patient process of being wrong slightly less each time.

@@ -1,0 +1,1 @@
+Moving money is two writes that must both happen or neither. Atomicity is what stops the power cut in the middle from destroying £100.

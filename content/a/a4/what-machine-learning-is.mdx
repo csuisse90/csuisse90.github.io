@@ -1,0 +1,282 @@
+---
+code: A4.1.1
+title: What machine learning is
+lede: >-
+  Programs that are not written but fitted, why anyone would want that, and the three ways of learning you are expected to tell apart.
+cards:
+  - q: >-
+      What is machine learning?
+    a: >-
+      Building a program by **fitting it to examples** rather than writing its rules by hand. The rules are found by the fitting process, not by a programmer.
+  - q: >-
+      When is machine learning the right approach?
+    a: >-
+      When the rules are real but nobody can state them — recognising a face, spotting spam — and plenty of examples exist.
+  - q: >-
+      When is machine learning the wrong approach?
+    a: >-
+      When the rules are already known and exact. Nobody should learn payroll tax from examples; it is written down and must be exactly right.
+  - q: >-
+      What is supervised learning?
+    a: >-
+      Learning from examples that come with the **right answers** attached, so the model learns a mapping from input to a known output.
+  - q: >-
+      What is unsupervised learning?
+    a: >-
+      Learning from data with **no labels**, finding structure — usually groups — that nobody specified in advance.
+  - q: >-
+      What is reinforcement learning?
+    a: >-
+      Learning by acting and receiving a **reward or penalty**, with no correct answer given, only a signal about how well it went.
+  - q: >-
+      What is a feature?
+    a: >-
+      One measurable property used as input — a pixel value, a word count, an age. The set of features is what the model actually sees.
+  - q: >-
+      What is a label?
+    a: >-
+      The correct output for a training example. Only supervised learning has them, and producing them is usually the expensive part.
+  - q: >-
+      What is a model?
+    a: >-
+      The thing produced by training: a set of numbers, plus a rule for turning an input into an output using them.
+  - q: >-
+      What is training?
+    a: >-
+      Adjusting the model's numbers so that its outputs on the training data get closer to the labels.
+  - q: >-
+      Why must test data be kept separate from training data?
+    a: >-
+      Because a model can score well on data it has already seen without having learned anything general. Only unseen data measures that.
+  - q: >-
+      What is the difference between a rule-based program and a learned model?
+    a: >-
+      A rule-based program's behaviour is stated by a person and can be read. A learned model's behaviour is fitted from data, and often nobody can say why it decides as it does.
+practice:
+  - marks: 3
+    q: >-
+      Explain what distinguishes machine learning from traditional programming.
+    points:
+      - >-
+          In traditional programming a person writes explicit rules that produce the output from the input.
+      - >-
+          In machine learning the rules are derived automatically by fitting a model to example data.
+      - >-
+          The programmer supplies the data and the structure of the model, rather than the decision logic itself.
+  - marks: 4
+    q: >-
+      Give one problem for which machine learning is appropriate and one for which it is not, justifying both.
+    points:
+      - >-
+          An appropriate problem is identified, such as recognising handwriting or detecting spam.
+      - >-
+          It is justified because the rules are genuinely too complex or subtle to state, but examples are plentiful.
+      - >-
+          An inappropriate problem is identified, such as calculating tax or validating a password.
+      - >-
+          It is justified because the rules are already known exactly and an approximate answer would be unacceptable.
+  - marks: 4
+    q: >-
+      Distinguish between supervised and unsupervised learning, giving an example of each.
+    points:
+      - >-
+          Supervised learning uses training data in which each example is paired with the correct answer.
+      - >-
+          An example is classifying email as spam or not spam, using messages already marked by users.
+      - >-
+          Unsupervised learning uses data with no correct answers supplied.
+      - >-
+          An example is grouping customers by purchasing behaviour, where the groups are not known in advance.
+  - marks: 3
+    q: >-
+      Explain what reinforcement learning is and how it differs from supervised learning.
+    points:
+      - >-
+          The system takes actions in an environment and receives a reward or penalty for the outcome.
+      - >-
+          It is never told what the correct action was, only how good the result turned out to be.
+      - >-
+          Supervised learning is given the correct answer for each example, so it can be corrected directly.
+  - marks: 3
+    q: >-
+      Explain the terms feature and label, using a system that predicts house prices as your example.
+    points:
+      - >-
+          A feature is a measurable input property, such as floor area, number of bedrooms or postcode.
+      - >-
+          A label is the correct output for a training example, here the price the house actually sold for.
+      - >-
+          The model learns a relationship from the features to the label, so unlabelled houses can be priced.
+  - marks: 4
+    q: >-
+      Explain why a model's accuracy must be measured on data it was not trained on.
+    points:
+      - >-
+          A model can achieve high accuracy simply by memorising the training examples.
+      - >-
+          Memorising does not produce correct answers on anything new, which is what the model is for.
+      - >-
+          Held-back test data has not influenced training, so performance on it estimates real-world performance.
+      - >-
+          Without that separation, the reported accuracy is misleadingly high.
+  - marks: 5
+    q: >-
+      A school proposes using machine learning to predict which students are at risk of failing. Discuss whether this is appropriate.
+    points:
+      - >-
+          Patterns in attendance, grades and engagement are plausibly predictive but hard to state as rules, so the technique fits.
+      - >-
+          Historical student data provides labelled examples, since past outcomes are known.
+      - >-
+          However predictions may reflect bias in past data, disadvantaging groups already treated unfairly.
+      - >-
+          A prediction may become self-fulfilling if staff treat flagged students differently.
+      - >-
+          A reasoned conclusion is reached, for example that it is defensible only as a prompt for human review rather than as a decision.
+---
+
+Every program so far in this course was written by somebody who knew the rules.
+Adding two numbers, routing a packet, normalising a table — in each case a person
+worked out what should happen and expressed it.
+
+Some problems resist that. Nobody can write down the rule that distinguishes a
+photograph of a cat from a photograph of a dog. You can recognise it instantly and
+you cannot say how. The rule exists; it is simply not available for inspection.
+
+**Machine learning** is what you do instead: supply thousands of examples, and
+have an algorithm find a rule that fits them.
+
+## What is actually being learned
+
+The essential shift is where the behaviour comes from.
+
+| | Traditional programming | Machine learning |
+| --- | --- | --- |
+| The programmer supplies | The rules | The examples, and the shape of the model |
+| The computer supplies | The output | The rules, and then the output |
+| You can read the logic | Yes | Often not |
+| Wrong answers are | Bugs, findable in the code | Statistical, reduced but not eliminated |
+
+That last row deserves attention. A conventional program with a bug can be
+debugged: there is a line responsible, and it can be corrected. A model that
+misclassifies has no such line. Its behaviour lives in thousands or billions of
+numbers, none individually meaningful.
+
+<Aside kind="trap" title="Machine learning is not the answer to every problem">
+Questions frequently describe a problem for which it is the **wrong** tool, and the
+marks are for saying so.
+
+Do not use it when the rules are known and exact. Tax, payroll, password checking,
+booking systems — all have rules written down, all require exact answers, and a
+model that is 99.7% right is a catastrophe rather than a success.
+
+Do not use it when there is no data, when the data available is unrepresentative,
+or when a wrong answer cannot be tolerated and the reason for a decision must be
+explainable.
+
+The test to apply: *are the rules knowable and stateable?* If yes, write them.
+</Aside>
+
+## The three kinds
+
+<Figure caption="What distinguishes them is what the data arrives with — answers, nothing, or a score after the fact.">
+  <LearningTypes />
+</Figure>
+
+**Supervised learning.** Every training example comes with the correct answer.
+Photographs already labelled cat or dog; emails already marked spam; houses with
+their sale prices. The model learns a mapping from input to that known output, and
+success is measured by comparing predictions against labels that were held back.
+
+This is the most common kind in practice, and the labels are usually the expensive
+part — somebody has to produce them, one at a time.
+
+**Unsupervised learning.** No labels at all. The algorithm is asked to find
+structure that nobody specified: which customers behave similarly, which
+transactions look unlike all the others.
+
+There is no correct answer to compare against, which means there is no clean way to
+tell whether it worked. The groups either turn out to be useful to a person or they
+do not.
+
+**Reinforcement learning.** The system acts, and receives a reward or a penalty. It
+is never told what it should have done — only how well things went. Over many
+attempts it learns which actions tend to lead to reward.
+
+This is how programs learn to play games. It suits problems where the right action
+depends on a sequence of moves whose payoff comes much later, which is exactly the
+case supervised learning handles badly.
+
+## The vocabulary
+
+A **feature** is one measurable input. For a house: floor area, bedrooms,
+postcode, year built. The features are all the model sees — anything not encoded as
+a feature might as well not exist.
+
+A **label** is the right answer for a training example. The actual sale price.
+
+A **model** is what training produces: a set of numbers, plus a rule for combining
+them with the features to produce an output.
+
+**Training** is the process of adjusting those numbers so the outputs move closer
+to the labels.
+
+<Figure caption="Predict, compare, measure how wrong, adjust. Every supervised learning algorithm is this loop; they differ only in the model and in how the adjustment is computed.">
+  <TrainingLoop />
+</Figure>
+
+<Py packages={["numpy"]} caption="A model fitted from data, with nothing hand-coded about the relationship. Step through the loop and watch the error fall.">{`
+import numpy as np
+
+# Houses: floor area in square metres, and the price they sold for.
+area  = np.array([45, 60, 72, 88, 95, 110, 128, 145, 160, 180], dtype=float)
+price = np.array([142, 178, 205, 240, 262, 296, 340, 378, 415, 462], dtype=float)
+
+# The model is two numbers. Nobody has told it what they should be.
+slope, intercept = 0.0, 0.0
+rate = 0.00002
+
+for step in range(1, 4001):
+    predicted = slope * area + intercept
+    error = predicted - price
+    loss = float(np.mean(error ** 2))
+
+    # Nudge both numbers in the direction that reduces the error.
+    slope -= rate * float(np.mean(error * area)) * 2
+    intercept -= rate * float(np.mean(error)) * 2
+
+    if step in (1, 10, 100, 1000, 4000):
+        print(f"step {step:>5}  loss {loss:>10.2f}  price = {slope:.2f} x area + {intercept:.2f}")
+
+print()
+print("the model was never told that price rises with area — it found that")
+print()
+for a in (75, 130, 200):
+    print(f"  {a:>3} m2 -> predicted {slope * a + intercept:6.1f} thousand")
+
+# 200 m2 is beyond anything it was trained on, so that last one is a guess
+# about territory it has never seen.
+print()
+print("largest house in the training data:", int(area.max()), "m2")
+`}</Py>
+
+<Aside kind="why" title="Why the last prediction is worth distrusting">
+The model above happily prices a 200 m² house, having never seen one above 180 m².
+It will produce a number for a 5000 m² house too, and for a house of negative area.
+
+A model has no notion of the limits of its own experience. It has fitted a line and
+will extend that line anywhere it is asked. Whether the relationship it found
+continues to hold outside the range of the training data is a question about the
+world, and the model has no access to the world — only to ten examples.
+
+This is **extrapolation**, and it is one of the most reliable ways for a deployed
+model to be confidently wrong. It also generalises: a model trained on one
+population, or one season, or one country, is extrapolating whenever it is used
+outside those conditions, and it will not say so.
+</Aside>
+
+<Takeaway>
+Machine learning trades a rule you can read for a rule you could not have written.
+That is a good trade when the rule is genuinely unwriteable, and a bad one when
+somebody already knows it.
+</Takeaway>

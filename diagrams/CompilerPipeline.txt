@@ -1,0 +1,1 @@
+The first two stages are exactly what the expression lab on this site does to what you type: break it into tokens, then build a tree, and complain if the grammar does not hold.

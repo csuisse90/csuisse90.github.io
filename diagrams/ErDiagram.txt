@@ -1,0 +1,1 @@
+One student has many enrolments; one course has many enrolments. The join table in the middle turns a many-to-many relationship into two one-to-many ones, which is the only way a relational database can express it.

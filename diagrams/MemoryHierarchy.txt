@@ -1,0 +1,1 @@
+Every step down is roughly a hundred times slower and a great deal cheaper per byte. Cache exists purely because the gap between registers and RAM is too expensive to pay on every access.

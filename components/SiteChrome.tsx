@@ -27,23 +27,9 @@ const TOOLS = [
   { href: "/reference/", label: "Reference sheet", code: "REF" },
 ];
 
-/** The original pages, still here until their deep rewrites land under
- *  content/. Listed separately so it is obvious which is which. */
+/** Theme B has not been rewritten yet, so its original notes stay reachable,
+ *  along with the two extension pages that belong to no unit. */
 const LEGACY = [
-  { href: "/hardware/", label: "Hardware & operation", code: "A1.1" },
-  { href: "/data-representation/", label: "Data representation", code: "A1.2" },
-  { href: "/gates/", label: "Logic gates", code: "A1.2" },
-  { href: "/truth-tables/", label: "Truth tables", code: "A1.2" },
-  { href: "/boolean-algebra/", label: "Boolean algebra", code: "A1.2" },
-  { href: "/karnaugh-maps/", label: "Karnaugh maps", code: "A1.2" },
-  { href: "/logic-diagrams/", label: "Logic diagrams", code: "A1.2" },
-  { href: "/operating-systems/", label: "Operating systems", code: "A1.3" },
-  { href: "/translators/", label: "Translators", code: "A1.4" },
-  { href: "/networks/", label: "Network fundamentals", code: "A2.1" },
-  { href: "/network-architecture/", label: "Network architecture", code: "A2.2" },
-  { href: "/data-transmission/", label: "Data transmission", code: "A2.3" },
-  { href: "/databases/", label: "Databases", code: "A3" },
-  { href: "/machine-learning/", label: "Machine learning", code: "A4" },
   { href: "/computational-thinking/", label: "Computational thinking", code: "B1" },
   { href: "/programming/", label: "Programming", code: "B2" },
   { href: "/oop/", label: "Object-oriented", code: "B3" },
@@ -123,9 +109,9 @@ export default function SiteChrome({ children }: { children: React.ReactNode }) 
         ))}
 
         <div className="navTheme">
-          <div className="navThemeHead">Earlier notes</div>
+          <div className="navThemeHead">Theme B</div>
           <div className="navGroup">
-            <div className="navHead">Being rewritten in depth</div>
+            <div className="navHead">Not yet rewritten</div>
             {LEGACY.map((item) => (
               <Link
                 key={item.href}

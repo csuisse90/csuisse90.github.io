@@ -1,0 +1,1 @@
+Each layer talks only to its opposite number at the far end, and relies on the layer below to get it there. Swapping cable for Wi-Fi changes layer 1 and nothing above it.

@@ -1,0 +1,1 @@
+Nothing in memory says which cells are instructions. The program counter decides: whatever it points at is treated as an instruction, and everything else is data.

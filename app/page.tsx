@@ -1,7 +1,12 @@
 import Link from "next/link";
+
+import manifest from "@/lib/generated/content.json";
+import type { Manifest } from "@/lib/content";
 import CircuitFigure from "@/components/CircuitFigure";
 import PageHead from "@/components/PageHead";
 import { circuit } from "@/lib/circuits";
+
+const { units } = manifest as unknown as Manifest;
 
 export default function Home() {
   return (
@@ -39,7 +44,7 @@ export default function Home() {
         <div className="calloutHead">Three things to try</div>
         <p style={{ margin: 0 }}>
           Click a switch on the gate below and press <strong>Run</strong> at
-          1/16× speed. Open <strong>Ask Claude</strong> for an analogy for
+          1/16× speed. Open <strong>Ask</strong> for an analogy for
           whatever page you are on. And on any Python block, change a number and
           run it again.
         </p>
@@ -52,117 +57,24 @@ export default function Home() {
         · regular exercise at the gym · three days a week
       </div>
 
-      <h2 className="display">A1 · Computer fundamentals</h2>
-
-      <div className="cardGrid">
-        <Link href="/hardware/" className="card">
-          <div className="cardTitle">Hardware &amp; operation</div>
-          <div className="cardBody">
-            Inside the CPU, the fetch–decode–execute cycle, memory, storage,
-            compression and cloud. A1.1.
+      {units.map((unit) => (
+        <section key={unit.id}>
+          <h2 className="display">
+            {unit.code} · {unit.title}
+          </h2>
+          <div className="cardGrid">
+            {unit.pages.map((page) => (
+              <Link key={page.code} href={page.href} className="card">
+                <div className="cardTitle">
+                  {page.title}
+                  {page.hl && <span className="hlTag">HL</span>}
+                </div>
+                <div className="cardBody">{page.lede}</div>
+              </Link>
+            ))}
           </div>
-        </Link>
-        <Link href="/data-representation/" className="card">
-          <div className="cardTitle">Data representation</div>
-          <div className="cardBody">
-            Binary, hexadecimal, two&apos;s complement, and how text, images and
-            sound become numbers. A1.2.1–A1.2.2.
-          </div>
-        </Link>
-        <Link href="/gates/" className="card">
-          <div className="cardTitle">Logic gates</div>
-          <div className="cardBody">
-            All seven gates, each with its proper symbol, its truth table and
-            what it is actually for. A1.2.3.
-          </div>
-        </Link>
-        <Link href="/truth-tables/" className="card">
-          <div className="cardTitle">Truth tables</div>
-          <div className="cardBody">
-            Building them, reading them, and turning them into Boolean
-            expressions. A1.2.4.
-          </div>
-        </Link>
-        <Link href="/boolean-algebra/" className="card">
-          <div className="cardTitle">Boolean algebra</div>
-          <div className="cardBody">
-            The laws, De Morgan&apos;s theorems, and simplifying by hand.
-            A1.2.4.
-          </div>
-        </Link>
-        <Link href="/karnaugh-maps/" className="card">
-          <div className="cardTitle">Karnaugh maps</div>
-          <div className="cardBody">
-            The picture that makes simplification obvious, with an interactive
-            map. A1.2.4.
-          </div>
-        </Link>
-        <Link href="/logic-diagrams/" className="card">
-          <div className="cardTitle">Logic diagrams</div>
-          <div className="cardBody">
-            Drawing circuits the way an examiner expects to see them. A1.2.5.
-          </div>
-        </Link>
-        <Link href="/operating-systems/" className="card">
-          <div className="cardTitle">Operating systems</div>
-          <div className="cardBody">
-            Scheduling, interrupts, multitasking, and the control systems that
-            run lifts and greenhouses. A1.3.
-          </div>
-        </Link>
-        <Link href="/translators/" className="card">
-          <div className="cardTitle">Translators</div>
-          <div className="cardBody">
-            Compilers against interpreters, and what actually happens during
-            compilation. A1.4.
-          </div>
-        </Link>
-      </div>
-
-      <h2 className="display">A2 · Networks</h2>
-
-      <div className="cardGrid">
-        <Link href="/networks/" className="card">
-          <div className="cardTitle">Network fundamentals</div>
-          <div className="cardBody">
-            Network types, hardware, the OSI layers, protocols, addressing and
-            VPNs. A2.1.
-          </div>
-        </Link>
-        <Link href="/network-architecture/" className="card">
-          <div className="cardTitle">Network architecture</div>
-          <div className="cardBody">
-            Topologies, servers, client–server against peer-to-peer, and
-            segmentation. A2.2.
-          </div>
-        </Link>
-        <Link href="/data-transmission/" className="card">
-          <div className="cardTitle">Data transmission</div>
-          <div className="cardBody">
-            Wired and wireless media, packet switching, error checking and
-            encryption. A2.3.
-          </div>
-        </Link>
-      </div>
-
-      <h2 className="display">A3 &amp; A4</h2>
-
-      <div className="cardGrid">
-        <Link href="/databases/" className="card">
-          <div className="cardTitle">Databases</div>
-          <div className="cardBody">
-            Tables, keys, normalisation, SQL and ACID, with a database you can
-            query. A3.
-          </div>
-        </Link>
-        <Link href="/machine-learning/" className="card">
-          <div className="cardTitle">Machine learning</div>
-          <div className="cardBody">
-            Supervised, unsupervised and reinforcement learning, training,
-            overfitting, and bias. A4.
-          </div>
-        </Link>
-      </div>
+        </section>
+      ))}
 
       <h2 className="display">Labs, extras and revision</h2>
 
@@ -245,7 +157,7 @@ export default function Home() {
           number, run it again, see what breaks.
         </p>
         <p>
-          The <strong>Ask Claude</strong> button will explain whatever page you
+          The <strong>Ask</strong> button will explain whatever page you
           are on as an analogy, or answer a question.
         </p>
       </div>
