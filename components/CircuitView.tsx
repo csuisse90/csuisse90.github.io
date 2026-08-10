@@ -69,7 +69,11 @@ export default function CircuitView({
     [mask, onMaskChange, controlledMask],
   );
   const [speedIdx, setSpeedIdx] = useState(1);
-  const [step, setStep] = useState<number>(0);
+  // Start settled, so the pre-hydration HTML shows the real answer rather than
+  // a diagram full of unknowns.
+  const [step, setStep] = useState<number>(
+    () => Math.max(0, (data.traces[String(initialMask)]?.steps.length ?? 1) - 1),
+  );
   const [playing, setPlaying] = useState(false);
 
   // A recorded transition from the previous switch position shows signals
