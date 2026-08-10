@@ -1,0 +1,287 @@
+---
+code: B2.1.1
+title: Variables, types and operators
+lede: >-
+  What a variable really is, why a type is a promise rather than a label, and the operators that catch people out.
+prereqs:
+  - B1.1.2
+cards:
+  - q: >-
+      What is a variable?
+    a: >-
+      A named location in memory holding a value that may change while the program runs.
+  - q: >-
+      What is the difference between a variable and a constant?
+    a: >-
+      A constant is given a value once and may not be changed afterwards, which lets the compiler catch an accidental assignment.
+  - q: >-
+      What is a data type?
+    a: >-
+      A promise about what kind of value a name holds, which determines how the bits are interpreted and which operations are allowed.
+  - q: >-
+      Name five primitive data types.
+    a: >-
+      **Integer**, **real** or float, **boolean**, **character**, and **string**.
+  - q: >-
+      Why does an integer behave differently from a real?
+    a: >-
+      An integer is exact and has a fixed range; a real is stored as an approximation, so arithmetic on it accumulates small errors.
+  - q: >-
+      What is static typing?
+    a: >-
+      Types are fixed and checked before the program runs, so a mismatch is a compile error rather than a crash.
+  - q: >-
+      What is dynamic typing?
+    a: >-
+      A value carries its type at run time and a name can hold any type. Flexible, but a mismatch is only found when that line executes.
+  - q: >-
+      What does `//` do in Python?
+    a: >-
+      Integer division, discarding the remainder. $7 // 2$ is $3$.
+  - q: >-
+      What does the modulus operator do?
+    a: >-
+      Gives the remainder. $7 \bmod 2$ is $1$. It is how you test divisibility and how you wrap a value round a range.
+  - q: >-
+      What is the difference between `=` and `==`?
+    a: >-
+      `=` **assigns** a value to a name. `==` **compares** two values and gives a boolean.
+  - q: >-
+      What is casting?
+    a: >-
+      Converting a value from one type to another, such as the string `"42"` to the integer $42$.
+  - q: >-
+      Why should you never compare two reals with `==`?
+    a: >-
+      They are approximations, so a calculation that should give $0.3$ may give $0.30000000000000004$. Compare the difference against a small tolerance instead.
+practice:
+  - marks: 3
+    q: >-
+      Explain what a variable is and how it differs from a constant.
+    points:
+      - >-
+          A variable is a named location in memory that holds a value.
+      - >-
+          Its value can be changed while the program is running.
+      - >-
+          A constant is assigned once and cannot be changed, so an accidental reassignment is caught rather than silently accepted.
+  - marks: 4
+    q: >-
+      Explain why data types are needed, referring to how values are stored.
+    points:
+      - >-
+          The same bit pattern can mean different things, so something must say how to interpret it.
+      - >-
+          The type determines how much memory is allocated for the value.
+      - >-
+          It determines which operations are valid, so adding a number to a string can be rejected.
+      - >-
+          It allows errors to be detected, in some languages before the program is ever run.
+  - marks: 4
+    q: >-
+      State the value and the type of each expression: `7 / 2`, `7 // 2`, `7 % 2`, `"7" + "2"` in Python.
+    points:
+      - >-
+          `7 / 2` gives $3.5$, a real.
+      - >-
+          `7 // 2` gives $3$, an integer.
+      - >-
+          `7 % 2` gives $1$, an integer.
+      - >-
+          `"7" + "2"` gives `"72"`, a string, because + concatenates strings.
+  - marks: 3
+    q: >-
+      Explain the difference between `=` and `==`, and describe an error caused by confusing them.
+    points:
+      - >-
+          `=` assigns a value to a variable.
+      - >-
+          `==` compares two values and produces a boolean.
+      - >-
+          Writing `=` inside a condition either fails to compile or, in some languages, assigns and then tests the assigned value, so the condition is always true.
+  - marks: 4
+    q: >-
+      Compare static and dynamic typing.
+    points:
+      - >-
+          Static typing fixes each variable's type, which is checked before the program runs.
+      - >-
+          Type errors are therefore found at compile time, and the compiler can generate faster code.
+      - >-
+          Dynamic typing allows a name to hold any type, with checking done as each line executes.
+      - >-
+          This is quicker to write and more flexible, but a type error may not surface until the program is in use.
+  - marks: 4
+    q: >-
+      A program calculates `0.1 + 0.2` and tests whether the result equals `0.3`. The test fails. Explain why, and state how the comparison should be written.
+    points:
+      - >-
+          Reals are stored in binary as approximations, and $0.1$ and $0.2$ have no exact binary representation.
+      - >-
+          The sum is therefore very slightly different from $0.3$.
+      - >-
+          An exact equality test between reals will fail even though the values are conceptually equal.
+      - >-
+          The absolute difference should be compared against a small tolerance instead.
+  - marks: 5
+    q: >-
+      A student stores a person's age as a string because it was read from a text box. Discuss the consequences and how they should handle it.
+    points:
+      - >-
+          Arithmetic on the value will either fail or behave unexpectedly, since + concatenates strings.
+      - >-
+          Comparisons will be alphabetical rather than numeric, so "9" would sort after "10".
+      - >-
+          The input should be cast to an integer as soon as it is read.
+      - >-
+          The cast can fail if the text is not a number, so it must be validated or the failure handled.
+      - >-
+          Converting at the boundary means the rest of the program can rely on the value being a number.
+---
+
+A variable is a named location in memory. The name is for you; the machine only
+ever sees an address.
+
+That framing matters, because it explains behaviour that is otherwise mysterious.
+Assignment does not create a copy of a name — it puts a value at a location. Two
+names can refer to the same location, and then changing one appears to change the
+other.
+
+## Types
+
+A **type** is a promise about what a name holds. It settles three things:
+
+- **How the bits are read.** The same 32 bits are $1{,}078{,}530{,}011$ as an
+  integer and $3.14159$ as a float. Nothing in the bits says which.
+- **How much space is used.**
+- **Which operations are allowed.** Adding two numbers makes sense; adding a
+  number to a date does not.
+
+| Type | Holds | Note |
+| --- | --- | --- |
+| Integer | Whole numbers | Exact, fixed range |
+| Real / float | Numbers with a fractional part | **Approximate** |
+| Boolean | True or false | One bit of information |
+| Character | A single character | A number in a character set |
+| String | A sequence of characters | Not a primitive in most languages |
+
+## Static and dynamic typing
+
+**Static typing** fixes a variable's type in advance and checks it before the
+program runs. `int count = 5;` and `count = "five"` is rejected by the compiler,
+before anybody could suffer from it.
+
+**Dynamic typing** lets a name hold anything and checks as it goes. Python allows
+`count = 5` then `count = "five"` without complaint — until something tries to add
+to it, at which point it fails, possibly in front of a user.
+
+Neither is better. Static catches a class of error early and makes the code more
+verbose; dynamic is quicker to write and defers the error to run time.
+
+<Aside kind="why" title="Why dynamic typing gets slower as well as riskier">
+A statically typed compiler knows `a + b` is two integers, so it emits a single
+add instruction.
+
+A dynamically typed runtime cannot know. Every `a + b` must first ask what `a` is,
+then what `b` is, then decide whether this is integer addition, float addition,
+string concatenation, list joining, or an error — and only then do the work. That
+check happens on **every execution of that line**, including all million
+iterations of a loop.
+
+This is a large part of why Python is slower than C, and why NumPy exists: it
+moves the loop into compiled code where the type is known once rather than
+re-examined every time.
+</Aside>
+
+## Operators worth being careful with
+
+**Division.** Most languages have two. In Python, `/` always gives a real and `//`
+gives the integer quotient. `7 / 2` is `3.5`; `7 // 2` is `3`. Get them the wrong
+way round and an index calculation silently produces a fraction.
+
+**Modulus.** `%` gives the remainder, and it does more work than its size
+suggests. `n % 2 == 0` tests evenness. `n % 7` maps any number onto a day of the
+week. `(i + 1) % length` wraps an index round to the start.
+
+**`=` against `==`.** `=` assigns, `==` compares. In Python, `if x = 5` is a syntax
+error, which is a kindness. In C it is legal, assigns 5 to `x`, and evaluates as
+true — a bug that has caused real damage.
+
+**`+` on strings.** Concatenation, not addition. `"7" + "2"` is `"72"`.
+
+<Py caption="Every operator that catches people out, in one run. Step through it and check each result against what you expected.">{`
+print("division")
+print("   7 / 2   =", 7 / 2, type(7 / 2).__name__)
+print("   7 // 2  =", 7 // 2, type(7 // 2).__name__)
+print("   -7 // 2 =", -7 // 2, "  (rounds towards negative infinity, not zero)")
+print("   7 % 2   =", 7 % 2)
+print("   -7 % 2  =", -7 % 2, "  (the sign follows the divisor in Python)")
+
+print()
+print("strings are not numbers")
+print('   "7" + "2" =', "7" + "2")
+print("   int('7') + int('2') =", int("7") + int("2"))
+print('   "ab" * 3   =', "ab" * 3)
+
+print()
+print("comparing reals")
+total = 0.1 + 0.2
+print("   0.1 + 0.2 =", repr(total))
+print("   == 0.3    ?", total == 0.3)
+print("   close to 0.3?", abs(total - 0.3) < 1e-9, "  <- test it this way")
+
+print()
+print("sorting strings is alphabetical, not numeric")
+ages_as_text = ["9", "10", "7", "100"]
+print("   as text: ", sorted(ages_as_text))
+print("   as numbers:", sorted(int(a) for a in ages_as_text))
+
+print()
+print("dynamic typing lets a name change type mid-program")
+value = 5
+print("   value =", value, "is a", type(value).__name__)
+value = "five"
+print("   value =", value, "is now a", type(value).__name__)
+try:
+    print(value + 1)
+except TypeError as e:
+    print("   value + 1 ->", e, "  <- found only when this line runs")
+`}</Py>
+
+<Aside kind="deeper" title="Why 0.1 + 0.2 is not 0.3">
+It is not a bug, and it is not Python's fault. It happens in every language that
+uses standard floating point, which is nearly all of them.
+
+Reals are stored in binary, as a fraction times a power of two. A fraction has an
+exact binary representation only when its denominator is a power of two. One tenth
+is $1/10$, and ten is not a power of two, so $0.1$ in binary recurs forever —
+exactly as $1/3$ recurs forever in decimal.
+
+The stored value is the nearest representable number, which is slightly wrong.
+Add two slightly wrong numbers and the error can survive into the result:
+$0.1 + 0.2$ gives $0.30000000000000004$.
+
+Two consequences worth carrying:
+
+- Never compare reals with `==`. Compare the absolute difference against a small
+  tolerance.
+- Never store money as a real. Store it as an integer number of pence, or use a
+  decimal type. Accumulated rounding on financial data is a real category of bug,
+  and it has cost real money.
+</Aside>
+
+## Casting
+
+**Casting** converts between types. `int("42")` gives the number; `str(42)` gives
+the text.
+
+The discipline that avoids most type bugs is to **convert at the boundary**.
+Everything arriving from a text box, a file or a network is text. Convert it once,
+on the way in, validating as you go — and then the rest of the program can rely on
+having a number.
+
+<Takeaway>
+A type is a promise about a value. Static typing checks the promise before the
+program runs; dynamic typing checks it as each line executes. Either way, the bugs
+come from values whose actual type is not the one the code assumed.
+</Takeaway>

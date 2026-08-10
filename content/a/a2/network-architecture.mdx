@@ -254,6 +254,40 @@ Marks in a "discuss" question come from weighing those factors for the scenario
 given, not from a general verdict on cloud computing.
 </Aside>
 
+<Py caption="What each topology costs in links, and what a single failure takes down. The numbers are the whole argument.">{`
+def links_needed(topology, n):
+    if topology == "star":
+        return n                    # one per device, to the switch
+    if topology == "bus":
+        return 1                    # one shared backbone
+    if topology == "ring":
+        return n                    # each device joins two neighbours
+    if topology == "mesh":
+        return n * (n - 1) // 2     # every pair joined
+    raise ValueError(topology)
+
+print(f"{'devices':>8}" + "".join(f"{t:>9}" for t in ("star", "bus", "ring", "mesh")))
+for n in (4, 8, 16, 32, 64):
+    row = "".join(f"{links_needed(t, n):>9,}" for t in ("star", "bus", "ring", "mesh"))
+    print(f"{n:>8}{row}")
+
+print()
+print("what one failure costs")
+for topology, effect in (
+    ("star", "the switch fails -> every device is cut off"),
+    ("bus", "the backbone breaks -> the network splits in two"),
+    ("ring", "one link breaks -> the loop is severed unless doubled"),
+    ("mesh", "one link breaks -> traffic routes around it"),
+):
+    print(f"   {topology:<5} {effect}")
+
+print()
+n = 64
+print(f"a full mesh of {n} devices needs {links_needed('mesh', n):,} links "
+      f"against {links_needed('star', n)} for a star")
+print("which is why the resilience is bought only where downtime is expensive")
+`}</Py>
+
 <Takeaway>
 Topology decides what a single failure costs. Architecture decides who holds the
 data and therefore who holds the power to control, back up and lose it.

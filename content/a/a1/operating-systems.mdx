@@ -248,6 +248,56 @@ This is also why a bug in the kernel is so much more serious than a bug in an
 application. The application is inside the fence; the kernel is the fence.
 </Aside>
 
+<Py step caption="A context switch, in the only terms that matter: save the registers, load somebody else's, carry on. Step through and watch each process resume exactly where it stopped.">{`
+class Process:
+    def __init__(self, name, program):
+        self.name = name
+        self.program = program
+        # Everything the operating system must save and restore.
+        self.pc = 0
+        self.acc = 0
+        self.done = False
+
+    def step(self):
+        if self.pc >= len(self.program):
+            self.done = True
+            return None
+        op, arg = self.program[self.pc]
+        self.pc += 1
+        if op == "ADD":
+            self.acc += arg
+        elif op == "SHOW":
+            return f"{self.name}: acc = {self.acc}"
+        return None
+
+processes = [
+    Process("P1", [("ADD", 5), ("ADD", 5), ("SHOW", 0), ("ADD", 1), ("SHOW", 0)]),
+    Process("P2", [("ADD", 100), ("SHOW", 0), ("ADD", 3), ("SHOW", 0)]),
+]
+
+QUANTUM = 2
+switches = 0
+queue = list(processes)
+
+while queue:
+    current = queue.pop(0)
+    for _ in range(QUANTUM):
+        message = current.step()
+        if message:
+            print(message)
+        if current.done:
+            break
+    if not current.done:
+        # Pre-empted. Its pc and acc stay on the object, which is the whole
+        # point of a process control block.
+        switches += 1
+        print(f"   -- switch out {current.name}, saved pc={current.pc} acc={current.acc}")
+        queue.append(current)
+
+print()
+print("context switches:", switches, "- none of that time did any useful work")
+`}</Py>
+
 <Takeaway>
 An operating system is a manager of scarce resources — processor time, memory,
 storage, devices — and an enforcer of boundaries between the programs competing

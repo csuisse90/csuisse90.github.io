@@ -257,6 +257,39 @@ Here is a worked one — the alarm from the practice questions.
 Try the reverse too: cover the diagram, read only the truth table, and see whether
 you can name the circuit before looking.
 
+<Py caption="Every gate as a truth table, generated rather than typed. The last part builds AND, OR and NOT from NAND alone and checks they agree.">{`
+def AND(a, b):  return a & b
+def OR(a, b):   return a | b
+def XOR(a, b):  return a ^ b
+def NAND(a, b): return 1 - (a & b)
+def NOR(a, b):  return 1 - (a | b)
+def XNOR(a, b): return 1 - (a ^ b)
+
+gates = [("AND", AND), ("OR", OR), ("XOR", XOR),
+         ("NAND", NAND), ("NOR", NOR), ("XNOR", XNOR)]
+
+print("  A B |", "  ".join(name.rjust(4) for name, _ in gates))
+print("  " + "-" * (6 + 6 * len(gates)))
+for a in (0, 1):
+    for b in (0, 1):
+        row = "  ".join(str(fn(a, b)).rjust(4) for _, fn in gates)
+        print(f"  {a} {b} |", row)
+
+# NAND is universal: everything else can be built from it alone.
+def not_from_nand(a):     return NAND(a, a)
+def and_from_nand(a, b):  return not_from_nand(NAND(a, b))
+def or_from_nand(a, b):   return NAND(not_from_nand(a), not_from_nand(b))
+
+print()
+ok = True
+for a in (0, 1):
+    for b in (0, 1):
+        ok &= and_from_nand(a, b) == AND(a, b)
+        ok &= or_from_nand(a, b) == OR(a, b)
+        ok &= not_from_nand(a) == 1 - a
+print("AND, OR and NOT built from NAND alone agree everywhere:", bool(ok))
+`}</Py>
+
 <Takeaway>
 Seven gates, each defined entirely by a table of at most four rows. Everything
 else in digital electronics is composition.

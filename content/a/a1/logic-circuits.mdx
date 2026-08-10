@@ -270,6 +270,38 @@ invisible. But if that output feeds a latch enable or an asynchronous input, the
 transient can be captured and stored — and the bug that results is intermittent,
 temperature-dependent and extremely unpleasant to find.
 
+<Py caption="A ripple-carry adder built from full adders, and the delay that limits it. Step through to watch the carry travel from the right-hand end.">{`
+def full_adder(a, b, carry_in):
+    total = a ^ b ^ carry_in
+    carry_out = (a & b) | (carry_in & (a ^ b))
+    return total, carry_out
+
+def ripple_add(x, y, width=8):
+    """Add two numbers one bit at a time, exactly as the hardware does."""
+    bits, carry, stages = [], 0, 0
+    for position in range(width):
+        a = (x >> position) & 1
+        b = (y >> position) & 1
+        bit, carry = full_adder(a, b, carry)
+        bits.append(bit)
+        stages += 1
+    value = sum(bit << i for i, bit in enumerate(bits))
+    return value, carry, stages
+
+for x, y in ((14, 28), (200, 100), (255, 1)):
+    value, carry, stages = ripple_add(x, y)
+    note = "  OVERFLOW - the carry had nowhere to go" if carry else ""
+    print(f"{x:>4} + {y:>4} = {value:>4}  ({value:08b}){note}")
+
+print()
+DELAY_NS = 2
+for width in (8, 16, 32, 64):
+    print(f"{width:>3}-bit ripple adder settles after {width * DELAY_NS:>4} ns")
+print()
+print("at 3 GHz a clock tick is 0.33 ns, so a 64-bit ripple adder would need")
+print("about 390 ticks - which is why real processors use carry-lookahead")
+`}</Py>
+
 <Takeaway>
 Combinational circuits compute; sequential circuits remember, and the difference
 is feedback. Neither is instantaneous, which is why clocks exist: a clock is an

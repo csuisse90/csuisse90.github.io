@@ -1,0 +1,309 @@
+---
+code: B2.1.3
+title: Functions and collections
+lede: >-
+  Naming a piece of work so it can be reused and tested, and the four ways of holding more than one thing at once.
+prereqs:
+  - B2.1.2
+cards:
+  - q: >-
+      What is a function?
+    a: >-
+      A named, reusable block of code that takes parameters and usually returns a result.
+  - q: >-
+      Give three reasons to use functions.
+    a: >-
+      The code is written once and reused; each part can be tested on its own; and the name documents what the block does.
+  - q: >-
+      What is the difference between a parameter and an argument?
+    a: >-
+      A **parameter** is the name in the definition. An **argument** is the actual value passed in at the call.
+  - q: >-
+      What is a return value?
+    a: >-
+      The result a function hands back to whatever called it. A function with no `return` gives back nothing.
+  - q: >-
+      What is scope?
+    a: >-
+      The region of a program in which a name is visible. A variable made inside a function is local to it and gone when it ends.
+  - q: >-
+      Why are global variables discouraged?
+    a: >-
+      Any part of the program can change one, so a wrong value could have come from anywhere. That makes a bug very hard to locate.
+  - q: >-
+      What is a side effect?
+    a: >-
+      Anything a function does beyond returning a value — printing, writing a file, changing a global or mutating its argument.
+  - q: >-
+      What is a list?
+    a: >-
+      An ordered, changeable collection accessed by position, allowing duplicates.
+  - q: >-
+      What is a tuple, and when would you use one?
+    a: >-
+      An ordered collection that cannot be changed after creation. Use one for a fixed group of related values, such as a coordinate.
+  - q: >-
+      What is a dictionary?
+    a: >-
+      A collection of key–value pairs, looked up by key rather than by position. Keys are unique.
+  - q: >-
+      What is a set?
+    a: >-
+      An unordered collection with no duplicates, fast at answering whether something is a member.
+  - q: >-
+      Why is looking something up in a dictionary faster than searching a list?
+    a: >-
+      A list must be scanned item by item, taking time proportional to its length. A dictionary computes the key's position directly, so the time barely changes as it grows.
+practice:
+  - marks: 4
+    q: >-
+      Explain three benefits of dividing a program into functions.
+    points:
+      - >-
+          Code written once can be called from many places, avoiding duplication.
+      - >-
+          A fault is fixed in one place rather than in every copy.
+      - >-
+          Each function can be tested independently of the rest of the program.
+      - >-
+          A well-chosen name documents what the block does, making the calling code readable.
+  - marks: 3
+    q: >-
+      Explain the difference between a parameter and an argument, and between a local and a global variable.
+    points:
+      - >-
+          A parameter is the name given in the function definition; an argument is the value supplied when it is called.
+      - >-
+          A local variable exists only inside the function and is destroyed when it returns.
+      - >-
+          A global variable is visible throughout the program and persists between calls.
+  - marks: 4
+    q: >-
+      Explain why heavy use of global variables makes a program harder to maintain.
+    points:
+      - >-
+          Any part of the program can modify a global, so the source of a wrong value is not localised.
+      - >-
+          A function's behaviour then depends on state that is not visible in its parameters.
+      - >-
+          It cannot be tested in isolation, because it depends on the surrounding program's state.
+      - >-
+          Two parts of the program may use the same global for different purposes, causing interference.
+  - marks: 4
+    q: >-
+      Compare a list and a dictionary, stating when each is the better choice.
+    points:
+      - >-
+          A list is ordered and accessed by numeric position, allowing duplicates.
+      - >-
+          A dictionary stores key–value pairs and is accessed by key, which must be unique.
+      - >-
+          A list suits data with a meaningful order, or that is processed in sequence.
+      - >-
+          A dictionary suits looking a value up by a natural identifier, and does so far faster than searching a list.
+  - marks: 3
+    q: >-
+      Explain why a tuple might be used instead of a list.
+    points:
+      - >-
+          A tuple cannot be changed after it is created.
+      - >-
+          This prevents accidental modification of data that should stay fixed.
+      - >-
+          It signals to a reader that the group of values belongs together as one thing, such as a coordinate.
+  - marks: 4
+    q: >-
+      A program searches a list of 100,000 student records by ID on every page load and is slow. Explain the cause and suggest an improvement.
+    points:
+      - >-
+          Searching a list examines each element in turn, so time grows in proportion to the length.
+      - >-
+          With 100,000 records each lookup may make tens of thousands of comparisons.
+      - >-
+          Building a dictionary keyed by student ID allows the record to be found directly.
+      - >-
+          Lookup time then barely changes as the collection grows, at the cost of the memory the dictionary occupies.
+  - marks: 5
+    q: >-
+      A function is written to calculate a total and also prints the result and updates a global counter. Discuss why this is poor design.
+    points:
+      - >-
+          The function does three unrelated things, so its name cannot describe it accurately.
+      - >-
+          Printing means it cannot be used anywhere the output is unwanted, such as inside another calculation.
+      - >-
+          Updating a global makes the result depend on, and affect, state outside the function.
+      - >-
+          It cannot be tested by simply checking its return value, since its effects are elsewhere.
+      - >-
+          It should return the total and leave printing and counting to the caller, so each responsibility sits in one place.
+---
+
+Two ideas make a program bigger than a page manageable: naming a piece of work so
+it can be reused, and holding more than one value in a single name.
+
+## Functions
+
+```python
+def average(numbers):
+    if not numbers:
+        return 0
+    return sum(numbers) / len(numbers)
+```
+
+Three benefits, and questions usually want all three.
+
+**Reuse.** Written once, called anywhere. A fault is fixed in one place.
+
+**Testing.** A function with inputs and a return value can be checked on its own,
+without running the whole program.
+
+**Naming.** `average(marks)` says what is happening. Four lines of arithmetic in
+the middle of other code does not.
+
+### Parameters, arguments, scope
+
+A **parameter** is the name in the definition; an **argument** is the value passed
+at the call. In `average(marks)`, `numbers` is the parameter and `marks` is the
+argument.
+
+A variable created inside a function is **local**: it exists while the function
+runs and is gone afterwards. That is a feature. It means a function cannot
+accidentally clobber a variable somewhere else, and it means you can read the
+function without reading the rest of the program.
+
+<Aside kind="trap" title="Why globals make bugs so much harder to find">
+A global can be changed by any part of the program. So when it holds the wrong
+value, the suspect list is the whole codebase.
+
+A local can only be changed by the ten lines around it. When it holds the wrong
+value, you already know where to look.
+
+That is the whole argument, and it is enough. A function whose behaviour depends
+only on its parameters can also be tested in isolation, reasoned about in
+isolation, and moved elsewhere without dragging state along behind it.
+
+The exam-friendly version: **globals turn a local problem into a global search.**
+</Aside>
+
+### Side effects
+
+A **side effect** is anything a function does other than return a value: printing,
+writing a file, changing a global, modifying the list it was given.
+
+A function that computes *and* prints cannot be used anywhere the output is
+unwanted — inside another calculation, in a test, in a version that writes to a
+file. Returning the value and letting the caller decide what to do with it keeps
+both options open.
+
+## Collections
+
+| | Ordered | Changeable | Duplicates | Accessed by |
+| --- | --- | --- | --- | --- |
+| List | Yes | Yes | Yes | Position |
+| Tuple | Yes | **No** | Yes | Position |
+| Dictionary | Insertion order | Yes | Keys unique | **Key** |
+| Set | No | Yes | **No** | Membership |
+
+**List** — the default. Ordered, changeable, indexed from zero.
+
+**Tuple** — a list that cannot be changed. Use one when the values belong together
+as a single fixed thing: a coordinate, a date, a database row.
+
+**Dictionary** — key to value. Use when data has a natural identifier: a student
+ID, a word, a postcode.
+
+**Set** — no order, no duplicates, very fast at "is this in here?".
+
+<Aside kind="why" title="Why a dictionary lookup does not slow down as it grows">
+Finding an item in a list of $n$ means comparing against each in turn: on average
+$n/2$ comparisons, and in the worst case $n$. Ten times the data, ten times the
+work.
+
+A dictionary computes the key's storage position directly, with a **hash
+function** — an arithmetic operation on the key that produces a slot number. It
+goes straight there. The number of items in the dictionary does not enter into it.
+
+So a lookup in a dictionary of ten items and one of ten million take about the
+same time. That is not an optimisation, it is a different order of behaviour, and
+it is why replacing a repeated list search with a dictionary can turn minutes into
+milliseconds.
+
+The costs are real but usually small: keys must be hashable and therefore
+unchangeable, order is not guaranteed by position, and a dictionary occupies more
+memory than a list of the same values.
+</Aside>
+
+<Py packages={["numpy"]} caption="Functions, the four collections, and the list-against-dictionary difference measured rather than asserted.">{`
+import time
+
+def average(numbers):
+    if not numbers:
+        return 0
+    return sum(numbers) / len(numbers)
+
+marks = [72, 55, 91, 64, 88]
+print("average:", average(marks))
+print("average of nothing:", average([]))
+
+# Scope: the local does not escape, and the global is untouched.
+counter = 0
+
+def broken_increment():
+    counter = 1          # makes a new local, does nothing useful
+    return counter
+
+def honest_increment(value):
+    return value + 1     # takes what it needs, returns what it produced
+
+broken_increment()
+print()
+print("after broken_increment, the global counter is still", counter)
+counter = honest_increment(counter)
+print("after honest_increment, it is", counter)
+
+# The four collections.
+print()
+scores = [72, 55, 91, 55]
+point = (3, 4)
+by_name = {"Ada": 91, "Alan": 55, "Grace": 78}
+seen = {72, 55, 91, 55}
+
+print("list      ", scores, "  keeps order and duplicates")
+print("tuple     ", point, "  cannot be changed")
+print("dictionary", by_name, "  looked up by key")
+print("set       ", sorted(seen), "  duplicates gone")
+
+try:
+    point[0] = 9
+except TypeError as e:
+    print("changing a tuple ->", e)
+
+# Searching a list against looking up in a dictionary.
+size = 200_000
+big_list = [(f"S{i:06d}", i) for i in range(size)]
+big_dict = dict(big_list)
+wanted = f"S{size - 1:06d}"
+
+start = time.perf_counter()
+for identifier, value in big_list:
+    if identifier == wanted:
+        break
+list_time = time.perf_counter() - start
+
+start = time.perf_counter()
+value = big_dict[wanted]
+dict_time = time.perf_counter() - start
+
+print()
+print(f"searching {size:,} records for the last one")
+print(f"   list:       {list_time * 1000:8.3f} ms")
+print(f"   dictionary: {dict_time * 1000:8.3f} ms")
+print(f"   the dictionary is about {list_time / max(dict_time, 1e-9):,.0f} times faster here")
+`}</Py>
+
+<Takeaway>
+A function should take what it needs, return what it produced, and do nothing
+else. A collection should be chosen by how you will reach into it: by position,
+by key, or by asking whether something is there.
+</Takeaway>

@@ -254,6 +254,27 @@ flexibility that made stored-program machines interesting: with the two memories
 physically separate, a program can no longer treat another program as data
 without special arrangements.
 
+<Py caption="How wide a bus has to be. Step through it and watch how quickly the addressable range grows with each extra line.">{`
+print(f"{'lines':>6} {'addresses':>20} {'reach with 1 byte each':>26}")
+for lines in (8, 16, 20, 24, 32, 40, 48, 64):
+    addresses = 2 ** lines
+    if addresses < 1024:
+        reach = f"{addresses} B"
+    elif addresses < 1024 ** 2:
+        reach = f"{addresses / 1024:.0f} KiB"
+    elif addresses < 1024 ** 3:
+        reach = f"{addresses / 1024 ** 2:.0f} MiB"
+    elif addresses < 1024 ** 4:
+        reach = f"{addresses / 1024 ** 3:.0f} GiB"
+    else:
+        reach = f"{addresses / 1024 ** 4:,.0f} TiB"
+    print(f"{lines:>6} {addresses:>20,} {reach:>26}")
+
+print()
+print("32 lines stop at 4 GiB, which is why machines moved to 64-bit addresses")
+print("64 lines reach 16 EiB - more memory than has ever been manufactured")
+`}</Py>
+
 <Takeaway>
 Von Neumann keeps one memory and pays for it in speed. Harvard keeps two and pays
 for it in flexibility. Real processors cheat by looking like von Neumann from
