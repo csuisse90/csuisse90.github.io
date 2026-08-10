@@ -7,6 +7,7 @@ import "./globals.css";
 import SiteChrome from "@/components/SiteChrome";
 import AiPanel from "@/components/AiPanel";
 import Mascot from "@/components/Mascot";
+import Splash from "@/components/Splash";
 
 // Archivo carries a width axis, which is how the Eurostile Bold Extended feel
 // of the reference is reached without licensing it.
@@ -48,6 +49,7 @@ export default function RootLayout({
     <html lang="en" className={`${archivo.variable} ${mono.variable}`}>
       <body>
         <Theme accentColor="teal" grayColor="sage" radius="none" scaling="100%">
+          <Splash />
           <SiteChrome>{children}</SiteChrome>
           <AiPanel />
           <Mascot />

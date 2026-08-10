@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-type Item = { href: string; label: string; code: string };
+type Item = { href: string; label: string; code: string; hl?: boolean };
 type Group = { head: string; items: Item[] };
 
 export const NAV: Group[] = [
@@ -47,7 +47,7 @@ export const NAV: Group[] = [
       { href: "/computational-thinking/", label: "Computational thinking", code: "B1" },
       { href: "/programming/", label: "Programming", code: "B2" },
       { href: "/oop/", label: "Object-oriented", code: "B3" },
-      { href: "/abstract-data-types/", label: "Abstract data types", code: "B4 HL" },
+      { href: "/abstract-data-types/", label: "Abstract data types", code: "B4", hl: true },
     ],
   },
   {
@@ -89,7 +89,6 @@ export default function SiteChrome({ children }: { children: React.ReactNode }) 
             <br />
             HL
           </span>
-          <span className="sub">First assessment 2027</span>
         </Link>
 
         {NAV.map((group) => (
@@ -101,9 +100,11 @@ export default function SiteChrome({ children }: { children: React.ReactNode }) 
                 href={item.href}
                 className="navLink"
                 data-active={here === item.href}
+                data-hl={item.hl ? true : undefined}
               >
                 <span className="code">{item.code}</span>
                 <span>{item.label}</span>
+                {item.hl && <span className="hlTag">HL</span>}
               </Link>
             ))}
           </div>

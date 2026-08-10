@@ -12,6 +12,7 @@ import {
   storedKey,
   storedModel,
 } from "@/lib/ai";
+import RichText from "./RichText";
 
 type Turn = { role: "you" | "claude"; text: string };
 
@@ -59,6 +60,14 @@ export default function AiPanel() {
     scroller.current?.scrollTo({ top: scroller.current.scrollHeight });
   }, [turns, busy]);
 
+  // Make room for the panel rather than laying it over the reading column.
+  useEffect(() => {
+    document.documentElement.dataset.aiOpen = open ? "true" : "false";
+    return () => {
+      delete document.documentElement.dataset.aiOpen;
+    };
+  }, [open]);
+
   const ready = Boolean(PROXY_URL) || Boolean(key);
 
   async function ask(prompt: string, display: string) {
@@ -67,28 +76,51 @@ export default function AiPanel() {
       setShowSettings(true);
       return;
     }
-    setTurns((t) => [...t, { role: "you", text: display }]);
+    setTurns((t) => [...t, { role: "you", text: display }, { role: "claude", text: "" }]);
     setInput("");
     setBusy(true);
     abort.current = new AbortController();
-    const result = await askAi(prompt, { key, model, signal: abort.current.signal });
-    setTurns((t) => [
-      ...t,
-      { role: "claude", text: "text" in result ? result.text : result.error },
-    ]);
+
+    const result = await askAi(prompt, {
+      key,
+      model,
+      signal: abort.current.signal,
+      onToken: (chunk) =>
+        setTurns((t) => {
+          const next = [...t];
+          next[next.length - 1] = {
+            role: "claude",
+            text: next[next.length - 1].text + chunk,
+          };
+          return next;
+        }),
+    });
+
+    setTurns((t) => {
+      const next = [...t];
+      const shown = "text" in result ? result.text : result.error;
+      // Replace the streamed text with the final version, or with the error if
+      // nothing arrived.
+      if (!next[next.length - 1].text || "error" in result) {
+        next[next.length - 1] = { role: "claude", text: shown };
+      }
+      return next;
+    });
     setBusy(false);
   }
 
   return (
     <>
-      <button
-        className="aiToggle"
-        onClick={() => setOpen((o) => !o)}
-        aria-expanded={open}
-        aria-controls="aiPanel"
-      >
-        {open ? "Close" : "Ask"}
-      </button>
+      {!open && (
+        <button
+          className="aiToggle"
+          onClick={() => setOpen(true)}
+          aria-expanded={false}
+          aria-controls="aiPanel"
+        >
+          Ask
+        </button>
+      )}
 
       <aside id="aiPanel" className="aiPanel" data-open={open} aria-hidden={!open}>
         <div className="aiHead">
@@ -186,10 +218,12 @@ export default function AiPanel() {
               {turns.map((t, i) => (
                 <div key={i} className="aiTurn" data-role={t.role}>
                   <div className="aiRole">{t.role === "you" ? "you" : ""}</div>
-                  <div className="aiText">{t.text}</div>
+                  <div className="aiText">
+                    {t.role === "claude" ? <RichText text={t.text} /> : t.text}
+                  </div>
                 </div>
               ))}
-              {busy && (
+              {busy && turns[turns.length - 1]?.text === "" && (
                 <div className="aiTurn" data-role="claude">
                   <div className="aiRole" />
                   <div className="aiText">thinking…</div>

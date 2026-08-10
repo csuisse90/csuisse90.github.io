@@ -216,7 +216,7 @@ for n in (5, -5, -101, -128):
           {"\\text{file size (bits)} = \\text{width} \\times \\text{height} \\times \\text{colour depth}"}
         </MB>
         <p>
-          A 1920 × 1080 photograph at 24-bit colour is{" "}
+          A <M>{"1920 \\times 1080"}</M> photograph at 24-bit colour is{" "}
           <M>{"1920 \\times 1080 \\times 24 = 49{,}766{,}400"}</M> bits, about
           5.9 MB — before any compression. This is why lossy compression exists.
         </p>
@@ -299,9 +299,18 @@ for n in (5, -5, -101, -128):
           },
           {
             marks: 4,
-            q: <p>A photograph is 2048 × 1536 pixels with a colour depth of 24 bits. Calculate the uncompressed file size in megabytes.</p>,
+            q: (
+              <p>
+                A photograph is <M>{"2048 \\times 1536"}</M> pixels with a colour depth
+                of 24 bits. Calculate the uncompressed file size in megabytes.
+              </p>
+            ),
             a: (
-              <p>2048 × 1536 × 24 = 75,497,472 bits. Divide by 8 for bytes: 9,437,184. Divide by 1024 twice: 9 MB. Marks are for the formula, the bit total, the conversion to bytes, and the final unit.</p>
+              <>
+                <MB>{"2048 \\times 1536 \\times 24 = 75{,}497{,}472 \\text{ bits}"}</MB>
+                <MB>{"\\frac{75{,}497{,}472}{8 \\times 1024 \\times 1024} = 9 \\text{ MB}"}</MB>
+                <p>Marks are for the formula, the bit total, the conversion to bytes, and the final unit.</p>
+              </>
             ),
           },
           {

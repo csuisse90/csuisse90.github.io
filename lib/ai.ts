@@ -75,7 +75,13 @@ const SYSTEM = `${SCOPE}\n\n${SITE_MAP}`;
 
 export async function askAi(
   prompt: string,
-  opts: { key?: string; model?: string; signal?: AbortSignal } = {},
+  opts: {
+    key?: string;
+    model?: string;
+    signal?: AbortSignal;
+    /** Called with each chunk of text as it arrives. */
+    onToken?: (chunk: string) => void;
+  } = {},
 ): Promise<AskResult> {
   const model = opts.model || DEFAULT_MODEL;
   const body = {
@@ -86,6 +92,7 @@ export async function askAi(
     ],
     max_tokens: 700,
     temperature: 0.6,
+    stream: Boolean(opts.onToken),
   };
 
   const usingProxy = Boolean(PROXY_URL);
@@ -116,10 +123,46 @@ export async function askAi(
       return { error: `Request failed (${res.status}). ${detail.slice(0, 200)}` };
     }
 
-    const data = await res.json();
-    const text: string | undefined = data?.choices?.[0]?.message?.content;
-    if (!text) return { error: data?.error?.message ?? "The model returned nothing." };
-    return { text: text.trim() };
+    if (!opts.onToken || !res.body) {
+      const data = await res.json();
+      const text: string | undefined = data?.choices?.[0]?.message?.content;
+      if (!text) return { error: data?.error?.message ?? "The model returned nothing." };
+      return { text: text.trim() };
+    }
+
+    // Server-sent events: one JSON object per "data:" line, terminated by
+    // [DONE]. Partial lines are held back until the newline arrives.
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffered = "";
+    let full = "";
+
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffered += decoder.decode(value, { stream: true });
+      const lines = buffered.split("\n");
+      buffered = lines.pop() ?? "";
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed.startsWith("data:")) continue;
+        const payload = trimmed.slice(5).trim();
+        if (payload === "[DONE]") continue;
+        try {
+          const chunk = JSON.parse(payload);
+          const piece: string = chunk?.choices?.[0]?.delta?.content ?? "";
+          if (piece) {
+            full += piece;
+            opts.onToken(piece);
+          }
+        } catch {
+          // A partial object simply means more is on the way.
+        }
+      }
+    }
+
+    if (!full.trim()) return { error: "The model returned nothing." };
+    return { text: full.trim() };
   } catch (e) {
     if (e instanceof DOMException && e.name === "AbortError") return { error: "Cancelled." };
     return { error: "Could not reach the model." };

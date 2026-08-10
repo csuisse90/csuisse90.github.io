@@ -260,7 +260,11 @@ print("match?", sum(corrupted) % 256 == checksum)`}
             marks: 3,
             q: <p>A 120 MB file is transferred over a 40 Mbps connection. Calculate the transfer time.</p>,
             a: (
-              <p>120 MB × 8 = 960 megabits. 960 ÷ 40 = <strong>24 seconds</strong>. The common error is dividing megabytes by megabits without converting.</p>
+              <>
+                <MB>{"120 \\text{ MB} \\times 8 = 960 \\text{ Mb}"}</MB>
+                <MB>{"\\frac{960}{40} = 24 \\text{ seconds}"}</MB>
+                <p>The common error is dividing megabytes by megabits without converting.</p>
+              </>
             ),
           },
           {

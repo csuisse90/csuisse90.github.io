@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
+import Sprite from "./Sprite";
 
 const LINES = [
   "Still with me? Try toggling a switch — it explains more than reading does.",
@@ -20,27 +21,6 @@ const LINES = [
 const FIRST_DELAY = 45_000;
 const REPEAT_DELAY = 150_000;
 const VISIBLE_FOR = 18_000;
-
-/** Drawn on a 100 × 81 grid: a body, two side nubs, four legs, two eyes. */
-function Sprite() {
-  return (
-    <svg viewBox="0 0 100 81" width="44" height="36" aria-hidden shapeRendering="crispEdges">
-      <g fill="var(--claude)">
-        <rect x="10" y="0" width="80" height="60" />
-        <rect x="0" y="19" width="10" height="21" />
-        <rect x="90" y="19" width="10" height="21" />
-        <rect x="10" y="60" width="9" height="21" />
-        <rect x="29" y="60" width="10" height="21" />
-        <rect x="61" y="60" width="10" height="21" />
-        <rect x="81" y="60" width="9" height="21" />
-      </g>
-      <g className="spriteEyes" fill="var(--ink)">
-        <rect x="19" y="21" width="10" height="10" />
-        <rect x="71" y="21" width="10" height="10" />
-      </g>
-    </svg>
-  );
-}
 
 export default function Mascot() {
   const pathname = usePathname();
@@ -100,7 +80,7 @@ export default function Mascot() {
         onClick={() => setVisible((v) => !v)}
         aria-label="Study tip"
       >
-        <Sprite />
+        <Sprite width={44} />
       </button>
     </div>
   );

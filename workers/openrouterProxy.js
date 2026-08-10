@@ -81,12 +81,18 @@ export default {
         })),
         max_tokens: MAX_TOKENS,
         temperature: 0.6,
+        stream: Boolean(body?.stream),
       }),
     });
 
-    return new Response(await upstream.text(), {
+    // Pass the body straight through so server-sent events keep streaming.
+    return new Response(upstream.body, {
       status: upstream.status,
-      headers: { ...headers, "Content-Type": "application/json" },
+      headers: {
+        ...headers,
+        "Content-Type": upstream.headers.get("Content-Type") ?? "application/json",
+        "Cache-Control": "no-cache",
+      },
     });
   },
 };

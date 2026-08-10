@@ -31,4 +31,8 @@ std::string minimiseJson(int numVars, const std::string& varNames,
                          const std::string& mintermCsv,
                          const std::string& dontCareCsv);
 
+// Geometry for the site mascot, authored here so the shape has one definition
+// and the browser renders it as vectors at any size.
+std::string spriteGeometryJson();
+
 }  // namespace lg

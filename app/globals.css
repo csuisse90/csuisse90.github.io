@@ -1484,3 +1484,111 @@ pre.listing {
 .spriteEyes {
   transition: opacity 240ms cubic-bezier(0.33, 1, 0.68, 1);
 }
+
+/* ---- HL-only topics ------------------------------------------------------ */
+
+.hlTag {
+  margin-left: auto;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.52rem;
+  letter-spacing: 0.14em;
+  color: var(--claude);
+  border: 1px solid var(--claude);
+  padding: 0 0.22rem;
+  line-height: 1.5;
+}
+
+.navLink[data-hl="true"] {
+  color: var(--claude);
+}
+
+.navLink[data-hl="true"] .code {
+  color: var(--claude);
+}
+
+/* ---- entry splash -------------------------------------------------------- */
+
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  background: var(--paper);
+  transition: opacity 700ms cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+.splash[data-phase="in"] {
+  opacity: 1;
+}
+
+.splash[data-phase="out"] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.splashSprite {
+  opacity: 0;
+  animation:
+    splashFade 620ms cubic-bezier(0.16, 1, 0.3, 1) forwards,
+    splashGrow 2000ms cubic-bezier(0.33, 0.6, 0.4, 1) forwards;
+  will-change: transform, opacity;
+}
+
+@keyframes splashFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes splashGrow {
+  from { transform: scale(0.55); }
+  to { transform: scale(1.6); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .splash { display: none; }
+}
+
+/* ---- assistant panel: make room rather than cover ------------------------ */
+
+:root {
+  --ai-width: 25rem;
+}
+
+.shell {
+  transition: padding-right 380ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+html[data-ai-open="true"] .shell {
+  padding-right: var(--ai-width);
+}
+
+html[data-ai-open="true"] .mascot {
+  transform: translateX(calc(-1 * var(--ai-width)));
+}
+
+.mascot {
+  transition: transform 380ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (max-width: 900px) {
+  html[data-ai-open="true"] .shell {
+    padding-right: 0;
+  }
+  .aiPanel {
+    width: 100vw;
+  }
+}
+
+.aiPanel {
+  width: var(--ai-width);
+}
+
+/* The reply body needs room for rendered maths. */
+.aiText .katex-display {
+  margin: 0.6rem 0;
+}
+
+.aiText .katex {
+  font-size: 0.95em;
+}
