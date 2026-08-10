@@ -72,10 +72,7 @@ export const NAV: Group[] = [
   },
   {
     head: "Revision",
-    items: [
-      { href: "/practice/", label: "Exam practice", code: "Q" },
-      { href: "/reference/", label: "Reference sheet", code: "REF" },
-    ],
+    items: [{ href: "/reference/", label: "Reference sheet", code: "REF" }],
   },
 ];
 
@@ -88,11 +85,11 @@ export default function SiteChrome({ children }: { children: React.ReactNode }) 
       <nav className="sidebar">
         <Link href="/" className="brand">
           <span className="name">
-            eeshaan
+            IB CS
             <br />
-            teaches cs
+            HL
           </span>
-          <span className="sub">Theme A · IB CS HL · 2027</span>
+          <span className="sub">First assessment 2027</span>
         </Link>
 
         {NAV.map((group) => (

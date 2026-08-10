@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import CircuitFigure from "@/components/CircuitFigure";
 import PageHead from "@/components/PageHead";
+import Practice from "@/components/Practice";
 import { M, MB } from "@/components/Math";
 import { circuit } from "@/lib/circuits";
 
@@ -243,6 +244,32 @@ export default function BooleanAlgebraPage() {
           This takes a minute and catches almost every algebra slip.
         </p>
       </div>
+      <Practice
+        items={[
+          {
+            marks: 3,
+            q: <p>Using De Morgan&apos;s theorem, show that <M>{"\\overline{A + B}"}</M> is equivalent to <M>{"\\overline{A} \\cdot \\overline{B}"}</M>.</p>,
+            a: (
+              <>
+                <p>Build both truth tables and compare the output columns.</p>
+                <p className="mono">A=0,B=0: NOT(0+0)=1 and 1·1=1 ✓<br />A=0,B=1: NOT(0+1)=0 and 1·0=0 ✓<br />A=1,B=0: NOT(1+0)=0 and 0·1=0 ✓<br />A=1,B=1: NOT(1+1)=0 and 0·0=0 ✓</p>
+                <p>All four rows agree, so they are equivalent. Stating the law alone earns nothing — the marks are for demonstrating it.</p>
+              </>
+            ),
+          },
+          {
+            marks: 5,
+            q: <p>Simplify <M>{"F = A \\cdot \\overline{B} + A \\cdot B + \\overline{A} \\cdot B"}</M>, stating the law used at each step.</p>,
+            a: (
+              <>
+                <p>Factor <M>A</M> from the first two terms: <M>{"A \\cdot (\\overline{B} + B)"}</M>. By the complement law <M>{"\\overline{B} + B = 1"}</M>, and by identity <M>{"A \\cdot 1 = A"}</M>.</p>
+                <p>That leaves <M>{"F = A + \\overline{A} \\cdot B"}</M>, which is the absorption pattern <M>{"X + \\overline{X} \\cdot Y = X + Y"}</M>, giving <M>{"F = A + B"}</M>.</p>
+                <p>Check it: F should be 1 on every row except A=0, B=0 — which matches.</p>
+              </>
+            ),
+          },
+        ]}
+      />
     </>
   );
 }

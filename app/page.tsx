@@ -7,7 +7,6 @@ export default function Home() {
   return (
     <>
       <PageHead
-        code="Theme A · complete · Theme B · framed"
         title="Computer science, explained until it actually makes sense"
         lede="A full written course for IB Computer Science HL, with a logic simulator you can slow down, Python you can run in the page, and diagrams for everything."
       />
@@ -31,12 +30,8 @@ export default function Home() {
           database.
         </p>
         <p>
-          <strong>Theme A is written out in full</strong>: computer
-          fundamentals, networks, databases and machine learning.{" "}
-          <strong>Theme B is framed</strong> — the topics are mapped so you can
-          see the shape of the course, and the writing is coming next. Anything
-          that goes beyond the syllabus is labelled, so you always know what you
-          are actually accountable for.
+          Anything that goes beyond the syllabus is labelled as such, so you
+          always know what you are actually accountable for.
         </p>
       </div>
 
@@ -156,8 +151,8 @@ export default function Home() {
         <Link href="/databases/" className="card">
           <div className="cardTitle">Databases</div>
           <div className="cardBody">
-            Tables, keys, normalisation, SQL and ACID — with a real SQLite
-            database you can query. A3.
+            Tables, keys, normalisation, SQL and ACID, with a database you can
+            query. A3.
           </div>
         </Link>
         <Link href="/machine-learning/" className="card">
@@ -206,12 +201,6 @@ export default function Home() {
             Why a circuit can give the wrong answer for a billionth of a second.
           </div>
         </Link>
-        <Link href="/practice/" className="card">
-          <div className="cardTitle">Exam practice</div>
-          <div className="cardBody">
-            Questions in the style of the paper, with worked answers.
-          </div>
-        </Link>
         <Link href="/reference/" className="card">
           <div className="cardTitle">Reference sheet</div>
           <div className="cardBody">
@@ -221,10 +210,6 @@ export default function Home() {
       </div>
 
       <h2 className="display">B · Computational thinking and programming</h2>
-      <p className="prose">
-        Framed, not yet written out. Theme A came first because it is where the
-        marks are hardest to pick up by practice alone.
-      </p>
 
       <div className="cardGrid">
         <Link href="/computational-thinking/" className="card">

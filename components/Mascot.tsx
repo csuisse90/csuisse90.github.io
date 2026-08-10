@@ -3,9 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 
-// A Claude-style starburst that checks in now and then. Hand-drawn homage in
-// Claude's orange rather than an official asset.
-
 const LINES = [
   "Still with me? Try toggling a switch — it explains more than reading does.",
   "Tip: if a simplification looks right, build its truth table. Takes a minute.",
@@ -23,28 +20,23 @@ const LINES = [
 const FIRST_DELAY = 45_000;
 const REPEAT_DELAY = 150_000;
 const VISIBLE_FOR = 18_000;
-const JUMP_MIN = 12_000;
-const JUMP_MAX = 34_000;
 
-/** Eleven tapered rays, like the Claude mark. */
-function Starburst() {
-  const rays = Array.from({ length: 11 }, (_, i) => (i * 360) / 11);
+/** Drawn on a 100 × 81 grid: a body, two side nubs, four legs, two eyes. */
+function Sprite() {
   return (
-    <svg viewBox="-50 -50 100 100" width="64" height="64" aria-hidden>
-      <g className="burstSpin">
-        {rays.map((angle) => (
-          <path
-            key={angle}
-            d="M0,-6 C2.6,-6 3.4,-16 2.1,-40 C1.7,-45 -1.7,-45 -2.1,-40 C-3.4,-16 -2.6,-6 0,-6 Z"
-            fill="var(--claude)"
-            transform={`rotate(${angle})`}
-          />
-        ))}
-        <circle r="7.5" fill="var(--claude)" />
+    <svg viewBox="0 0 100 81" width="44" height="36" aria-hidden shapeRendering="crispEdges">
+      <g fill="var(--claude)">
+        <rect x="10" y="0" width="80" height="60" />
+        <rect x="0" y="19" width="10" height="21" />
+        <rect x="90" y="19" width="10" height="21" />
+        <rect x="10" y="60" width="9" height="21" />
+        <rect x="29" y="60" width="10" height="21" />
+        <rect x="61" y="60" width="10" height="21" />
+        <rect x="81" y="60" width="9" height="21" />
       </g>
-      <g className="burstFace">
-        <circle cx="-3" cy="-1" r="1.5" fill="#fff" />
-        <circle cx="3" cy="-1" r="1.5" fill="#fff" />
+      <g className="spriteEyes" fill="var(--ink)">
+        <rect x="19" y="21" width="10" height="10" />
+        <rect x="71" y="21" width="10" height="10" />
       </g>
     </svg>
   );
@@ -55,7 +47,6 @@ export default function Mascot() {
   const [visible, setVisible] = useState(false);
   const [line, setLine] = useState(0);
   const [dismissed, setDismissed] = useState(false);
-  const [jumping, setJumping] = useState(false);
   const seen = useRef(0);
 
   useEffect(() => {
@@ -79,30 +70,8 @@ export default function Mascot() {
     };
   }, [dismissed]);
 
-  // A jump at unpredictable intervals, so it never settles into a rhythm.
-  useEffect(() => {
-    if (dismissed) return;
-    let timer: ReturnType<typeof setTimeout>;
-    const schedule = () => {
-      const wait = JUMP_MIN + Math.random() * (JUMP_MAX - JUMP_MIN);
-      timer = setTimeout(() => {
-        if (!document.hidden) {
-          setJumping(true);
-          setTimeout(() => setJumping(false), 900);
-        }
-        schedule();
-      }, wait);
-    };
-    schedule();
-    return () => clearTimeout(timer);
-  }, [dismissed]);
-
-  useEffect(() => {
-    if (seen.current === 0 || dismissed) return;
-    setJumping(true);
-    const t = setTimeout(() => setJumping(false), 900);
-    return () => clearTimeout(t);
-  }, [pathname, dismissed]);
+  // Navigating away closes whatever it was saying, rather than following you.
+  useEffect(() => setVisible(false), [pathname]);
 
   if (dismissed) return null;
 
@@ -128,15 +97,10 @@ export default function Mascot() {
 
       <button
         className="mascotBody"
-        onClick={() => {
-          setVisible((v) => !v);
-          setJumping(true);
-          setTimeout(() => setJumping(false), 900);
-        }}
-        aria-label="Site mascot — click for a tip"
-        data-jumping={jumping}
+        onClick={() => setVisible((v) => !v)}
+        aria-label="Study tip"
       >
-        <Starburst />
+        <Sprite />
       </button>
     </div>
   );

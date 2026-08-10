@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { HighlightedPython } from "./pyHighlight";
 
-// Pyodide is a full CPython compiled to WebAssembly, about 10 MB, so it is
-// loaded from a CDN on first use rather than bundled or loaded on page load.
+// Loaded from a CDN on first use rather than bundled: it is a large download
+// and most readers never open a code cell.
 const PYODIDE_VERSION = "0.26.4";
 const PYODIDE_URL = `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/`;
 

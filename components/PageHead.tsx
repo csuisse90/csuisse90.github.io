@@ -3,13 +3,13 @@ export default function PageHead({
   title,
   lede,
 }: {
-  code: string;
+  code?: string;
   title: string;
   lede: string;
 }) {
   return (
     <header className="pageHead">
-      <div className="kicker">{code}</div>
+      {code && <div className="kicker">{code}</div>}
       <h1 className="display">{title}</h1>
       <p className="lede" style={{ marginTop: "1rem" }}>
         {lede}

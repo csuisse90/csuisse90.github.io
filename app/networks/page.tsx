@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import PageHead from "@/components/PageHead";
+import Practice from "@/components/Practice";
 import { SpecList } from "@/components/Spec";
 import { Encapsulation, OsiStack } from "@/components/figures/dataNet";
 
@@ -237,6 +238,38 @@ export default function NetworksPage() {
         switches at layer 2, routers at layer 3, TCP and UDP at layer 4, HTTP
         and DNS at layer 7.
       </p>
+      <Practice
+        items={[
+          {
+            marks: 4,
+            q: <p>Distinguish between a switch and a router, referring to the addresses each uses and the layer each operates at.</p>,
+            a: (
+              <p>A switch forwards frames <em>within</em> a single network using MAC addresses, and operates at the data link layer. A router forwards packets <em>between</em> different networks using IP addresses and chooses a route, operating at the network layer. Reaching the internet from a home network requires a router.</p>
+            ),
+          },
+          {
+            marks: 4,
+            q: <p>Explain why TCP is used for downloading a file but UDP is used for a live video call.</p>,
+            a: (
+              <p>TCP is connection-oriented and reliable: it numbers segments, waits for acknowledgements and retransmits anything lost, so the file arrives complete and in order. UDP sends without checking, so it has far less overhead and never waits. In a live call a retransmitted frame would arrive after the moment it belonged to, so a small loss is preferable to the delay of recovering it.</p>
+            ),
+          },
+          {
+            marks: 5,
+            q: <p>Explain what layering achieves in a network model, using one example of a change confined to a single layer.</p>,
+            a: (
+              <p>Layering separates concerns so each layer can be designed, replaced or improved independently, provided the interface to its neighbours is unchanged. Each layer only needs to talk to its opposite number at the far end and rely on the layer below for delivery. For example, replacing a copper cable with Wi-Fi changes only the physical layer; TCP, IP and HTTP above are unaffected and need no modification.</p>
+            ),
+          },
+          {
+            marks: 3,
+            q: <p>Describe the purpose of DHCP and of DNS, and state why both are needed.</p>,
+            a: (
+              <p>DHCP automatically issues a joining device its IP address, subnet mask, gateway and DNS server, so nobody has to configure each machine by hand. DNS translates a human-readable domain name into the IP address the network actually routes to. One gets you onto the network with a usable address; the other lets you reach a destination by name rather than number.</p>
+            ),
+          },
+        ]}
+      />
     </>
   );
 }

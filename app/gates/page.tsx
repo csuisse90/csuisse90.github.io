@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import CircuitFigure from "@/components/CircuitFigure";
 import PageHead from "@/components/PageHead";
+import Practice from "@/components/Practice";
 import { M, MB } from "@/components/Math";
 import { circuit } from "@/lib/circuits";
 
@@ -207,6 +208,35 @@ export default function GatesPage() {
         write the expression, apply De Morgan until every operation is a NAND,
         then draw it.
       </p>
+      <Practice
+        items={[
+          {
+            marks: 2,
+            q: <p>State the output of a NAND gate for each of the four possible combinations of two inputs.</p>,
+            a: (
+              <>
+                <p>NAND is AND with the output inverted, so it is 0 only when both inputs are 1.</p>
+                <p className="mono">00 → 1 · 01 → 1 · 10 → 1 · 11 → 0</p>
+                <p>One mark for the three 1s, one for the single 0 in the right place.</p>
+              </>
+            ),
+          },
+          {
+            marks: 3,
+            q: <p>Explain why NAND is described as a universal gate, and show how to build a NOT gate from one.</p>,
+            a: (
+              <p>A gate is universal if every other logic function can be built from copies of it alone, which lets a manufacturer perfect a single gate design and build an entire processor from it. For NOT, connect the same signal to both NAND inputs: the output is <M>{"\\overline{A \\cdot A}"}</M>, and since <M>{"A \\cdot A = A"}</M> by the idempotent law, that is <M>{"\\overline{A}"}</M>.</p>
+            ),
+          },
+          {
+            marks: 4,
+            q: <p>Describe the difference between XOR and OR, and give one situation where XOR is the gate you need.</p>,
+            a: (
+              <p>OR outputs 1 when at least one input is 1, including when both are. XOR outputs 1 only when the inputs <em>differ</em>, so it gives 0 when both are 1. XOR is what you need for binary addition: the sum bit of 1 + 1 is 0 with a carry, which is exactly XOR&apos;s behaviour, and it is also used for parity checking and simple encryption.</p>
+            ),
+          },
+        ]}
+      />
     </>
   );
 }

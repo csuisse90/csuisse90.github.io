@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import PageHead from "@/components/PageHead";
+import Practice from "@/components/Practice";
 import { SpecList } from "@/components/Spec";
 import PyRunner from "@/components/PyRunner";
 import {
@@ -275,6 +276,42 @@ for label, (waits, order) in [
         seems to be asking about only one — the marks are usually distributed
         across them.
       </p>
+      <Practice
+        items={[
+          {
+            marks: 6,
+            q: <p>Three processes arrive together: P1 needs 8 units, P2 needs 2, P3 needs 4. Calculate the average waiting time under first come first served and under shortest job first, and comment.</p>,
+            a: (
+              <>
+                <p><strong>FCFS</strong> runs P1, P2, P3. Waits: P1 = 0, P2 = 8, P3 = 10. Average = 6.</p>
+                <p><strong>SJF</strong> runs P2, P3, P1. Waits: P2 = 0, P3 = 2, P1 = 6. Average = 2.67.</p>
+                <p>Shortest job first is much better on average because short jobs stop queueing behind long ones. Its weakness is that a long job can be starved indefinitely if short ones keep arriving, and it needs to know burst times in advance.</p>
+              </>
+            ),
+          },
+          {
+            marks: 5,
+            q: <p>Describe the sequence of events when an interrupt is raised while a program is running.</p>,
+            a: (
+              <p>The device raises an interrupt request, which the CPU checks for at the end of the current cycle. The processor finishes the instruction it is executing. The current state — the register contents — is saved to a stack. The address of the appropriate interrupt service routine is looked up in the interrupt vector table and that routine runs. Finally the saved state is restored and the interrupted program continues, unaware anything happened.</p>
+            ),
+          },
+          {
+            marks: 4,
+            q: <p>Explain the difference between pre-emptive and cooperative multitasking, and why modern systems use one over the other.</p>,
+            a: (
+              <p>Under pre-emptive multitasking the operating system can take the processor away when a time slice expires. Under cooperative multitasking each program must voluntarily give up control. Modern systems are pre-emptive because a single badly written or crashed program under cooperative multitasking never yields and freezes the whole machine.</p>
+            ),
+          },
+          {
+            marks: 5,
+            q: <p>An automatic greenhouse keeps the temperature at 22 °C. Identify the components of the control system and explain the role of feedback.</p>,
+            a: (
+              <p>The sensor is a temperature probe; the processor compares the reading with 22 °C; the actuators are a heater and a vent motor. Feedback closes the loop: the heater changes the air temperature, the sensor measures the new value, and the processor decides again. Without feedback the system would act once and never correct itself, so it would overshoot or drift.</p>
+            ),
+          },
+        ]}
+      />
     </>
   );
 }

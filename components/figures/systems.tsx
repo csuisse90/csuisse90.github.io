@@ -75,7 +75,7 @@ export function FetchDecodeExecute() {
       title="The fetch–decode–execute cycle"
       meta="A1.1.5"
       width={620}
-      height={230}
+      height={262}
       caption="One pass round this loop is one instruction. A 3 GHz processor completes it roughly three billion times a second."
     >
       <Box x={40} y={40} w={150} h={70} label="FETCH" accent />
@@ -114,15 +114,16 @@ export function FetchDecodeExecute() {
       <Arrow x1={190} y1={75} x2={235} y2={75} />
       <Arrow x1={385} y1={75} x2={430} y2={75} />
 
-      {/* wrap back round */}
+      {/* Return path routed around the outside: taking it straight down from
+          the boxes would draw it through the caption text underneath them. */}
       <path
-        d="M505,110 L505,190 L115,190 L115,110"
+        d="M580,75 L600,75 L600,232 L20,232 L20,75 L36,75"
         fill="none"
         stroke={LINE}
         strokeWidth={1.8}
         markerEnd="url(#arrowEnd)"
       />
-      <Caption x={310} y={184}>
+      <Caption x={310} y={225}>
         repeat, forever
       </Caption>
     </Figure>
@@ -135,7 +136,7 @@ export function MemoryHierarchy() {
     <Figure
       title="The memory hierarchy"
       meta="A1.1.4"
-      width={660}
+      width={620}
       height={280}
       caption="Every step down is roughly a hundred times slower and a great deal cheaper per byte. Cache exists purely because the gap between registers and RAM is too expensive to pay on every access."
     >
@@ -147,7 +148,7 @@ export function MemoryHierarchy() {
       ].map((r, i) => (
         <g key={r.label}>
           <rect
-            x={300 - r.w / 2}
+            x={310 - r.w / 2}
             y={30 + i * 52}
             width={r.w}
             height={44}
@@ -156,7 +157,7 @@ export function MemoryHierarchy() {
             strokeWidth={1.8}
           />
           <text
-            x={300}
+            x={310}
             y={46 + i * 52}
             textAnchor="middle"
             fontFamily="var(--font-mono), monospace"
@@ -166,7 +167,7 @@ export function MemoryHierarchy() {
             {r.label}
           </text>
           <text
-            x={300}
+            x={310}
             y={62 + i * 52}
             textAnchor="middle"
             fontFamily="var(--font-mono), monospace"
@@ -177,12 +178,12 @@ export function MemoryHierarchy() {
           </text>
         </g>
       ))}
-      <Arrow x1={62} y1={40} x2={62} y2={230} />
-      <Caption x={56} y={140} anchor="end">
+      <Arrow x1={58} y1={40} x2={58} y2={230} />
+      <Caption x={50} y={140} anchor="end">
         slower
       </Caption>
-      <Arrow x1={498} y1={230} x2={498} y2={40} />
-      <Caption x={508} y={140} anchor="start">
+      <Arrow x1={506} y1={230} x2={506} y2={40} />
+      <Caption x={514} y={140} anchor="start">
         costlier
       </Caption>
     </Figure>
@@ -279,13 +280,12 @@ export function ControlSystem() {
       title="A control system"
       meta="A1.3.6"
       width={620}
-      height={230}
+      height={252}
       caption="The feedback arrow is what makes it a control system rather than a one-off command: the effect of the actuator changes what the sensor next measures."
     >
       <Box x={30} y={70} w={120} h={54} label="SENSOR" sub="measures" />
       <Box x={200} y={70} w={140} h={54} label="PROCESSOR" sub="compares & decides" />
       <Box x={390} y={70} w={120} h={54} label="ACTUATOR" sub="acts" />
-      <Box x={390} y={0} w={120} h={0} />
 
       <Arrow x1={150} y1={97} x2={200} y2={97} label="reading" />
       <Arrow x1={340} y1={97} x2={390} y2={97} label="command" />
@@ -294,14 +294,14 @@ export function ControlSystem() {
       <Arrow x1={510} y1={97} x2={520} y2={97} />
 
       <path
-        d="M560,124 L560,180 L90,180 L90,124"
+        d="M560,124 L560,206 L90,206 L90,124"
         fill="none"
         stroke={ACCENT}
         strokeWidth={1.8}
         strokeDasharray="5 3"
         markerEnd="url(#arrowAccent)"
       />
-      <Caption x={325} y={174} colour={ACCENT}>
+      <Caption x={325} y={199} colour={ACCENT}>
         feedback loop
       </Caption>
     </Figure>

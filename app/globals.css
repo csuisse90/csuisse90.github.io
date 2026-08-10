@@ -835,22 +835,24 @@ table.kmap td .cellIndex {
   background: rgba(211, 58, 28, 0.05);
 }
 
+/* Individually bordered cards. The old version faked the borders with a 1px
+   gap over a grey backdrop, which left a grey slab wherever the last row was
+   short. */
 .cardGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
-  gap: 1px;
-  background: var(--hairline);
-  border: 1px solid var(--hairline);
+  gap: 0.9rem;
   margin: 2rem 0;
+  align-items: stretch;
 }
 
 .card {
   background: var(--paper-lift);
+  border: 1px solid var(--hairline);
   padding: 1rem;
   text-decoration: none;
   color: inherit;
   display: block;
-  transition: background 120ms linear;
 }
 
 .card:hover {
@@ -1114,14 +1116,17 @@ pre.listing {
 
 /* ---- mascot -------------------------------------------------------------- */
 
+/* One floating cluster in the bottom right: the sprite sits directly above the
+   Ask button rather than competing with it from the opposite corner. */
 .mascot {
   position: fixed;
-  left: 1.1rem;
-  bottom: 1.1rem;
+  right: 1.1rem;
+  bottom: 3.6rem;
   z-index: 58;
   display: flex;
+  flex-direction: column;
   align-items: flex-end;
-  gap: 0.6rem;
+  gap: 0.4rem;
   pointer-events: none;
 }
 
@@ -1135,18 +1140,12 @@ pre.listing {
   padding: 0;
   cursor: pointer;
   line-height: 0;
-  animation: bob 4.5s ease-in-out infinite;
-  transition: transform 160ms ease-out;
 }
 
-.mascotBody:hover {
-  transform: translateY(-3px) rotate(-2deg);
+.mascotBody:hover .spriteEyes {
+  opacity: 0.55;
 }
 
-@keyframes bob {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
-}
 
 .mascotBlip {
   animation: blip 2.6s ease-in-out infinite;
@@ -1181,7 +1180,8 @@ pre.listing {
 }
 
 .mascotBubble {
-  max-width: 17rem;
+  max-width: 15rem;
+  will-change: transform, opacity;
   border: 1px solid var(--ink);
   background: var(--paper-lift);
   padding: 0.7rem 0.8rem;
@@ -1189,14 +1189,16 @@ pre.listing {
   line-height: 1.5;
   color: var(--ink);
   opacity: 0;
-  transform: translateY(6px) scale(0.97);
-  transition: opacity 200ms ease-out, transform 200ms ease-out;
+  transform: translate3d(0, 10px, 0) scale(0.96);
+  transition:
+    opacity 220ms cubic-bezier(0.33, 1, 0.68, 1),
+    transform 420ms cubic-bezier(0.16, 1.1, 0.3, 1);
   margin-bottom: 0.5rem;
 }
 
 .mascot[data-visible="true"] .mascotBubble {
   opacity: 1;
-  transform: translateY(0) scale(1);
+  transform: translate3d(0, 0, 0) scale(1);
 }
 
 .mascotBubble p {
@@ -1222,26 +1224,34 @@ pre.listing {
    page at opacity 0 — which is exactly what happened when printing. */
 @media screen and (prefers-reduced-motion: no-preference) {
   .main > * {
-    animation: rise 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation: rise 620ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    will-change: transform, opacity;
   }
 }
 
-.main > *:nth-child(2) { animation-delay: 40ms; }
-.main > *:nth-child(3) { animation-delay: 80ms; }
-.main > *:nth-child(4) { animation-delay: 120ms; }
-.main > *:nth-child(n + 5) { animation-delay: 150ms; }
+.main > *:nth-child(2) { animation-delay: 60ms; }
+.main > *:nth-child(3) { animation-delay: 120ms; }
+.main > *:nth-child(4) { animation-delay: 180ms; }
+.main > *:nth-child(n + 5) { animation-delay: 220ms; }
 
 @keyframes rise {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translate3d(0, 14px, 0); }
   to { opacity: 1; transform: none; }
 }
 
 .card {
-  transition: background 140ms linear, transform 160ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition:
+    background 220ms cubic-bezier(0.33, 1, 0.68, 1),
+    border-color 220ms cubic-bezier(0.33, 1, 0.68, 1),
+    transform 380ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 380ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
 }
 
 .card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
+  border-color: var(--ice-deep);
+  box-shadow: 0 6px 18px -12px rgba(15, 20, 19, 0.4);
 }
 
 .panel {
@@ -1253,7 +1263,10 @@ pre.listing {
 }
 
 .navLink {
-  transition: background 120ms linear, border-color 120ms linear, padding-left 140ms ease-out;
+  transition:
+    background 200ms cubic-bezier(0.33, 1, 0.68, 1),
+    border-color 200ms cubic-bezier(0.33, 1, 0.68, 1),
+    padding-left 260ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .navLink:hover {
@@ -1354,18 +1367,8 @@ pre.listing {
 
 /* ---- mascot: Claude starburst -------------------------------------------- */
 
-.mascotBody[data-jumping="true"] {
-  animation: mascotJump 900ms cubic-bezier(0.28, 0.84, 0.42, 1);
-}
 
-@keyframes mascotJump {
-  0%   { transform: translateY(0) scale(1, 1); }
-  15%  { transform: translateY(0) scale(1.12, 0.88); }
-  40%  { transform: translateY(-46px) scale(0.92, 1.1); }
-  60%  { transform: translateY(-52px) scale(1, 1); }
-  85%  { transform: translateY(0) scale(1.1, 0.9); }
-  100% { transform: translateY(0) scale(1, 1); }
-}
+
 
 .burstSpin {
   transform-origin: center;
@@ -1385,22 +1388,23 @@ pre.listing {
 
 .aiPanel {
   transform-origin: bottom right;
-  transform: translateY(14px) scale(0.9);
+  will-change: transform, opacity;
+  transform: translate3d(0, 18px, 0) scale(0.92);
   opacity: 0;
   visibility: hidden;
   transition:
-    transform 260ms cubic-bezier(0.16, 1.2, 0.3, 1),
-    opacity 160ms ease-out,
-    visibility 0s linear 260ms;
+    transform 340ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 200ms cubic-bezier(0.33, 1, 0.68, 1),
+    visibility 0s linear 340ms;
 }
 
 .aiPanel[data-open="true"] {
-  transform: translateY(0) scale(1);
+  transform: translate3d(0, 0, 0) scale(1);
   opacity: 1;
   visibility: visible;
   transition:
-    transform 320ms cubic-bezier(0.16, 1.2, 0.3, 1),
-    opacity 140ms ease-out,
+    transform 420ms cubic-bezier(0.16, 1.12, 0.28, 1),
+    opacity 180ms cubic-bezier(0.33, 1, 0.68, 1),
     visibility 0s;
 }
 
@@ -1474,4 +1478,9 @@ pre.listing {
   table.tt {
     break-inside: avoid;
   }
+}
+
+
+.spriteEyes {
+  transition: opacity 240ms cubic-bezier(0.33, 1, 0.68, 1);
 }

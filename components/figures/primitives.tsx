@@ -9,6 +9,11 @@ export const FILL = "var(--paper-lift)";
 export const ACCENT = "var(--alarm)";
 export const TEAL = "var(--teal)";
 
+/** Shared drawing width. Figures are authored at their natural width and then
+ *  centred inside this, so text is never scaled differently between diagrams —
+ *  which is what made the lettering look inconsistent. */
+export const CANVAS = 620;
+
 export function Figure({
   title,
   meta,
@@ -32,7 +37,7 @@ export function Figure({
       </div>
       <div className="panelBody" style={{ padding: "0.75rem" }}>
         <svg
-          viewBox={`0 0 ${width} ${height}`}
+          viewBox={`0 0 ${CANVAS} ${height}`}
           style={{ width: "100%", height: "auto", display: "block" }}
           role="img"
           aria-label={title}
@@ -61,7 +66,7 @@ export function Figure({
               <path d="M0,0 L10,5 L0,10 z" fill={ACCENT} />
             </marker>
           </defs>
-          {children}
+          <g transform={`translate(${(CANVAS - width) / 2} 0)`}>{children}</g>
         </svg>
       </div>
       {caption && <p className="caption">{caption}</p>}

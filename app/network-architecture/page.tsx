@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import PageHead from "@/components/PageHead";
+import Practice from "@/components/Practice";
 import { SpecList } from "@/components/Spec";
 import Topology from "@/components/Topology";
 import { ClientServerVsP2p, Segmentation } from "@/components/figures/dataNet";
@@ -209,6 +210,31 @@ export default function NetworkArchitecturePage() {
         budget, number of devices, how badly downtime would hurt. A generic
         list of properties without that link rarely earns full marks.
       </p>
+      <Practice
+        items={[
+          {
+            marks: 6,
+            q: <p>A school is cabling a new building with forty machines and cannot tolerate the whole network failing. Recommend a topology and justify it, including one drawback.</p>,
+            a: (
+              <p>A star topology: each machine has its own cable to a central switch. Performance stays high because links are not shared, one failed cable affects only one machine, and adding a machine disturbs nobody. The drawback is that the central switch is a single point of failure and the topology uses the most cable of the practical options. A hybrid — star within each floor, a resilient backbone between floors — mitigates the switch risk.</p>
+            ),
+          },
+          {
+            marks: 4,
+            q: <p>Compare client–server and peer-to-peer models for a business with sensitive records.</p>,
+            a: (
+              <p>Client–server suits it. Resources are centralised, so security, permissions and backup are managed in one place and can be audited. Peer-to-peer scatters files across machines, leaving security and backup to each user, which is unacceptable for sensitive records. The trade is cost: servers are expensive, need administration, and are a single point of failure.</p>
+            ),
+          },
+          {
+            marks: 4,
+            q: <p>Explain two benefits of segmenting a network into VLANs.</p>,
+            a: (
+              <p><strong>Security.</strong> Traffic between segments must pass a router or firewall, so it can be inspected and refused. A compromised machine can only reach its own segment, containing an attack rather than letting it spread. <strong>Performance.</strong> Broadcast traffic stays within its segment instead of reaching every device, reducing congestion.</p>
+            ),
+          },
+        ]}
+      />
     </>
   );
 }

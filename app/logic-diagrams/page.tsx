@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import CircuitFigure from "@/components/CircuitFigure";
 import PageHead from "@/components/PageHead";
+import Practice from "@/components/Practice";
 import { M, MB } from "@/components/Math";
 import { circuit } from "@/lib/circuits";
 
@@ -136,12 +137,38 @@ export default function LogicDiagramsPage() {
       </div>
 
       <p className="annotation">
-        <b>Practise drawing by hand.</b> Everything on this site is rendered to
-        the IEEE standard, but the exam wants your pencil version. The AND body
-        should be a rectangle with a semicircular right end, and the OR should
-        curve at the back and come to a point. Get those two right and the rest
-        follow.
+        <b>Practise drawing by hand.</b> The exam wants your pencil version, not
+        a neat one. The AND body should be a rectangle with a semicircular right
+        end, and the OR should curve at the back and come to a point. Get those
+        two right and the rest follow.
       </p>
+      <Practice
+        items={[
+          {
+            marks: 4,
+            q: <p>A lift door closes only when the door button is pressed <strong>and</strong> neither the light beam nor the emergency stop is active. Define variables, write the Boolean expression and describe the diagram.</p>,
+            a: (
+              <>
+                <p>Let <M>P</M> = button pressed, <M>L</M> = light beam broken, <M>E</M> = emergency stop active, <M>C</M> = door closes.</p>
+                <p>&ldquo;Neither L nor E&rdquo; is <M>{"\\overline{L + E}"}</M>, so <M>{"C = P \\cdot \\overline{L + E}"}</M>.</p>
+                <p>Diagram: L and E into an OR, the OR into a NOT — or a single NOR gate — and that result into an AND with P. Label all four signals. One mark for sensible definitions, one for the bracketing, two for a correctly drawn and labelled diagram.</p>
+              </>
+            ),
+          },
+          {
+            marks: 6,
+            q: <p>A drinks machine dispenses only when a coin is inserted and a drink is selected, unless the machine is in service mode. Write the truth table, give the simplified expression and describe the diagram.</p>,
+            a: (
+              <>
+                <p>Let <M>C</M> = coin, <M>D</M> = drink selected, <M>S</M> = service mode, <M>V</M> = vend.</p>
+                <p className="mono">CDS: 000→0 · 001→0 · 010→0 · 011→0 · 100→0 · 101→0 · 110→1 · 111→0</p>
+                <p>Only one row gives 1, so the sum of products has a single term: <M>{"V = C \\cdot D \\cdot \\overline{S}"}</M>, which is already minimal.</p>
+                <p>Diagram: S through a NOT, then a three-input AND taking C, D and <M>{"\\overline{S}"}</M>. A two-input AND of C and D feeding a second AND with <M>{"\\overline{S}"}</M> is equally acceptable.</p>
+              </>
+            ),
+          },
+        ]}
+      />
     </>
   );
 }

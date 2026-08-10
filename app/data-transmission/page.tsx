@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import PageHead from "@/components/PageHead";
+import Practice from "@/components/Practice";
 import { SpecList } from "@/components/Spec";
 import { M, MB } from "@/components/Math";
 import PyRunner from "@/components/PyRunner";
@@ -246,6 +247,38 @@ print("match?", sum(corrupted) % 256 == checksum)`}
         factors from the list above, and say how each medium does on each of
         them. Structure earns the marks here.
       </p>
+      <Practice
+        items={[
+          {
+            marks: 6,
+            q: <p>Compare fibre optic cable with twisted pair for connecting two buildings 800 m apart. Refer to bandwidth, attenuation and interference.</p>,
+            a: (
+              <p>Fibre is the correct choice. Twisted pair attenuates quickly and is limited to about 100 m before a repeater, so 800 m would need several. Fibre has very low attenuation and runs for kilometres unaided. Fibre also offers far greater bandwidth and, carrying light rather than current, is immune to electromagnetic interference — which matters over an outdoor run. The cost is higher and installation needs skill, since the fibre is fragile.</p>
+            ),
+          },
+          {
+            marks: 3,
+            q: <p>A 120 MB file is transferred over a 40 Mbps connection. Calculate the transfer time.</p>,
+            a: (
+              <p>120 MB × 8 = 960 megabits. 960 ÷ 40 = <strong>24 seconds</strong>. The common error is dividing megabytes by megabits without converting.</p>
+            ),
+          },
+          {
+            marks: 4,
+            q: <p>Explain why a parity bit may fail to detect corruption, and name a method that is more reliable.</p>,
+            a: (
+              <p>A parity bit only records whether the number of 1s is odd or even. A single flipped bit changes that and is detected, but two flipped bits cancel out and leave the parity correct, so the error passes unnoticed. A cyclic redundancy check treats the data as a large binary number and transmits the remainder of a division, which catches burst errors that parity misses.</p>
+            ),
+          },
+          {
+            marks: 4,
+            q: <p>Explain why HTTPS uses both asymmetric and symmetric encryption.</p>,
+            a: (
+              <p>Asymmetric encryption solves key distribution: the public key can be published, so a shared secret can be agreed safely with a party you have never met. It is slow, so it is used only for that exchange. The rest of the conversation then uses symmetric encryption with the agreed secret, which is much faster and suits bulk data. Each is used where its strength lies.</p>
+            ),
+          },
+        ]}
+      />
     </>
   );
 }

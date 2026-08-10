@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import PageHead from "@/components/PageHead";
+import Practice from "@/components/Practice";
 import { SpecList } from "@/components/Spec";
 import { M, MB } from "@/components/Math";
 import PyRunner from "@/components/PyRunner";
@@ -277,6 +278,48 @@ for n in (5, -5, -101, -128):
         <a href="/circuits/">real circuits</a> page is literally the two&apos;s
         complement arithmetic above, built out of gates.
       </p>
+      <Practice
+        items={[
+          {
+            marks: 3,
+            q: <p>Convert the denary number 173 into 8-bit binary and then into hexadecimal, showing your method.</p>,
+            a: (
+              <>
+                <p>Work down the column values: 128 fits (leaves 45), 64 does not, 32 fits (13), 16 does not, 8 fits (5), 4 fits (1), 2 does not, 1 fits (0). That gives <span className="mono">10101101</span>.</p>
+                <p>Split into nibbles: 1010 = A and 1101 = D, so <span className="mono">AD</span>.</p>
+              </>
+            ),
+          },
+          {
+            marks: 3,
+            q: <p>Show how −38 is represented in 8-bit two&apos;s complement.</p>,
+            a: (
+              <p>38 is <span className="mono">00100110</span>. Flip every bit: <span className="mono">11011001</span>. Add one: <span className="mono">11011010</span>. Check it: −128 + 64 + 16 + 8 + 2 = −38.</p>
+            ),
+          },
+          {
+            marks: 4,
+            q: <p>A photograph is 2048 × 1536 pixels with a colour depth of 24 bits. Calculate the uncompressed file size in megabytes.</p>,
+            a: (
+              <p>2048 × 1536 × 24 = 75,497,472 bits. Divide by 8 for bytes: 9,437,184. Divide by 1024 twice: 9 MB. Marks are for the formula, the bit total, the conversion to bytes, and the final unit.</p>
+            ),
+          },
+          {
+            marks: 4,
+            q: <p>Explain how sample rate and bit depth each affect the quality and size of a recorded sound.</p>,
+            a: (
+              <p>Sample rate is how many measurements are taken per second: a higher rate follows the wave more closely and captures higher frequencies. Bit depth is how many bits store each measurement: more bits allow finer distinctions in amplitude and less quantisation noise. Both multiply directly into the file size, so doubling either doubles the storage needed.</p>
+            ),
+          },
+          {
+            marks: 2,
+            q: <p>State why hexadecimal is used in computing rather than long binary strings.</p>,
+            a: (
+              <p>Each hexadecimal digit maps to exactly four bits, so conversion is trivial and no information is distorted. It is far shorter and much easier for a person to read and transcribe without error — a 48-bit address takes 12 hex characters rather than 48 binary ones.</p>
+            ),
+          },
+        ]}
+      />
     </>
   );
 }

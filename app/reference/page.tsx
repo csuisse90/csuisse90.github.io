@@ -80,9 +80,6 @@ export default function ReferencePage() {
       </div>
 
       <h2 className="display">Symbols and tables</h2>
-      <p className="prose">
-        The distinctive shapes used in IB papers.
-      </p>
 
       <div
         style={{
