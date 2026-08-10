@@ -2690,3 +2690,141 @@ html[data-ai-open="true"]
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* ---- tabs, hazards and fault finding ------------------------------------- */
+
+.tabBar {
+  display: flex;
+  gap: 1px;
+  margin: 0.9rem 0 1.2rem;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.tabBtn {
+  padding: 0.45rem 0.9rem;
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  cursor: pointer;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.tabBtn:hover {
+  color: var(--ink);
+}
+
+.tabBtn[data-active="true"] {
+  color: var(--alarm);
+  border-bottom-color: var(--alarm);
+}
+
+.delayScrub {
+  flex: 1 1 8rem;
+  min-width: 6rem;
+  accent-color: var(--alarm);
+}
+
+.hazardList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.8rem 0 1.2rem;
+}
+
+.hazardBtn {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.4rem 0.7rem;
+  background: var(--paper-lift);
+  border: 1px solid var(--hairline);
+  border-left: 2px solid var(--alarm);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  color: var(--ink);
+}
+
+.hazardBtn:hover {
+  border-color: var(--ink);
+  border-left-color: var(--alarm);
+}
+
+.hazardWhen {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.faultGuess {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 1rem;
+  padding-top: 0.9rem;
+  border-top: 1px dashed var(--hairline);
+}
+
+.faultAsk {
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-right: 0.3rem;
+}
+
+.faultGuess .paletteBtn[data-picked="true"] {
+  border-color: var(--alarm);
+  color: var(--alarm);
+}
+
+.faultVerdict {
+  margin-top: 0.9rem;
+  padding: 0.7rem 0.9rem;
+  border-left: 2px solid var(--alarm);
+  background: rgba(211, 58, 28, 0.05);
+  font-size: 0.9rem;
+}
+
+.faultVerdict[data-correct="true"] {
+  border-left-color: var(--teal);
+  background: rgba(44, 91, 103, 0.06);
+}
+
+.faultVerdict p {
+  margin: 0 0 0.7rem;
+}
+
+.faultTables {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.faultTableHead {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 0.5rem;
+}
+
+.faultTableHead[data-bad] {
+  color: var(--alarm);
+}
+
+@media (max-width: 760px) {
+  .faultTables {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

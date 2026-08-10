@@ -5,6 +5,8 @@ import Link from "next/link";
 
 import Aside from "./Aside";
 import CircuitFigure from "./CircuitFigure";
+import Compare from "./Compare";
+import FaultFinder from "./FaultFinder";
 import KMap from "./KMap";
 import PyRunner from "./PyRunner";
 import TruthTable from "./TruthTable";
@@ -68,6 +70,10 @@ export const MDX_COMPONENTS = {
   ),
   Aside,
   Circuit,
+  /** `<Fault id="halfAdder" />` — the same circuit, with one gate quietly
+   *  wrong, for the reader to track down. */
+  Fault: ({ id }: { id: string }) => <FaultFinder data={circuit(id)} />,
+  Compare,
   Figure,
   KMap,
   M,
