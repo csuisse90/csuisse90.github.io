@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import PageHead from "@/components/PageHead";
 import { SpecList } from "@/components/Spec";
+import { Encapsulation, OsiStack } from "@/components/figures/dataNet";
 
 export const metadata: Metadata = { title: "Network fundamentals" };
 
@@ -109,6 +110,8 @@ export default function NetworksPage() {
         </p>
       </div>
 
+      <OsiStack />
+
       <div className="panel">
         <div className="panelHead">
           <span>OSI seven-layer model</span>
@@ -161,6 +164,8 @@ export default function NetworksPage() {
           opposite number.
         </p>
       </div>
+
+      <Encapsulation />
 
       <h2 className="display">Protocols</h2>
       <SpecList

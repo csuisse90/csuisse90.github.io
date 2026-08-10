@@ -2,6 +2,13 @@ import type { Metadata } from "next";
 import PageHead from "@/components/PageHead";
 import { SpecList } from "@/components/Spec";
 import { M, MB } from "@/components/Math";
+import PyRunner from "@/components/PyRunner";
+import {
+  ColourDepth,
+  PlaceValue,
+  Sampling,
+  TwosComplement,
+} from "@/components/figures/dataNet";
 
 export const metadata: Metadata = { title: "Data representation" };
 
@@ -26,6 +33,8 @@ export default function DataRepresentationPage() {
           you have agreed it represents.
         </p>
       </div>
+
+      <PlaceValue />
 
       <h2 className="display">Denary, binary and hexadecimal</h2>
       <div className="prose">
@@ -125,6 +134,44 @@ export default function DataRepresentationPage() {
         </p>
       </div>
 
+      <TwosComplement />
+
+      <PyRunner
+        caption="Conversions in both directions, done by hand rather than with built-ins, so you can see the method the exam wants."
+        code={`def to_binary(n, bits=8):
+    """Repeatedly ask: does this column fit?"""
+    out = ""
+    for power in range(bits - 1, -1, -1):
+        value = 2 ** power
+        if n >= value:
+            out += "1"
+            n -= value
+        else:
+            out += "0"
+    return out
+
+def to_denary(bits):
+    total = 0
+    for i, bit in enumerate(bits):
+        if bit == "1":
+            total += 2 ** (len(bits) - 1 - i)
+    return total
+
+def twos_complement(n, bits=8):
+    if n >= 0:
+        return to_binary(n, bits)
+    flipped = "".join("1" if b == "0" else "0" for b in to_binary(-n, bits))
+    return to_binary(to_denary(flipped) + 1, bits)
+
+for n in (90, 5, 255):
+    b = to_binary(n)
+    print(f"{n:>4} -> {b}  -> back to {to_denary(b)}  hex {n:02X}")
+
+print()
+for n in (5, -5, -101, -128):
+    print(f"{n:>5} in two\u0027s complement -> {twos_complement(n)}")`}
+      />
+
       <h2 className="display">Representing text</h2>
       <SpecList
         title="Character encodings"
@@ -179,6 +226,8 @@ export default function DataRepresentationPage() {
         </p>
       </div>
 
+      <ColourDepth />
+
       <h2 className="display">Representing sound</h2>
       <div className="prose">
         <p>
@@ -207,6 +256,8 @@ export default function DataRepresentationPage() {
           and a proportionally larger file — the same trade as images.
         </p>
       </div>
+
+      <Sampling />
 
       <h2 className="display">Units</h2>
       <div className="prose">

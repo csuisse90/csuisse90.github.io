@@ -1,6 +1,13 @@
 import type { Metadata } from "next";
 import PageHead from "@/components/PageHead";
 import { SpecList } from "@/components/Spec";
+import PyRunner from "@/components/PyRunner";
+import {
+  ControlSystem,
+  InterruptTimeline,
+  OsLayers,
+  SchedulingGantt,
+} from "@/components/figures/systems";
 
 export const metadata: Metadata = { title: "Operating systems" };
 
@@ -29,6 +36,8 @@ export default function OperatingSystemsPage() {
           storage is a spinning disk or flash memory.
         </p>
       </div>
+
+      <OsLayers />
 
       <h2 className="display">A1.3.2 The functions of an operating system</h2>
       <SpecList
@@ -101,6 +110,49 @@ export default function OperatingSystemsPage() {
         ]}
       />
 
+      <SchedulingGantt />
+
+      <PyRunner
+        caption="The same three processes under both schedulers. Change the burst times or the time slice and see how the average waiting time moves."
+        code={`processes = [("P1", 7), ("P2", 3), ("P3", 2)]
+SLICE = 2
+
+def fcfs(procs):
+    time, waits, order = 0, {}, []
+    for name, burst in procs:
+        waits[name] = time
+        order += [name] * burst
+        time += burst
+    return waits, order
+
+def round_robin(procs, slice_len):
+    remaining = {n: b for n, b in procs}
+    queue = [n for n, _ in procs]
+    time, finished, order = 0, {}, []
+    while queue:
+        name = queue.pop(0)
+        run = min(slice_len, remaining[name])
+        order += [name] * run
+        time += run
+        remaining[name] -= run
+        if remaining[name]:
+            queue.append(name)
+        else:
+            finished[name] = time
+    waits = {n: finished[n] - b for n, b in procs}
+    return waits, order
+
+for label, (waits, order) in [
+        ("First come first served", fcfs(processes)),
+        (f"Round robin (slice {SLICE})", round_robin(processes, SLICE))]:
+    print(label)
+    print("  timeline:", " ".join(order))
+    for name in waits:
+        print(f"    {name} waited {waits[name]}")
+    print(f"  average wait: {sum(waits.values()) / len(waits):.2f}")
+    print()`}
+      />
+
       <h2 className="display">A1.3.4 Interrupts</h2>
       <div className="prose">
         <p>
@@ -139,6 +191,8 @@ export default function OperatingSystemsPage() {
         </p>
       </div>
 
+      <InterruptTimeline />
+
       <h2 className="display">A1.3.5 Multitasking</h2>
       <div className="prose">
         <p>
@@ -171,6 +225,8 @@ export default function OperatingSystemsPage() {
           four.
         </p>
       </div>
+
+      <ControlSystem />
 
       <SpecList
         title="Components of a control system"

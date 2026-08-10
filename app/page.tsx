@@ -7,45 +7,47 @@ export default function Home() {
   return (
     <>
       <PageHead
-        code="IB Computer Science HL · First assessment 2027 · Theme A"
-        title="Computer fundamentals and networks, written out properly"
-        lede="The whole of A1 and A2, from one switch to a working adder to a packet crossing an ocean — with a simulator you can slow down until you can see the electricity think."
+        code="Theme A · complete · Theme B · framed"
+        title="Computer science, explained until it actually makes sense"
+        lede="A full written course for IB Computer Science HL, with a logic simulator you can slow down, Python you can run in the page, and diagrams for everything."
       />
 
       <div className="prose">
         <p>
-          A computer has no idea what a number is. It has switches, and each
-          switch is either on or off. Every photograph, every song, every game
-          you have ever loaded is that, underneath: a very large number of
-          switches, arranged so that the pattern of on and off means something.
+          Most revision material tells you what is true. It rarely tells you{" "}
+          <em>why anyone decided it should be</em>. Why two&apos;s complement is
+          the awkward shape it is, why a Karnaugh map&apos;s columns run 00, 01,
+          11, 10, why databases are cut into so many tables when one would do.
+          Every one of those has a reason, and the reason is nearly always more
+          memorable than the rule.
         </p>
         <p>
-          A <strong>logic gate</strong> is the piece that makes those switches
-          useful. It is a tiny circuit that looks at one or two switches and
-          decides what a third one should do. On its own a gate is almost
-          insultingly simple. Put a few billion of them together and you have
-          something that can run a browser.
+          So this site is built around showing things working rather than
+          asserting them. The logic diagrams are a real simulator — click a
+          switch and the change travels through the gates one delay at a time,
+          slowly enough that you can watch a circuit briefly give the wrong
+          answer. The Python is genuinely executable, in the page, so you can
+          break it and see what happens. The database example is a real
+          database.
         </p>
         <p>
-          This site covers <strong>Theme A</strong> in full —{" "}
-          <strong>A1 Computer fundamentals</strong> and{" "}
-          <strong>A2 Networks</strong> — and then keeps going a little further
-          in places, because the point where it gets interesting is often just
-          past the edge of the syllabus. Anything beyond the syllabus is
-          labelled as such, so you always know what you are accountable for.
-        </p>
-        <p>
-          The logic sections are the ones with the simulator attached. Start
-          anywhere, but the A1.2 pages build on each other in order.
+          <strong>Theme A is written out in full</strong>: computer
+          fundamentals, networks, databases and machine learning.{" "}
+          <strong>Theme B is framed</strong> — the topics are mapped so you can
+          see the shape of the course, and the writing is coming next. Anything
+          that goes beyond the syllabus is labelled, so you always know what you
+          are actually accountable for.
         </p>
       </div>
 
       <div className="callout">
-        <div className="calloutHead">Try it now</div>
+        <div className="calloutHead">Three things to try</div>
         <p style={{ margin: 0 }}>
-          Below is an AND gate. Click either switch to flip it between 0 and 1.
-          Press <strong>Run</strong>, and drop the speed to 1/16× to watch the
-          signal actually travel.
+          Click a switch on the gate below and press <strong>Run</strong> at
+          1/16× speed. Open <strong>Ask Claude</strong> in the corner for an
+          analogy for whatever page you are on. And on any Python block, change
+          a number and run it again — nothing installs, and nothing is sent
+          anywhere.
         </p>
       </div>
 
@@ -149,6 +151,25 @@ export default function Home() {
         </Link>
       </div>
 
+      <h2 className="display">A3 &amp; A4</h2>
+
+      <div className="cardGrid">
+        <Link href="/databases/" className="card">
+          <div className="cardTitle">Databases</div>
+          <div className="cardBody">
+            Tables, keys, normalisation, SQL and ACID — with a real SQLite
+            database you can query in the browser. A3.
+          </div>
+        </Link>
+        <Link href="/machine-learning/" className="card">
+          <div className="cardTitle">Machine learning</div>
+          <div className="cardBody">
+            Supervised, unsupervised and reinforcement learning, training,
+            overfitting, and bias. A4.
+          </div>
+        </Link>
+      </div>
+
       <h2 className="display">Tools, extras and revision</h2>
 
       <div className="cardGrid">
@@ -193,13 +214,50 @@ export default function Home() {
         </Link>
       </div>
 
+      <h2 className="display">B · Computational thinking and programming</h2>
+      <p className="prose">
+        Framed, not yet written out. Theme A came first because it is where the
+        marks are hardest to pick up by practice alone.
+      </p>
+
+      <div className="cardGrid">
+        <Link href="/computational-thinking/" className="card">
+          <div className="cardTitle">Computational thinking</div>
+          <div className="cardBody">Decomposition, abstraction, algorithm design. B1.</div>
+        </Link>
+        <Link href="/programming/" className="card">
+          <div className="cardTitle">Programming</div>
+          <div className="cardBody">Constructs, collections, searching and sorting. B2.</div>
+        </Link>
+        <Link href="/oop/" className="card">
+          <div className="cardTitle">Object-oriented</div>
+          <div className="cardBody">Classes, encapsulation, inheritance, polymorphism. B3.</div>
+        </Link>
+        <Link href="/abstract-data-types/" className="card">
+          <div className="cardTitle">Abstract data types</div>
+          <div className="cardBody">Stacks, queues, trees, recursion. B4, HL only.</div>
+        </Link>
+      </div>
+
       <h2 className="display">How to use this</h2>
       <div className="prose">
         <p>
-          Read the syllabus pages in order. They build on each other: gates give
-          you the vocabulary, truth tables give you the method, Boolean algebra
-          and Karnaugh maps give you the shortcut, and logic diagrams put it
-          back together as something you can draw in an exam.
+          Read the syllabus pages in order. Within A1.2 they build on each
+          other: gates give you the vocabulary, truth tables give you the
+          method, Boolean algebra and Karnaugh maps give you the shortcut, and
+          logic diagrams put it back together as something you can draw in an
+          exam.
+        </p>
+        <p>
+          Code examples are Python, and most of them are{" "}
+          <strong>editable and runnable</strong> right in the page — a complete
+          CPython compiled to WebAssembly, so nothing is installed and nothing
+          is sent anywhere. Change a number, run it again, see what breaks.
+        </p>
+        <p>
+          The <strong>Ask Claude</strong> button in the corner will explain
+          whatever page you are on as an analogy, or answer a question. It talks
+          to Claude Code on your own machine rather than to a server.
         </p>
       </div>
     </>

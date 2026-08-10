@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import PageHead from "@/components/PageHead";
 import { SpecList } from "@/components/Spec";
 import Topology from "@/components/Topology";
+import { ClientServerVsP2p, Segmentation } from "@/components/figures/dataNet";
 
 export const metadata: Metadata = { title: "Network architecture" };
 
@@ -119,6 +120,8 @@ export default function NetworkArchitecturePage() {
       />
 
       <h2 className="display">Client–server against peer-to-peer</h2>
+      <ClientServerVsP2p />
+
       <SpecList
         title="Networking models"
         termWidth="10rem"
@@ -196,6 +199,8 @@ export default function NetworkArchitecturePage() {
           holding examination records, whichever socket it is plugged into.
         </p>
       </div>
+
+      <Segmentation />
 
       <p className="annotation">
         <b>Exam note.</b> Topology questions nearly always ask you to justify a

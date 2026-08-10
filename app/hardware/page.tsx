@@ -2,6 +2,13 @@ import type { Metadata } from "next";
 import PageHead from "@/components/PageHead";
 import { SpecList } from "@/components/Spec";
 import { M, MB } from "@/components/Math";
+import PyRunner from "@/components/PyRunner";
+import {
+  CpuArchitecture,
+  FetchDecodeExecute,
+  MemoryHierarchy,
+  Pipelining,
+} from "@/components/figures/systems";
 
 export const metadata: Metadata = { title: "Hardware and operation" };
 
@@ -23,6 +30,8 @@ export default function HardwarePage() {
           marks on — related to the others.
         </p>
       </div>
+
+      <CpuArchitecture />
 
       <SpecList
         title="CPU components"
@@ -141,6 +150,59 @@ export default function HardwarePage() {
         </p>
       </div>
 
+      <FetchDecodeExecute />
+
+      <PyRunner
+        caption="A tiny model processor. It has a program counter, an accumulator and four instructions, and it runs the fetch–decode–execute cycle explicitly so you can watch the registers change."
+        code={`# A very small CPU. Program: add 5 and 7, store the answer at address 20.
+memory = {
+    0: ("LDA", 10),   # load the value at address 10 into the accumulator
+    1: ("ADD", 11),   # add the value at address 11
+    2: ("STA", 20),   # store the accumulator at address 20
+    3: ("HLT", 0),
+    10: 5,
+    11: 7,
+}
+
+pc = 0            # program counter
+accumulator = 0
+running = True
+
+print(f"{'PC':>3} {'IR':<10} {'MAR':>4} {'MDR':>4} {'AC':>4}")
+print("-" * 32)
+
+while running:
+    # FETCH
+    mar = pc
+    mdr = memory[mar]
+    ir = mdr
+    pc += 1
+
+    # DECODE
+    opcode, operand = ir
+
+    # EXECUTE
+    if opcode == "LDA":
+        mar = operand
+        mdr = memory[mar]
+        accumulator = mdr
+    elif opcode == "ADD":
+        mar = operand
+        mdr = memory[mar]
+        accumulator += mdr
+    elif opcode == "STA":
+        mar = operand
+        memory[mar] = accumulator
+        mdr = accumulator
+    elif opcode == "HLT":
+        running = False
+
+    print(f"{pc:>3} {opcode + ' ' + str(operand):<10} {mar:>4} {mdr:>4} {accumulator:>4}")
+
+print()
+print("address 20 now holds:", memory[20])`}
+      />
+
       <h2 className="display">A1.1.2–A1.1.3 The GPU, and why it is different</h2>
       <div className="prose">
         <p>
@@ -219,6 +281,8 @@ export default function HardwarePage() {
         ]}
       />
 
+      <MemoryHierarchy />
+
       <div className="callout">
         <div className="calloutHead">The memory hierarchy</div>
         <p style={{ margin: 0 }}>
@@ -256,6 +320,8 @@ export default function HardwarePage() {
           already started may have to be thrown away.
         </p>
       </div>
+
+      <Pipelining />
 
       <h2 className="display">A1.1.7 Secondary storage</h2>
       <SpecList

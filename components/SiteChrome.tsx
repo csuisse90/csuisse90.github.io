@@ -34,6 +34,23 @@ export const NAV: Group[] = [
     ],
   },
   {
+    head: "A3 · Databases",
+    items: [{ href: "/databases/", label: "Databases", code: "A3" }],
+  },
+  {
+    head: "A4 · Machine learning",
+    items: [{ href: "/machine-learning/", label: "Machine learning", code: "A4" }],
+  },
+  {
+    head: "B · Computational thinking",
+    items: [
+      { href: "/computational-thinking/", label: "Computational thinking", code: "B1" },
+      { href: "/programming/", label: "Programming", code: "B2" },
+      { href: "/oop/", label: "Object-oriented", code: "B3" },
+      { href: "/abstract-data-types/", label: "Abstract data types", code: "B4 HL" },
+    ],
+  },
+  {
     head: "Tools",
     items: [
       { href: "/builder/", label: "Circuit builder", code: "LAB" },
@@ -89,16 +106,6 @@ export default function SiteChrome({ children }: { children: React.ReactNode }) 
           </div>
         ))}
 
-        <div className="navGroup">
-          <div className="navHead">Colophon</div>
-          <p
-            className="mono"
-            style={{ color: "var(--ink-faint)", padding: "0 0.4rem", lineHeight: 1.6 }}
-          >
-            Simulation engine written in C++, compiled to WebAssembly. Gate
-            symbols drawn to IEEE Std 91-1984.
-          </p>
-        </div>
       </nav>
 
       <main className="main">{children}</main>

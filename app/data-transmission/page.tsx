@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import PageHead from "@/components/PageHead";
 import { SpecList } from "@/components/Spec";
 import { M, MB } from "@/components/Math";
+import PyRunner from "@/components/PyRunner";
+import { PacketSwitching } from "@/components/figures/dataNet";
 
 export const metadata: Metadata = { title: "Data transmission" };
 
@@ -132,6 +134,49 @@ export default function DataTransmissionPage() {
           nobody is speaking.
         </p>
       </div>
+
+      <PacketSwitching />
+
+      <PyRunner
+        caption="Parity and checksums, and the case parity silently misses. Flip a second bit in the corrupted byte and watch parity declare it fine."
+        code={`def parity_bit(bits):
+    """Even parity: the appended bit makes the number of 1s even."""
+    return "1" if bits.count("1") % 2 else "0"
+
+def check_parity(word):
+    return word.count("1") % 2 == 0
+
+original = "1011001"
+sent = original + parity_bit(original)
+print("data      ", original)
+print("sent      ", sent, "(last bit is parity)")
+print()
+
+def flip(word, *positions):
+    bits = list(word)
+    for i in positions:
+        bits[i] = "1" if bits[i] == "0" else "0"
+    return "".join(bits)
+
+for label, received in [
+        ("clean       ", sent),
+        ("1 bit flipped", flip(sent, 2)),
+        ("2 bits flipped", flip(sent, 2, 5))]:
+    verdict = "looks fine" if check_parity(received) else "ERROR DETECTED"
+    print(f"{label}: {received}  ->  {verdict}")
+
+print()
+print("Two flipped bits cancel out. Parity cannot see them.")
+print()
+
+# A checksum catches far more, though still not everything.
+packet = [72, 101, 108, 108, 111]
+checksum = sum(packet) % 256
+print("packet   ", packet, "checksum", checksum)
+corrupted = [72, 101, 108, 108, 121]
+print("corrupted", corrupted, "checksum", sum(corrupted) % 256)
+print("match?", sum(corrupted) % 256 == checksum)`}
+      />
 
       <h2 className="display">Detecting errors</h2>
       <SpecList

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import PageHead from "@/components/PageHead";
 import { SpecList } from "@/components/Spec";
+import PyRunner from "@/components/PyRunner";
+import { CompilerPipeline } from "@/components/figures/systems";
 
 export const metadata: Metadata = { title: "Translators" };
 
@@ -125,6 +127,84 @@ export default function TranslatorsPage() {
           if the grammar does not hold.
         </p>
       </div>
+
+      <CompilerPipeline />
+
+      <PyRunner
+        caption="Lexing and parsing, the first two stages, on arithmetic instead of source code. Break the input — try 2 * (3 + — and watch which stage complains."
+        code={`import re
+
+def lex(text):
+    """Stage 1: text becomes tokens."""
+    tokens = re.findall(r"\\d+|[+*()-]", text)
+    if "".join(tokens) != text.replace(" ", ""):
+        raise SyntaxError("unrecognised character")
+    return tokens
+
+def parse(tokens):
+    """Stage 2: tokens become a tree, following precedence."""
+    pos = 0
+
+    def peek():
+        return tokens[pos] if pos < len(tokens) else None
+
+    def expr():          # expr := term (('+' | '-') term)*
+        nonlocal pos
+        node = term()
+        while peek() in ("+", "-"):
+            op = tokens[pos]; pos += 1
+            node = (op, node, term())
+        return node
+
+    def term():          # term := factor ('*' factor)*
+        nonlocal pos
+        node = factor()
+        while peek() == "*":
+            pos += 1
+            node = ("*", node, factor())
+        return node
+
+    def factor():        # factor := number | '(' expr ')'
+        nonlocal pos
+        tok = peek()
+        if tok is None:
+            raise SyntaxError("expression ends early")
+        if tok == "(":
+            pos += 1
+            inner = expr()
+            if peek() != ")":
+                raise SyntaxError("missing closing bracket")
+            pos += 1
+            return inner
+        if tok.isdigit():
+            pos += 1
+            return int(tok)
+        raise SyntaxError(f"unexpected {tok!r}")
+
+    tree = expr()
+    if pos != len(tokens):
+        raise SyntaxError(f"unexpected {tokens[pos]!r}")
+    return tree
+
+def evaluate(node):
+    if isinstance(node, int):
+        return node
+    op, left, right = node
+    a, b = evaluate(left), evaluate(right)
+    return {"+": a + b, "-": a - b, "*": a * b}[op]
+
+for source in ["2 + 3 * 4", "(2 + 3) * 4", "2 * (3 +"]:
+    print("source:", source)
+    try:
+        tokens = lex(source)
+        print("  tokens:", tokens)
+        tree = parse(tokens)
+        print("  tree:  ", tree)
+        print("  value: ", evaluate(tree))
+    except SyntaxError as e:
+        print("  syntax error:", e)
+    print()`}
+      />
 
       <h2 className="display">The middle ground</h2>
       <div className="prose">
