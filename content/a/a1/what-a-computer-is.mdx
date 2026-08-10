@@ -1,0 +1,282 @@
+---
+code: A1.1.1
+title: What a computer actually is
+lede: >-
+  Before any of the detail, the one idea the whole subject rests on — a machine that stores its own instructions and follows them without understanding them.
+cards:
+  - q: >-
+      What is a stored-program computer?
+    a: >-
+      A machine that holds both its **data and its instructions** in the same memory, and works through those instructions one at a time. Changing what it does means changing the contents of memory, not the wiring.
+  - q: >-
+      Why does it matter that instructions live in the same memory as data?
+    a: >-
+      Because a program becomes something the machine can *store, copy and change* like any other data. It is what makes a computer general-purpose rather than a fixed appliance.
+  - q: >-
+      What are the four things every computer does?
+    a: >-
+      **Input**, **processing**, **storage**, **output**. Everything else in the course is detail hanging off one of those four.
+  - q: >-
+      Does a computer understand the instructions it follows?
+    a: >-
+      No. Each instruction is a pattern of bits that causes a fixed electrical effect. Meaning exists only in the mind of the programmer.
+  - q: >-
+      What is the difference between hardware and software?
+    a: >-
+      Hardware is the physical machinery; software is the pattern of bits in memory that tells it what to do. The same hardware runs any software you load into it.
+  - q: >-
+      What is a bit?
+    a: >-
+      One of two distinguishable states, written $0$ and $1$. Physically it is a voltage that is either low or high — never anything in between, by design.
+  - q: >-
+      Why do computers use two states rather than ten?
+    a: >-
+      Because telling *low* from *high* survives noise, heat and manufacturing variation. Distinguishing ten voltage levels reliably, billions of times a second, does not.
+  - q: >-
+      What does "general-purpose" mean?
+    a: >-
+      One machine that can be made to do any computable task by loading a different program, rather than being built for one job.
+  - q: >-
+      In one sentence, what is an algorithm?
+    a: >-
+      A finite sequence of unambiguous steps that turns an input into the intended output.
+  - q: >-
+      Why is a pocket calculator not a general-purpose computer?
+    a: >-
+      Its behaviour is fixed by its wiring. You cannot load a new program into it and make it do something its designers did not build in.
+practice:
+  - marks: 2
+    q: >-
+      State what is meant by a **stored-program computer**.
+    points:
+      - >-
+          Instructions are held in memory alongside the data / in the same memory as data.
+      - >-
+          The processor fetches and executes those instructions one at a time / in sequence.
+  - marks: 3
+    q: >-
+      Explain why storing instructions in memory makes a computer general-purpose.
+    points:
+      - >-
+          A program is just data in memory, so it can be loaded, replaced or changed.
+      - >-
+          Changing the task therefore requires no change to the hardware / no rewiring.
+      - >-
+          One machine can therefore perform any task for which a program can be written.
+  - marks: 4
+    q: >-
+      A student says "the computer understands my Python program". Explain why this is not accurate, referring to what the processor actually does.
+    points:
+      - >-
+          The processor only ever acts on patterns of bits / binary instructions.
+      - >-
+          Each instruction causes a fixed electrical effect in the hardware, with no meaning attached.
+      - >-
+          Python must first be translated into those instructions before anything can run.
+      - >-
+          Meaning is supplied by the programmer, not the machine / the machine has no model of the problem.
+  - marks: 3
+    q: >-
+      Identify the four stages of the general computing model and give an example of each in a supermarket self-checkout.
+    points:
+      - >-
+          Input — scanning a barcode / touching the screen / inserting a card.
+      - >-
+          Processing — looking up the price, adding to the total, checking the payment.
+      - >-
+          Output — the display, the receipt, the printed label (storage also credited if described).
+  - marks: 4
+    q: >-
+      Explain why digital computers represent information using two states rather than ten.
+    points:
+      - >-
+          Two states can be represented by a voltage being clearly low or clearly high.
+      - >-
+          This tolerates noise, temperature change and manufacturing variation, because a small drift does not change which state is read.
+      - >-
+          Ten levels would need the circuit to distinguish much smaller differences reliably.
+      - >-
+          Errors would therefore be far more frequent at the speeds and scales involved.
+  - marks: 3
+    q: >-
+      Distinguish between hardware and software, and explain why the distinction is less sharp than it first appears.
+    points:
+      - >-
+          Hardware is the physical machinery; software is the instructions and data held in memory.
+      - >-
+          The same hardware performs completely different tasks depending on the software loaded.
+      - >-
+          The boundary blurs — firmware, and hardware that is itself configurable — so the distinction is about role rather than substance.
+  - marks: 5
+    q: >-
+      A washing machine contains a processor, memory and a program. Discuss whether it should be called a computer.
+    points:
+      - >-
+          It does contain the components of a computer — processor, memory, stored instructions.
+      - >-
+          It performs input, processing and output, so it fits the general model.
+      - >-
+          However its program is fixed and cannot be replaced by the user, so it is an embedded system.
+      - >-
+          It is therefore a computer in construction but special-purpose in use.
+      - >-
+          A defensible conclusion is stated either way, supported by the points above.
+---
+
+Everything in this course — every gate, every network protocol, every sorting
+algorithm — sits on top of one idea that took people a surprisingly long time to
+have. It is worth getting completely straight before anything else, because
+almost every confusion later on is really a confusion about this.
+
+## Start with what a machine can do
+
+Take away the screen, the keyboard and the word "computer" for a moment, and
+think about a machine that does exactly one thing. A mechanical loom weaves
+cloth. A music box plays a tune. Their behaviour is built into their shape: the
+loom weaves *that* pattern because of how its parts are cut, and to weave a
+different pattern you would have to take it apart and rebuild it.
+
+That is a **special-purpose machine**. Its function and its physical form are the
+same thing.
+
+The Jacquard loom of 1804 did something quietly extraordinary. The pattern moved
+off the machine and onto a stack of punched cards fed through it. The loom no
+longer *was* a pattern; it was a machine that *read* patterns. Change the cards
+and the same loom weaves something else, with no rebuilding at all.
+
+<Takeaway>
+A computer is what you get when you push that idea as far as it will go: a
+machine whose behaviour is described by something you can change, rather than
+built into something you cannot.
+</Takeaway>
+
+## The stored-program idea
+
+The Jacquard loom kept its instructions outside itself, on cards. The decisive
+step — set out in 1945 in a report on the EDVAC, and now usually called the
+**von Neumann architecture** — was to put the instructions *inside* the machine,
+in the very same memory that holds the data being worked on.
+
+This sounds like a small change. It is not. It has two consequences that
+between them create the entire subject.
+
+**First, the machine is general-purpose.** The memory does not care what the
+bits in it mean. Fill it with one program and you have a word processor; fill it
+with another and you have a chess engine. One physical machine, unlimited
+behaviours, all reachable without touching a screwdriver. Every app you have
+ever installed is this idea being used.
+
+**Second, a program is data.** Because instructions live in ordinary memory,
+they can be read, copied, written and changed by other programs. This is not a
+curiosity; it is load-bearing. A compiler is a program whose *output* is another
+program. An operating system loads programs into memory as if they were files,
+because to it, they are. Every one of those depends on the fact that the
+distinction between instructions and data is a matter of interpretation, not a
+matter of storage.
+
+<Aside kind="history" title="Why 1945 and not 1845">
+Charles Babbage designed a machine with essentially these properties a century
+earlier and never finished building one. The obstacle was not the idea but the
+engineering: the Analytical Engine was mechanical, and the precision needed for
+thousands of interlocking brass parts was beyond what could be manufactured. The
+idea had to wait for a technology — first relays, then valves, then transistors
+— that could switch quickly and cheaply enough to make it practical.
+</Aside>
+
+## The machine does not understand anything
+
+This is the part students most often get quietly wrong, and it costs marks in
+questions that look like they are about something else.
+
+When the processor meets an instruction, what actually happens is this: a
+pattern of bits arrives at a circuit, and that pattern causes certain switches
+to open and certain others to close. Electricity flows differently as a result.
+That is the entire event. There is no step at which the machine considers what
+the instruction is *for*.
+
+An analogy that holds up well: a player piano rolling through a paper roll. Each
+punched hole lets air through and a hammer strikes a string. The piano is not
+performing Chopin — it is passing air through holes. The music exists in the
+listener. In exactly the same way, meaning in a computer exists in the
+programmer and the user, never in the machine.
+
+<Aside kind="trap" title="A very common exam error">
+Answers that say the computer "knows", "understands", "decides what to do" or
+"realises" are describing something the hardware does not do, and examiners are
+alert to it. Say what the machine does mechanically: it *fetches*, it *decodes*
+a bit pattern, it *executes* a fixed operation, it *compares* two values and
+*branches* on the result. Those are all things a switch can do. Understanding is
+not.
+</Aside>
+
+## Why everything is two states
+
+A modern processor is a very large collection of switches. A switch is either
+conducting or not, so the natural unit of information is a choice between two
+possibilities. That unit is a **bit**, written $0$ and $1$.
+
+The obvious question is why stop at two. We have ten fingers and computers could
+in principle use ten voltage levels, storing far more per wire.
+
+The answer is noise. Inside a chip, a wire's voltage is never exactly what it
+should be: nearby wires induce small currents, temperature shifts the behaviour
+of every transistor, and no two transistors come off the production line
+identical. If $0\,\text{V}$ means zero and $3.3\,\text{V}$ means one, then a
+reading of $3.1\,\text{V}$ is unambiguous — it is nowhere near the middle, so it
+is a one. The design has an enormous margin for error.
+
+Now suppose ten levels, evenly spaced across the same range. Each is about
+$0.37\,\text{V}$ from its neighbour, so a drift of a fifth of a volt turns a
+seven into a six. At billions of operations per second across billions of
+transistors, an error rate that small is still catastrophic.
+
+<Aside kind="deeper" title="Where multi-level signalling is used anyway">
+Two states is the right answer *inside a processor*, where components are cheap
+and correctness is everything. It is not universally right. Flash memory
+routinely stores three or four bits per cell by distinguishing eight or sixteen
+charge levels, accepting a much higher error rate and correcting it with error-
+correcting codes — worth it, because the alternative is more silicon. High-speed
+network links do the same thing: gigabit Ethernet uses five voltage levels,
+because there the expensive resource is the cable, not the electronics at each
+end. The principle is that multi-level signalling is a trade of reliability for
+density, and you make that trade where density is the scarce thing.
+</Aside>
+
+## The four-part model
+
+With that in place, the standard description of any computer is almost
+disappointingly simple. Four things happen:
+
+| Stage | What it means | In a self-checkout |
+| --- | --- | --- |
+| Input | Getting data in from the outside world | Barcode scanner, touchscreen, card reader |
+| Processing | Transforming that data according to instructions | Looking up prices, totalling, verifying payment |
+| Storage | Holding data for later | The product database, the day's transaction log |
+| Output | Presenting results to the outside world | Screen, receipt printer, the door unlocking |
+
+Every topic in Theme A is a magnification of one of these boxes. The CPU is
+processing. Data representation is what the bits in storage mean. Networks are
+input and output stretched across a distance. Databases are storage taken
+seriously.
+
+## Hardware, software, and a blurred line
+
+**Hardware** is the physical machinery. **Software** is the pattern of bits that
+tells it what to do.
+
+The distinction is real but softer than it sounds, and questions sometimes probe
+that. Firmware — the code that starts a machine before an operating system
+exists — is software, but it lives in the device and users never change it. Some
+chips are field-programmable, meaning their *logic* is configured after
+manufacture, so the wiring itself is software-defined. The useful way to hold
+the distinction is by role: hardware is what stays when you power off, software
+is what you can replace without a screwdriver.
+
+<Aside kind="why" title="Why the course starts here">
+It looks like a warm-up topic and it is not. Almost every hard question later on
+— why a compiler and an interpreter differ, why an operating system is needed at
+all, why a buffer overflow can execute an attacker's code — is answered by
+"because instructions and data live in the same memory and the machine cannot
+tell them apart". If that sentence is genuinely solid, later topics stop being a
+list of facts to memorise.
+</Aside>
