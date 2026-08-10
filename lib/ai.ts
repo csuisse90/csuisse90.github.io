@@ -72,6 +72,18 @@ $2^n$, $\\overline{A}$, $\\Sigma(1,3,5)$ and $1010_2$. Use this site's notation:
 $\\overline{A}$ for NOT, $\\cdot$ for AND, $+$ for OR, $\\oplus$ for XOR. Working
 should be laid out step by step in display maths, one line per step.
 
+WEB SEARCH. You have a live web search tool, and results for the reader's
+question may already be pasted in below their message. Use it for anything you
+cannot answer from your own knowledge with confidence — current syllabus
+wording, recent exam-format changes, current hardware or standards, or any
+figure that dates. Do not use it for settled theory you already know. When a
+claim rests on a search result, cite it inline as a markdown link,
+[source](url), and say plainly if the results disagree or look unreliable.
+
+FORMATTING. Replies are rendered as markdown: **bold** for the term being
+defined, \`backticks\` for code, identifiers and key values, - for the rare short
+list, and \`\`\` fences for code blocks. Prefer flowing prose to lists.
+
 DO NOT write code unless asked. When you do, use Python — never Java.`;
 
 const SITE_MAP = `Pages on this site, so you can point the reader at the right one:
@@ -88,12 +100,16 @@ export async function askAi(
     onToken?: (chunk: string) => void;
   } = {},
 ): Promise<AskResult> {
+  // Web search runs at OpenRouter's end: it searches, pastes the results into
+  // the prompt and the model cites them. It is billed per result, so if the
+  // key has no credit the request is retried without it rather than failing.
   const body = {
     model: MODEL,
     messages: [
       { role: "system", content: SYSTEM },
       { role: "user", content: prompt },
     ],
+    plugins: [{ id: "web", max_results: 3 }] as unknown[] | undefined,
     max_tokens: 700,
     temperature: 0.6,
     stream: Boolean(opts.onToken),
@@ -110,13 +126,23 @@ export async function askAi(
     headers["X-Title"] = "IB CS HL";
   }
 
-  try {
-    const res = await fetch(url, {
+  const send = () =>
+    fetch(url, {
       method: "POST",
       headers,
       body: JSON.stringify(body),
       signal: opts.signal,
     });
+
+  try {
+    let res = await send();
+
+    // 402 means the key cannot pay for the search results. Drop the tool and
+    // answer from the model's own knowledge instead of showing an error.
+    if (res.status === 402 && body.plugins) {
+      body.plugins = undefined;
+      res = await send();
+    }
 
     if (!res.ok) {
       const detail = await res.text();
