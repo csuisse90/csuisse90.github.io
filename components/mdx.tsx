@@ -78,7 +78,21 @@ export const MDX_COMPONENTS = {
   KMap,
   M,
   MB,
-  Py: PyRunner,
+  /** Takes its code as a child so a snippet can be written as a plain block
+   *  rather than squeezed into an attribute:
+   *
+   *    <Py caption="...">{`
+   *    print("hello")
+   *    `}</Py>
+   */
+  Py: ({
+    children,
+    code,
+    ...rest
+  }: { children?: ReactNode; code?: string } & Omit<
+    ComponentProps<typeof PyRunner>,
+    "code"
+  >) => <PyRunner code={code ?? (typeof children === "string" ? children : "")} {...rest} />,
   Takeaway,
   Term,
   Topology,

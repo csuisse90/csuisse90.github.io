@@ -1,0 +1,321 @@
+---
+code: A1.1.3
+title: The fetch–decode–execute cycle
+lede: >-
+  The loop the processor has been running since you turned the machine on, traced register by register until there is nothing mysterious left in it.
+prereqs:
+  - A1.1.2
+cards:
+  - q: >-
+      What are the three stages of the machine cycle?
+    a: >-
+      **Fetch** the next instruction from memory, **decode** it to work out what it means, **execute** it. Then repeat, forever.
+  - q: >-
+      Write out the fetch stage as register transfers.
+    a: >-
+      $\text{MAR} \leftarrow \text{PC}$; then memory is read so $\text{MDR} \leftarrow [\text{MAR}]$; then $\text{CIR} \leftarrow \text{MDR}$; and $\text{PC} \leftarrow \text{PC} + 1$.
+  - q: >-
+      When is the program counter incremented, and why then?
+    a: >-
+      During the **fetch** stage, right after the address has been used. Doing it early means a jump instruction executed later can simply overwrite the PC, without the increment undoing it.
+  - q: >-
+      What happens during decode?
+    a: >-
+      The control unit splits the instruction in the CIR into its **opcode** (what to do) and its **operand** (what to do it to), and works out which control signals the operation needs.
+  - q: >-
+      What is an opcode?
+    a: >-
+      The part of an instruction saying which operation is wanted — load, store, add, jump. Typically the first few bits.
+  - q: >-
+      What is an operand?
+    a: >-
+      The part of an instruction saying what to operate on: a value, a register, or more often the address of one.
+  - q: >-
+      How does a jump instruction work, mechanically?
+    a: >-
+      Execute writes the jump's operand into the **program counter**. The next fetch therefore starts somewhere else. That is the whole mechanism behind every loop, `if` and function call.
+  - q: >-
+      What is the clock speed of a processor?
+    a: >-
+      How many cycles it performs per second, measured in hertz. $3\,\text{GHz}$ is $3\times10^{9}$ cycles a second.
+  - q: >-
+      Does one clock cycle equal one instruction?
+    a: >-
+      No. Simple designs take several cycles per instruction; pipelined ones complete more than one per cycle on a good run. Clock speed alone does not tell you how fast a processor is.
+  - q: >-
+      What is pipelining?
+    a: >-
+      Overlapping the stages, so one instruction is being executed while the next is decoded and a third is fetched — like a production line rather than one worker doing every step.
+  - q: >-
+      Why can a branch hurt a pipeline?
+    a: >-
+      The instructions already fetched behind a jump turn out to be the wrong ones and must be discarded, leaving the pipeline to refill.
+practice:
+  - marks: 4
+    q: >-
+      Describe the fetch stage of the machine cycle, referring to the registers involved.
+    points:
+      - >-
+          The address in the program counter is copied into the memory address register.
+      - >-
+          The instruction at that address is read from memory into the memory data register.
+      - >-
+          The instruction is copied from the MDR into the current instruction register.
+      - >-
+          The program counter is incremented so it points at the following instruction.
+  - marks: 2
+    q: >-
+      Explain why the program counter is incremented during fetch rather than at the end of the cycle.
+    points:
+      - >-
+          The address it held has already been used, so it is free to update.
+      - >-
+          If the instruction turns out to be a jump, execute can overwrite the PC and the increment will not interfere with it.
+  - marks: 3
+    q: >-
+      Explain what happens during the decode stage.
+    points:
+      - >-
+          The instruction held in the CIR is split into opcode and operand.
+      - >-
+          The control unit interprets the opcode to determine which operation is required.
+      - >-
+          It then generates the control signals needed by the ALU, registers and memory for that operation.
+  - marks: 4
+    q: >-
+      A program contains a loop. Explain, in terms of the machine cycle, how the processor repeats instructions.
+    points:
+      - >-
+          At the end of the loop body there is a jump or branch instruction.
+      - >-
+          During its execute stage, the operand is written into the program counter.
+      - >-
+          The next fetch therefore takes its address from the start of the loop rather than the following line.
+      - >-
+          The cycle continues as normal from there, so the same instructions are fetched again.
+  - marks: 4
+    q: >-
+      Two processors are advertised at 2.5 GHz and 3.5 GHz. Explain why the second is not necessarily 40% faster.
+    points:
+      - >-
+          Clock speed only counts cycles, not work completed per cycle.
+      - >-
+          Processors differ in how many cycles each instruction takes, and in how effectively they pipeline.
+      - >-
+          Cache size and memory speed may leave either processor waiting, whatever its clock.
+      - >-
+          The number of cores, and whether the software can use them, may matter more than clock speed.
+  - marks: 5
+    q: >-
+      Explain what pipelining is and why a conditional branch reduces its benefit.
+    points:
+      - >-
+          Pipelining overlaps the stages of consecutive instructions rather than completing one before starting the next.
+      - >-
+          While one instruction executes, the next is decoded and a third is fetched.
+      - >-
+          Throughput therefore rises, approaching one completed instruction per cycle.
+      - >-
+          At a conditional branch the processor does not yet know which instructions follow, so it may fetch the wrong ones.
+      - >-
+          Those partially processed instructions must be discarded and the pipeline refilled, costing the cycles that had been saved.
+  - marks: 3
+    q: >-
+      State what is held in the MAR, the MDR and the CIR immediately after the fetch stage of an instruction stored at address 40.
+    points:
+      - >-
+          MAR holds 40, the address that was just accessed.
+      - >-
+          MDR holds the instruction that was read from address 40.
+      - >-
+          CIR holds that same instruction, copied there ready for decoding.
+---
+
+Everything a computer has ever done — every game rendered, every message sent,
+every video decoded — is this loop, run a few billion times a second.
+
+<Figure caption="One turn of the cycle. Nothing here is metaphorical: each arrow is a register transfer the hardware genuinely performs.">
+  <FetchDecodeExecute />
+</Figure>
+
+## Fetch
+
+The processor needs the next instruction, and the only thing it knows is where
+that instruction lives, because the program counter is holding its address.
+
+1. **`MAR ← PC`.** The address is copied from the program counter into the memory
+   address register, which is what physically drives the address bus.
+2. **`MDR ← [MAR]`.** A read signal goes out on the control bus. Memory puts the
+   contents of that location on the data bus, and it lands in the memory data
+   register. The square brackets mean *the contents of*, and that notation is
+   worth adopting: it makes the difference between an address and what is stored
+   there impossible to blur.
+3. **`CIR ← MDR`.** The instruction moves into the current instruction register,
+   which is where the control unit will look for it.
+4. **`PC ← PC + 1`.** The program counter moves on.
+
+<Aside kind="why" title="Why the PC is incremented here and not at the end">
+It looks premature. The instruction has not even been decoded, and already the
+machine has decided what comes next.
+
+That is exactly the point. Suppose the instruction turns out to be `JUMP 40`.
+Execute will write $40$ into the PC. If the increment happened *after* execute,
+it would turn that $40$ into $41$ and every jump in the machine would land one
+instruction late. Incrementing during fetch means the default — "carry on to the
+next one" — is set early and can simply be overruled by anything that wants to.
+
+This is a small, elegant piece of design: the common case is handled by default,
+and the exception overwrites it.
+</Aside>
+
+## Decode
+
+The control unit takes the bit pattern in the CIR and splits it in two.
+
+The **opcode** says what kind of operation this is. The **operand** says what to
+apply it to. In a machine with a 16-bit instruction word you might have four bits
+of opcode and twelve of operand, giving 16 possible operations and $2^{12} =
+4096$ addressable locations.
+
+So `0010 000000101000` is one instruction, and it means: opcode `0010`, which
+this machine defines as LOAD, applied to operand $000000101000$, which is $40$ in
+binary. Load the contents of address 40.
+
+Nothing is looked up in a dictionary. The opcode bits feed a decoder circuit —
+built from exactly the gates covered later in this unit — whose outputs *are* the
+control lines. The meaning of `0010` is not stored anywhere; it is the shape of
+the wiring.
+
+<Aside kind="deeper" title="Addressing modes, or why the operand is not always an address">
+The description above assumes the operand is an address. Real instruction sets
+offer several **addressing modes**, and the opcode says which is in use:
+
+- **Immediate** — the operand *is* the value. `ADD #5` adds five.
+- **Direct** — the operand is the address of the value. `ADD 40` adds whatever is
+  at location 40.
+- **Indirect** — the operand is the address of an address. Slow, but it is how
+  pointers work.
+- **Indexed** — the operand is added to an index register before use. This is how
+  a loop walks through an array: keep the base address fixed and increment the
+  index.
+
+You are not required to reproduce this list, but knowing it explains something
+otherwise puzzling: how a single fixed instruction can touch a different memory
+location each time round a loop.
+</Aside>
+
+## Execute
+
+What happens here depends entirely on the opcode. Three examples cover most of it.
+
+**`LOAD 40`.** `MAR ← 40`, read, `MDR ← [MAR]`, `ACC ← MDR`. The value at address
+40 ends up in the accumulator.
+
+**`ADD 41`.** `MAR ← 41`, read, `MDR ← [MAR]`, then the ALU is told to add, with
+the accumulator and MDR as its inputs, and `ACC ← ` the result.
+
+**`JUMP 12`.** `PC ← 12`. That is all. The next fetch will pull from address 12
+instead of wherever it was heading. Every loop, every `if`, every function call
+and return in every language you have used is this one line of hardware
+behaviour, dressed up.
+
+<Takeaway>
+There is no "control flow" in a processor. There is only a program counter, and
+things that write to it.
+</Takeaway>
+
+## Watch it run
+
+The program below is a small simulator of exactly this cycle. Step through it and
+watch the PC, MAR, MDR, CIR and accumulator change — the same registers named
+above, doing the same things in the same order.
+
+<Py step caption="Step through this rather than running it. The trace table view shows
+every register at every point, which is the same table an exam question would ask you
+to complete.">{`
+# A tiny machine: 4-bit opcode, 12-bit operand, one accumulator.
+LOAD, ADD, STORE, JUMPZ, HLT = 1, 2, 3, 4, 15
+
+memory = [
+    (LOAD, 10),    # 0: acc = mem[10]
+    (ADD, 11),     # 1: acc = acc + mem[11]
+    (STORE, 12),   # 2: mem[12] = acc
+    (HLT, 0),      # 3: stop
+    0, 0, 0, 0, 0, 0,
+    14,            # 10: first value
+    28,            # 11: second value
+    0,             # 12: room for the answer
+]
+
+pc, acc, mar, mdr, cir = 0, 0, 0, 0, (0, 0)
+running = True
+
+while running:
+    # ---- fetch
+    mar = pc
+    mdr = memory[mar]
+    cir = mdr
+    pc = pc + 1
+
+    # ---- decode
+    opcode, operand = cir
+
+    # ---- execute
+    if opcode == LOAD:
+        mar = operand
+        mdr = memory[mar]
+        acc = mdr
+    elif opcode == ADD:
+        mar = operand
+        mdr = memory[mar]
+        acc = acc + mdr
+    elif opcode == STORE:
+        mar = operand
+        memory[mar] = acc
+    elif opcode == JUMPZ:
+        if acc == 0:
+            pc = operand
+    elif opcode == HLT:
+        running = False
+
+print("answer stored at 12:", memory[12])
+`}</Py>
+
+## Clock speed, and why it lies
+
+The **clock** is a square wave fed to every part of the processor, and it is what
+stops the components racing each other: nothing moves until the next tick. A
+$3\,\text{GHz}$ clock ticks three thousand million times a second.
+
+It is tempting to read that as three thousand million instructions a second. It is
+not. A simple processor may need three or four cycles per instruction. A pipelined
+one may complete more than one per cycle. Two chips at the same clock speed can
+differ in real performance by a factor of two, which is why manufacturers stopped
+advertising gigahertz some years ago.
+
+**Pipelining** is the main reason. Rather than finishing one instruction before
+starting the next, the stages are overlapped: instruction 3 is being executed
+while 4 is decoded and 5 is fetched.
+
+<Figure caption="Without pipelining the hardware for each stage sits idle most of the time. With it, every stage is busy every cycle.">
+  <Pipelining />
+</Figure>
+
+The catch is branches. When the processor meets a conditional jump it does not yet
+know which way it will go, but the pipeline needs something to fetch *now*. So it
+guesses — modern processors guess correctly well over 95% of the time — and if it
+guesses wrong, the partly-processed instructions behind the branch must be thrown
+away and the pipeline refilled. The cycles saved by pipelining are handed back.
+
+<Aside kind="deeper" title="Why this makes some code much faster than it looks">
+A loop over a sorted array can run several times faster than the same loop over
+the same values shuffled, with no change to the code. The reason is branch
+prediction: on sorted data the `if` inside the loop takes the same route again and
+again and the predictor is nearly always right; on shuffled data it is guessing a
+coin flip and the pipeline is flushed constantly.
+
+This is worth knowing because it breaks a comfortable assumption — that the time
+a program takes depends only on how many operations it performs. It also depends
+on how predictable those operations are, which is not something you can see in
+the source code at all.
+</Aside>
