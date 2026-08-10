@@ -1,0 +1,270 @@
+---
+code: A1.2.1
+title: Binary, denary and hexadecimal
+lede: >-
+  Counting in a base other than ten, why machines count in two, and why programmers write in sixteen.
+prereqs:
+  - A1.1.1
+cards:
+  - q: >-
+      What is the base of a number system?
+    a: >-
+      How many distinct digits it uses, and therefore the multiplier between one column and the next. Base 10 uses $0$–$9$; base 2 uses $0$–$1$; base 16 uses $0$–$F$.
+  - q: >-
+      What is the place value of each column in binary?
+    a: >-
+      Powers of two, rising right to left: $1, 2, 4, 8, 16, 32, 64, 128$.
+  - q: >-
+      Convert $1011\,0110_2$ to denary.
+    a: >-
+      $128 + 32 + 16 + 4 + 2 = 182$.
+  - q: >-
+      How do you convert denary to binary?
+    a: >-
+      Repeatedly divide by 2 and record the remainders, then read them **bottom to top**. Or subtract the largest power of two that fits, and repeat.
+  - q: >-
+      Why is hexadecimal used?
+    a: >-
+      One hex digit is exactly four bits, so a byte is exactly two hex digits. It is far shorter than binary to write and far less error-prone to read, with no loss of information.
+  - q: >-
+      What are the hex digits above 9?
+    a: >-
+      $A=10$, $B=11$, $C=12$, $D=13$, $E=14$, $F=15$.
+  - q: >-
+      Convert $\text{2F}_{16}$ to denary.
+    a: >-
+      $2 \times 16 + 15 = 47$.
+  - q: >-
+      How do you convert binary to hex quickly?
+    a: >-
+      Split into groups of four bits from the right, then write each group as one hex digit. $1011\,0110_2 = \text{B6}_{16}$.
+  - q: >-
+      What is a nibble?
+    a: >-
+      Four bits — half a byte, and exactly one hexadecimal digit.
+  - q: >-
+      How many values can $n$ bits represent?
+    a: >-
+      $2^n$. Eight bits give $2^8 = 256$ values, that is $0$ to $255$.
+  - q: >-
+      What is the difference between a kilobyte and a kibibyte?
+    a: >-
+      $1\,\text{kB} = 1000$ bytes; $1\,\text{KiB} = 1024$ bytes. Memory is counted in powers of two, storage is usually sold in powers of ten.
+practice:
+  - marks: 2
+    q: >-
+      Convert the binary number $1101\,0011_2$ to denary, showing your working.
+    points:
+      - >-
+          Place values identified as $128 + 64 + 16 + 2 + 1$.
+      - >-
+          Correct answer $211$.
+  - marks: 3
+    q: >-
+      Convert the denary number $173$ to binary, showing your method.
+    points:
+      - >-
+          A valid method is shown, either repeated division by 2 or subtraction of descending powers of two.
+      - >-
+          Working is correct at each step.
+      - >-
+          Correct answer $1010\,1101_2$.
+  - marks: 2
+    q: >-
+      Convert $\text{9C}_{16}$ to denary.
+    points:
+      - >-
+          $9 \times 16 = 144$ and $\text{C} = 12$.
+      - >-
+          Correct answer $156$.
+  - marks: 3
+    q: >-
+      Explain why hexadecimal is used by programmers in preference to binary, when the machine itself uses neither.
+    points:
+      - >-
+          One hex digit corresponds exactly to four bits, so conversion is direct and needs no arithmetic.
+      - >-
+          Hex is about a quarter the length of the equivalent binary, so it is quicker to write and easier to read without losing a digit.
+      - >-
+          No information is lost or approximated, unlike denary, where the correspondence to bits is not direct.
+  - marks: 4
+    q: >-
+      A colour is stored as three bytes, one each for red, green and blue. Calculate how many distinct colours can be represented, and express the colour $\text{FF}\,\text{8C}\,00_{16}$ as three denary values.
+    points:
+      - >-
+          Each byte gives $2^8 = 256$ levels.
+      - >-
+          Total $256^3 = 2^{24} = 16{,}777{,}216$ colours.
+      - >-
+          $\text{FF} = 255$ and $\text{8C} = 140$.
+      - >-
+          So red $255$, green $140$, blue $0$.
+  - marks: 3
+    q: >-
+      A file is described as 2 MB by its creator but shows as 1.91 MB in a file manager. Explain why.
+    points:
+      - >-
+          One uses powers of ten, where $1\,\text{MB} = 1{,}000{,}000$ bytes.
+      - >-
+          The other uses powers of two, where the unit is $1{,}048{,}576$ bytes.
+      - >-
+          $2{,}000{,}000 \div 1{,}048{,}576 \approx 1.91$, so both figures describe the same file.
+  - marks: 4
+    q: >-
+      A system uses 12 bits to store an unsigned integer. State the range of values it can hold, and explain what happens if the program tries to store 5000.
+    points:
+      - >-
+          $2^{12} = 4096$ possible values.
+      - >-
+          Range is $0$ to $4095$ inclusive.
+      - >-
+          $5000$ exceeds the maximum, so it cannot be represented in 12 bits.
+      - >-
+          The value overflows and the stored result is wrong, typically wrapping round rather than raising an error.
+---
+
+A number system is a set of rules for writing quantities down. The quantity does
+not change when you change the system — eleven sheep are eleven sheep whether you
+write $11$, $1011_2$ or $\text{B}_{16}$. Only the notation changes.
+
+## What a base actually means
+
+In denary, the columns are powers of ten, rising right to left: units, tens,
+hundreds, thousands. So $4073$ means $4(1000) + 0(100) + 7(10) + 3(1)$.
+
+The only thing special about ten is that people have ten fingers. Choose any base
+$b$ and the columns become powers of $b$, with $b$ available digits, $0$ to $b-1$.
+
+<Figure caption="The same idea in each base: each column is worth the base times the column to its right.">
+  <PlaceValue />
+</Figure>
+
+## Binary
+
+Base two. Two digits, $0$ and $1$. Columns are $1, 2, 4, 8, 16, 32, 64, 128$, and
+so on.
+
+Reading binary is therefore addition. For $1011\,0110_2$:
+
+| 128 | 64 | 32 | 16 | 8 | 4 | 2 | 1 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | 0 | 1 | 1 | 0 | 1 | 1 | 0 |
+
+$128 + 32 + 16 + 4 + 2 = 182$.
+
+Going the other way there are two standard methods, and it is worth being fluent
+in both because they fail differently under pressure.
+
+**Repeated division.** Divide by two, write down the remainder, repeat with the
+quotient until it reaches zero, then read the remainders **bottom to top**. For
+$173$: 86 r1, 43 r0, 21 r1, 10 r1, 5 r0, 2 r1, 1 r0, 0 r1 → $1010\,1101_2$.
+
+**Subtracting powers.** Write the place values down, and from the left ask "does
+this fit?". $128$ fits into $173$, leaving $45$. $64$ does not. $32$ fits, leaving
+$13$. $16$ does not. $8$ fits, leaving $5$. $4$ fits, leaving $1$. $2$ does not.
+$1$ fits. Same answer, and it is self-checking, because the remainder must reach
+exactly zero.
+
+<Aside kind="trap" title="Reading the remainders the wrong way up">
+Repeated division produces the least significant bit first. Writing the
+remainders in the order you generated them gives the answer reversed, and it is
+the single most common slip in this topic. A quick sanity check: the last
+remainder you write down is always $1$ (the leading bit of any non-zero number),
+so if your answer starts with $0$, you have reversed it.
+</Aside>
+
+## Hexadecimal
+
+Base sixteen, using $0$–$9$ then $A$–$F$ for ten to fifteen.
+
+Hex exists for one reason: **sixteen is $2^4$**, so one hex digit is exactly four
+bits, always, with no arithmetic. That makes conversion between hex and binary
+purely mechanical — split into fours and translate:
+
+$$1011\,0110_2 \;=\; \underbrace{1011}_{\text{B}}\;\underbrace{0110}_{6} \;=\; \text{B6}_{16}$$
+
+A byte is always two hex digits. A 32-bit address is always eight. This is why
+memory addresses, colour codes, MAC addresses and error codes are all written in
+hex: it is binary, shortened four-to-one, with the structure still visible.
+
+Denary cannot do this. $182$ tells you nothing about which bits are set, because
+ten is not a power of two.
+
+<Aside kind="why" title="Why not base 8, which is also a power of two?">
+Octal — base 8, three bits per digit — was widely used and has not entirely
+disappeared; Unix file permissions such as `755` are octal to this day. It lost to
+hex because computers settled on 8-bit bytes. Three does not divide eight, so a
+byte in octal is two and two-thirds digits, which is horrible. Four divides eight
+exactly, so hex fits the byte and octal does not. The convention followed the
+hardware.
+</Aside>
+
+<Py caption="Conversion in both directions. Step through it to watch the remainders accumulate and then reverse.">{`
+def to_base(n, base):
+    digits = "0123456789ABCDEF"
+    if n == 0:
+        return "0"
+    out = ""
+    while n > 0:
+        out = digits[n % base] + out
+        n = n // base
+    return out
+
+for value in (173, 182, 255, 4095):
+    print(f"{value:>5} = {to_base(value, 2):>12}b = {to_base(value, 16):>4}h")
+
+# Binary to hex is four bits at a time, with no arithmetic at all.
+bits = "10110110"
+nibbles = [bits[i:i+4] for i in range(0, len(bits), 4)]
+print()
+print(bits, "->", " ".join(nibbles), "->", "".join("0123456789ABCDEF"[int(n, 2)] for n in nibbles))
+`}</Py>
+
+## How much can $n$ bits hold?
+
+$n$ bits give $2^n$ distinct patterns. Since one of them represents zero, an
+unsigned value in $n$ bits runs from $0$ to $2^n - 1$.
+
+| Bits | Patterns | Unsigned range |
+| --- | --- | --- |
+| 1 | 2 | 0–1 |
+| 4 | 16 | 0–15 |
+| 8 | 256 | 0–255 |
+| 16 | 65,536 | 0–65,535 |
+| 32 | 4,294,967,296 | 0–4,294,967,295 |
+
+Exceed the range and the value **overflows**: the bits that would not fit are
+simply lost, and the result wraps round. Adding $1$ to $255$ in eight bits gives
+$0$, not $256$. Nothing warns you; the hardware has no idea anything was intended.
+
+<Aside kind="deeper" title="Overflow that mattered">
+In 1996 the Ariane 5 rocket destroyed itself 37 seconds after launch. A 64-bit
+floating-point value describing sideways velocity was converted into a 16-bit
+signed integer. The value was larger than $32{,}767$, the conversion overflowed,
+the guidance computer treated the nonsense as a real reading and swung the engines
+hard over. The vehicle broke up. The code was correct for Ariane 4, which flew a
+trajectory where that number stayed small.
+
+The lesson is not that overflow is dangerous in the abstract. It is that a range
+is an assumption, assumptions get inherited along with the code, and the machine
+will never tell you when one stops being true.
+</Aside>
+
+## The units problem
+
+$1\,\text{kB}$ ought to mean a thousand bytes, and when a drive is sold to you it
+does. But memory is addressed in binary, so memory sizes come in powers of two,
+and $2^{10} = 1024$ is close enough to a thousand that early practice called it a
+kilobyte.
+
+The two conventions have now been separated by name: $\text{kB}$, $\text{MB}$,
+$\text{GB}$ for powers of ten, and $\text{KiB}$, $\text{MiB}$, $\text{GiB}$ —
+kibibyte, mebibyte, gibibyte — for powers of two. The gap widens as the units
+grow: a "1 TB" drive holds about $0.909\,\text{TiB}$, which is where the missing
+90 gigabytes on a new computer go.
+
+<Takeaway>
+Base is notation, not quantity. Binary is what the hardware can physically hold;
+hex is binary written four bits at a time so a person can read it; denary is for
+people who are not thinking about bits at all.
+</Takeaway>
