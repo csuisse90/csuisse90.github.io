@@ -1,0 +1,1 @@
+Split until each leaf is something one person could write in a sitting. Nothing on the bottom row needs to know about anything else on it.

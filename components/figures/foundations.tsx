@@ -544,3 +544,204 @@ export function JoinShapes() {
     </Figure>
   );
 }
+
+/** A problem split into parts, and those parts split again. */
+export function Decomposition() {
+  const levels: { label: string; children: string[] }[] = [
+    { label: "Members", children: ["add", "find", "fines"] },
+    { label: "Catalogue", children: ["add", "search", "mark lost"] },
+    { label: "Loans", children: ["issue", "return", "overdue"] },
+  ];
+  const boxW = 150;
+  const gap = 26;
+  const leafW = 46;
+
+  return (
+    <Figure
+      title="Decomposing a library system"
+      meta="top down"
+      width={560}
+      height={252}
+      caption="Split until each leaf is something one person could write in a sitting. Nothing on the bottom row needs to know about anything else on it."
+    >
+      <Box x={(560 - 190) / 2} y={16} w={190} h={40} label="LIBRARY SYSTEM" accent />
+
+      {levels.map((level, i) => {
+        const x = i * (boxW + gap);
+        const centre = x + boxW / 2;
+        return (
+          <g key={level.label}>
+            <Arrow x1={280} y1={56} x2={centre} y2={94} />
+            <Box x={x} y={94} w={boxW} h={38} label={level.label} />
+            {level.children.map((child, j) => {
+              const cx = x + j * (leafW + 6);
+              return (
+                <g key={child}>
+                  <line
+                    x1={centre}
+                    y1={132}
+                    x2={cx + leafW / 2}
+                    y2={178}
+                    stroke={LINE}
+                    strokeWidth={1.4}
+                  />
+                  <rect
+                    x={cx}
+                    y={178}
+                    width={leafW}
+                    height={30}
+                    fill={FILL}
+                    stroke={LINE}
+                    strokeWidth={1.4}
+                  />
+                  <text
+                    x={cx + leafW / 2}
+                    y={193}
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    fontFamily="var(--font-mono), monospace"
+                    fontSize={8}
+                    fill={SOFT}
+                  >
+                    {child}
+                  </text>
+                </g>
+              );
+            })}
+          </g>
+        );
+      })}
+
+      <Caption x={280} y={238}>
+        each leaf is a task, not a topic
+      </Caption>
+    </Figure>
+  );
+}
+
+/** A flowchart of the largest-number algorithm, showing the loop as a loop. */
+export function FlowchartExample() {
+  const cx = 280;
+  return (
+    <Figure
+      title="Find the largest"
+      meta="flowchart"
+      width={560}
+      height={440}
+      caption="One way in, one way out, and a line that goes back where it came from — which is what makes the loop visible at a glance."
+    >
+      {/* start */}
+      <rect x={cx - 55} y={10} width={110} height={30} rx={15} fill={FILL} stroke={INK} strokeWidth={1.8} />
+      <Caption x={cx} y={30} size={11} colour={INK}>
+        start
+      </Caption>
+      <Arrow x1={cx} y1={40} x2={cx} y2={62} />
+
+      {/* input */}
+      <path
+        d={`M${cx - 84},62 L${cx + 76},62 L${cx + 84},94 L${cx - 76},94 Z`}
+        fill={FILL}
+        stroke={INK}
+        strokeWidth={1.6}
+      />
+      <Caption x={cx} y={82} size={10} colour={INK}>
+        read the list
+      </Caption>
+      <Arrow x1={cx} y1={94} x2={cx} y2={116} />
+
+      <Box x={cx - 90} y={116} w={180} h={34} label="largest ← first" fontSize={11} />
+      <Arrow x1={cx} y1={150} x2={cx} y2={172} />
+
+      {/* decision: more numbers */}
+      <path
+        d={`M${cx},172 L${cx + 92},208 L${cx},244 L${cx - 92},208 Z`}
+        fill={FILL}
+        stroke={ACCENT}
+        strokeWidth={1.8}
+      />
+      <Caption x={cx} y={212} size={10} colour={ACCENT}>
+        another number?
+      </Caption>
+
+      {/* no -> output, on the right */}
+      <Caption x={cx + 100} y={202} anchor="start" colour={FAINT}>
+        no
+      </Caption>
+      <path
+        d={`M${cx + 92},208 L${cx + 168},208 L${cx + 168},330`}
+        fill="none"
+        stroke={LINE}
+        strokeWidth={1.8}
+        markerEnd="url(#arrowEnd)"
+      />
+
+      {/* yes -> compare, below */}
+      <Caption x={cx + 8} y={258} anchor="start" colour={FAINT}>
+        yes
+      </Caption>
+      <Arrow x1={cx} y1={244} x2={cx} y2={266} />
+
+      <path
+        d={`M${cx},266 L${cx + 86},298 L${cx},330 L${cx - 86},298 Z`}
+        fill={FILL}
+        stroke={ACCENT}
+        strokeWidth={1.8}
+      />
+      <Caption x={cx} y={302} size={10} colour={ACCENT}>
+        bigger than largest?
+      </Caption>
+
+      <Caption x={cx - 96} y={292} anchor="end" colour={FAINT}>
+        yes
+      </Caption>
+      <path
+        d={`M${cx - 86},298 L${cx - 154},298 L${cx - 154},356`}
+        fill="none"
+        stroke={LINE}
+        strokeWidth={1.8}
+        markerEnd="url(#arrowEnd)"
+      />
+      <Box x={cx - 228} y={356} w={148} h={32} label="largest ← number" fontSize={10} />
+
+      {/* both paths return to the loop test */}
+      <path
+        d={`M${cx - 154},388 L${cx - 154},412 L${cx - 262},412 L${cx - 262},208 L${cx - 92},208`}
+        fill="none"
+        stroke={LINE}
+        strokeWidth={1.8}
+        markerEnd="url(#arrowEnd)"
+      />
+      <Caption x={cx - 4} y={344} anchor="end" colour={FAINT}>
+        no
+      </Caption>
+      <path
+        d={`M${cx},330 L${cx},412 L${cx - 262},412`}
+        fill="none"
+        stroke={LINE}
+        strokeWidth={1.8}
+      />
+
+      {/* output and stop */}
+      <path
+        d={`M${cx + 96},330 L${cx + 240},330 L${cx + 248},362 L${cx + 104},362 Z`}
+        fill={FILL}
+        stroke={INK}
+        strokeWidth={1.6}
+      />
+      <Caption x={cx + 172} y={350} size={10} colour={INK}>
+        output largest
+      </Caption>
+      <path
+        d={`M${cx + 168},362 L${cx + 168},392`}
+        fill="none"
+        stroke={LINE}
+        strokeWidth={1.8}
+        markerEnd="url(#arrowEnd)"
+      />
+      <rect x={cx + 118} y={392} width={100} height={30} rx={15} fill={FILL} stroke={INK} strokeWidth={1.8} />
+      <Caption x={cx + 168} y={412} size={11} colour={INK}>
+        stop
+      </Caption>
+    </Figure>
+  );
+}

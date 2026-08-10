@@ -1,0 +1,282 @@
+---
+code: B1.1.1
+title: Abstraction and decomposition
+lede: >-
+  The two habits that make a problem too big to hold in your head into one you can actually write down.
+cards:
+  - q: >-
+      What is computational thinking?
+    a: >-
+      Framing a problem so that a computer can carry out the solution — breaking it up, spotting what repeats, ignoring what does not matter, and writing precise steps.
+  - q: >-
+      What is decomposition?
+    a: >-
+      Breaking a problem into smaller sub-problems that can be solved, tested and understood on their own.
+  - q: >-
+      Why is decomposition useful beyond making a problem smaller?
+    a: >-
+      Each part can be tested separately, written by a different person, and replaced without disturbing the rest.
+  - q: >-
+      What is abstraction?
+    a: >-
+      Deliberately ignoring detail that does not matter for the problem in hand, so what remains can be reasoned about.
+  - q: >-
+      Give an everyday example of abstraction.
+    a: >-
+      A map of the underground. It gets the connections right and the distances deliberately wrong, because a passenger needs the order of stations, not the geography.
+  - q: >-
+      What is a leaky abstraction?
+    a: >-
+      One whose hidden detail becomes visible when something goes wrong — a file that behaves like local storage until the network drops.
+  - q: >-
+      What is pattern recognition?
+    a: >-
+      Noticing that parts of a problem repeat, or resemble a problem already solved, so one solution can serve several places.
+  - q: >-
+      What is algorithmic thinking?
+    a: >-
+      Expressing a solution as a sequence of unambiguous steps that always terminates and always gives the intended result.
+  - q: >-
+      What is an interface, in the sense used here?
+    a: >-
+      The agreed boundary of a component: what it takes in and gives back, with nothing said about how it does it.
+  - q: >-
+      Why does hiding the implementation matter?
+    a: >-
+      Anything hidden can be changed without breaking the callers. Anything exposed becomes something you must keep working forever.
+  - q: >-
+      What is a top-down design?
+    a: >-
+      Starting from the whole problem and repeatedly splitting it into parts, until each part is small enough to write directly.
+practice:
+  - marks: 3
+    q: >-
+      Explain what is meant by decomposition and why it is useful when developing a large program.
+    points:
+      - >-
+          A problem is broken down into smaller sub-problems that can be solved individually.
+      - >-
+          Each part is small enough to be understood, written and tested on its own.
+      - >-
+          Parts can be developed in parallel by different people, and one can be replaced without rewriting the others.
+  - marks: 4
+    q: >-
+      Explain what abstraction is, using an example, and state one risk of it.
+    points:
+      - >-
+          Abstraction means removing or hiding detail that is not relevant to the problem being solved.
+      - >-
+          A valid example is given, such as a underground map, a function signature, or a file system hiding disc blocks.
+      - >-
+          It allows the remaining structure to be reasoned about without being overwhelmed by detail.
+      - >-
+          The risk is that hidden detail can still matter, so behaviour becomes surprising when the abstraction leaks.
+  - marks: 4
+    q: >-
+      A student is asked to write a program that manages a school library. Describe how they should decompose the problem.
+    points:
+      - >-
+          Identify the major areas of responsibility, such as members, the catalogue, loans and reporting.
+      - >-
+          Break each area into specific operations, for example adding a member, searching the catalogue, issuing a loan.
+      - >-
+          Define what each operation takes in and gives back, so parts can be written independently.
+      - >-
+          Identify shared sub-problems, such as validating a date, that can be written once and reused.
+  - marks: 3
+    q: >-
+      Explain what pattern recognition means in computational thinking and why it saves work.
+    points:
+      - >-
+          It means noticing that parts of a problem repeat, or resemble something already solved.
+      - >-
+          The repeated part can then be written once as a function or loop rather than many times.
+      - >-
+          Fixing a fault in that one place fixes it everywhere it is used.
+  - marks: 4
+    q: >-
+      Explain the difference between what a component does and how it does it, and why the distinction matters.
+    points:
+      - >-
+          What it does is its interface — the inputs it accepts and the results it produces.
+      - >-
+          How it does it is the implementation, which is hidden from anything that uses it.
+      - >-
+          The implementation can then be changed or improved without affecting any caller.
+      - >-
+          If callers depend on internal detail, that detail can no longer be changed, and the component becomes fixed in place.
+  - marks: 4
+    q: >-
+      A program stores a list of student names and must find whether a given name is present. Identify the sub-problems and state which detail can be abstracted away.
+    points:
+      - >-
+          Sub-problems include reading the list, comparing a name against an entry, and reporting the result.
+      - >-
+          Comparison must handle differences such as case or trailing spaces, which is a sub-problem of its own.
+      - >-
+          How the list is stored can be abstracted away — the search does not need to know it is an array rather than a file.
+      - >-
+          This means the storage could later change without altering the searching code.
+  - marks: 5
+    q: >-
+      Discuss the claim that abstraction always makes a program easier to work with.
+    points:
+      - >-
+          Abstraction reduces the amount that must be held in mind at once, which genuinely helps on large systems.
+      - >-
+          It allows implementations to be replaced without disturbing callers.
+      - >-
+          However each layer adds indirection, so tracing what actually happens becomes harder.
+      - >-
+          A leaky abstraction can mislead, because behaviour depends on detail the interface promised to hide.
+      - >-
+          A reasoned conclusion is reached, for example that abstraction helps in proportion to how reliably the hidden detail stays hidden.
+---
+
+Two problems make programming hard, and they are not the ones beginners expect.
+They are that real problems are too big to hold in your head at once, and that
+they contain far more detail than matters.
+
+Decomposition addresses the first. Abstraction addresses the second.
+
+## Decomposition
+
+Break the problem into parts small enough to solve.
+
+"Write a library system" is not a task anybody can start. Split it and it
+becomes a list of things that are:
+
+- Members: add, remove, find, check whether they owe a fine.
+- Catalogue: add a book, search by title or author, mark as lost.
+- Loans: issue, return, renew, list what is overdue.
+- Reporting: most borrowed, quietest month, who has what.
+
+Each of those is a task somebody could sit down and do this afternoon.
+
+<Figure caption="Split until each leaf is a thing one person could write in a sitting. The tree is the plan.">
+  <Decomposition />
+</Figure>
+
+The benefit is not only that the parts are smaller. It is that each part can be
+**tested on its own**, **written by a different person**, and **replaced** without
+disturbing the others. A bug is in one box rather than everywhere.
+
+<Aside kind="why" title="How to tell you have decomposed badly">
+The test is not how small the parts are. It is how much they need to know about
+each other.
+
+If "issue a loan" has to understand how the catalogue stores its books, the split
+has bought you nothing — you still have to think about both at once, and changing
+one breaks the other. That is **tight coupling**.
+
+A good split leaves each part able to state what it needs in a sentence: "give me
+a member id and a book id, I will record the loan or tell you why I cannot." The
+parts touch only at their edges.
+</Aside>
+
+## Abstraction
+
+A map of the London Underground gets the geography deliberately wrong. Stations
+are not where the map says; distances are invented; the river is a shape rather
+than a river.
+
+It is one of the most useful documents ever designed, and it is useful *because*
+of what it throws away. A passenger needs the order of stations and where lines
+cross. Everything else is noise, and removing it is what makes the remainder
+readable.
+
+That is **abstraction**: deciding what does not matter for the problem in hand,
+and leaving it out.
+
+In programming it appears everywhere:
+
+- A function name says what it does; its body says how. Callers read the name.
+- A file looks like a numbered sequence of bytes. It is actually scattered blocks
+  on a spinning disc, and you have never had to care.
+- A variable called `total` is a location in memory whose address you will never
+  learn.
+
+<Aside kind="trap" title="Leaky abstractions, and why they are the ones that bite">
+An abstraction promises you need not think about something. It is **leaky** when
+that promise fails.
+
+A networked drive looks exactly like a local folder — until the connection drops,
+and suddenly a program that only ever "opened a file" is hanging for thirty
+seconds. The abstraction hid the network right up to the moment the network was
+the only thing that mattered.
+
+Two-dimensional arrays look symmetric, but walking one by rows can be several
+times faster than by columns, because underneath it is a single line of memory
+and the cache prefers neighbours.
+
+Joel Spolsky's rule is worth remembering: *all non-trivial abstractions leak*. The
+point is not to distrust them but to know which detail is hiding underneath, so
+that when something behaves strangely you know where to look.
+</Aside>
+
+## Pattern recognition
+
+Once a problem is decomposed, parts of it look alike.
+
+"Validate a borrow date" and "validate a return date" are the same problem. "Find
+a member by id" and "find a book by id" have the same shape. Noticing this means
+writing one thing instead of two — and fixing it in one place instead of two.
+
+<Py caption="The same job written three times, then once. Step through and notice that the third version has the logic in a single place.">{`
+students = [
+    {"name": "Ada", "mark": 91},
+    {"name": "Alan", "mark": 55},
+    {"name": "Grace", "mark": 78},
+]
+
+# Written out three times. Each is fine; together they are a maintenance problem,
+# because a change to the rule has to be made three times and will not be.
+top = None
+for s in students:
+    if top is None or s["mark"] > top["mark"]:
+        top = s
+
+bottom = None
+for s in students:
+    if bottom is None or s["mark"] < bottom["mark"]:
+        bottom = s
+
+longest = None
+for s in students:
+    if longest is None or len(s["name"]) > len(longest["name"]):
+        longest = s
+
+print("three separate loops:", top["name"], bottom["name"], longest["name"])
+
+# The pattern is "walk the list keeping the best one so far". Written once, with
+# the part that differs passed in.
+def best(items, better_than):
+    winner = None
+    for item in items:
+        if winner is None or better_than(item, winner):
+            winner = item
+    return winner
+
+print("one function:",
+      best(students, lambda a, b: a["mark"] > b["mark"])["name"],
+      best(students, lambda a, b: a["mark"] < b["mark"])["name"],
+      best(students, lambda a, b: len(a["name"]) > len(b["name"]))["name"])
+`}</Py>
+
+## Interfaces
+
+The boundary between two parts is an **interface**: what goes in, what comes out,
+and nothing about how.
+
+Deciding an interface is deciding what you are promising to keep working. Anything
+in the interface is now permanent — callers depend on it. Anything hidden behind it
+can be rewritten tomorrow.
+
+This is why "make it private unless it needs to be public" is such a durable rule.
+It is not about secrecy. It is about keeping your options open.
+
+<Takeaway>
+Decomposition makes a problem small enough to start. Abstraction makes each piece
+small enough to finish. Both are decisions about what to ignore, and both are
+reversible only while nobody depends on the detail you exposed.
+</Takeaway>

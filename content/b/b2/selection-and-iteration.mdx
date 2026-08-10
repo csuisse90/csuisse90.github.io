@@ -1,0 +1,334 @@
+---
+code: B2.1.2
+title: Selection and iteration
+lede: >-
+  Choosing a branch and repeating a block — two of the three control structures, and where nearly every logic bug lives.
+prereqs:
+  - B2.1.1
+cards:
+  - q: >-
+      What is selection?
+    a: >-
+      Choosing which block to run based on a condition — `if`, `elif`, `else`.
+  - q: >-
+      What is a condition?
+    a: >-
+      An expression that evaluates to true or false, usually built from comparisons combined with `and`, `or` and `not`.
+  - q: >-
+      What is the difference between a chain of `if`s and `if`/`elif`?
+    a: >-
+      Separate `if`s are all tested and several can run. An `if`/`elif` chain stops at the first match, so exactly one branch runs.
+  - q: >-
+      What is nesting?
+    a: >-
+      Putting one control structure inside another. Beyond two or three levels it becomes very hard to reason about.
+  - q: >-
+      What is short-circuit evaluation?
+    a: >-
+      Stopping as soon as the answer is known: `False and anything` is false without evaluating the second part. It lets you guard a test with the check that makes it safe.
+  - q: >-
+      What is a count-controlled loop?
+    a: >-
+      One that repeats a known number of times — a `for` loop over a range or a collection.
+  - q: >-
+      What is a condition-controlled loop?
+    a: >-
+      One that repeats until a condition becomes false — a `while` loop. The number of iterations need not be known in advance.
+  - q: >-
+      When should you use `while` rather than `for`?
+    a: >-
+      When you cannot say in advance how many repetitions are needed — reading until end of file, or retrying until a user gives valid input.
+  - q: >-
+      What causes an infinite loop?
+    a: >-
+      The condition never becoming false, usually because the variable it tests is never updated inside the loop.
+  - q: >-
+      What does `break` do, and `continue`?
+    a: >-
+      `break` leaves the loop immediately. `continue` skips the rest of this iteration and starts the next.
+  - q: >-
+      What is a nested loop, and what does it cost?
+    a: >-
+      A loop inside a loop. The body runs the product of the two counts, so two loops of $n$ run $n^2$ times.
+  - q: >-
+      What is a sentinel value?
+    a: >-
+      A special value marking the end of input, such as $-1$ or an empty line, used to stop a condition-controlled loop.
+practice:
+  - marks: 3
+    q: >-
+      Explain the difference between using several separate `if` statements and using an `if`/`elif`/`else` chain.
+    points:
+      - >-
+          Separate `if` statements are each evaluated, so more than one block can run.
+      - >-
+          An `if`/`elif` chain stops as soon as a condition is true, so exactly one block runs.
+      - >-
+          Using separate `if`s where the cases are mutually exclusive can cause several branches to run and produce a wrong result.
+  - marks: 4
+    q: >-
+      Distinguish between a count-controlled and a condition-controlled loop, giving an example of when each is appropriate.
+    points:
+      - >-
+          A count-controlled loop repeats a number of times known before it starts.
+      - >-
+          It suits processing every item of a list of known length.
+      - >-
+          A condition-controlled loop repeats until a condition becomes false, with the count unknown in advance.
+      - >-
+          It suits reading input until a sentinel value, or retrying until the user enters something valid.
+  - marks: 3
+    q: >-
+      Explain what causes an infinite loop and how to avoid one.
+    points:
+      - >-
+          The loop's condition never becomes false.
+      - >-
+          Usually the variable tested in the condition is never changed inside the loop body.
+      - >-
+          Ensure that every path through the body moves the state towards making the condition false.
+  - marks: 4
+    q: >-
+      Explain what short-circuit evaluation is and give an example where it prevents an error.
+    points:
+      - >-
+          Evaluation of a boolean expression stops as soon as the result is determined.
+      - >-
+          With `and`, a false first operand means the second is never evaluated.
+      - >-
+          A guard can therefore be placed first, such as checking a list is not empty before indexing it.
+      - >-
+          Written as `if len(items) > 0 and items[0] == x`, the index is never attempted on an empty list.
+  - marks: 4
+    q: >-
+      A program uses a nested loop over two lists of 1000 items each. State how many times the inner body runs and explain the implication.
+    points:
+      - >-
+          The body runs $1000 \times 1000 = 1{,}000{,}000$ times.
+      - >-
+          Running time grows with the product of the two lengths, not their sum.
+      - >-
+          Doubling both lists would make it four times slower.
+      - >-
+          For large data this becomes impractical, so a different approach such as a lookup structure may be needed.
+  - marks: 4
+    q: >-
+      Write pseudocode that repeatedly asks for a mark between 0 and 100 until a valid one is entered.
+    points:
+      - >-
+          A condition-controlled loop is used, since the number of attempts is unknown.
+      - >-
+          The input is read inside the loop.
+      - >-
+          The condition checks both bounds, rejecting values below 0 and above 100.
+      - >-
+          The loop exits only when the value is valid, and the value is available afterwards.
+  - marks: 5
+    q: >-
+      A student's loop to find whether a value is in a list always reports "not found" even when it is present. Their code sets a flag to True on a match, but the `else` that sets it to False is inside the loop. Explain the fault and how to fix it.
+    points:
+      - >-
+          The flag is reset on every iteration where the item does not match.
+      - >-
+          A match found early is therefore overwritten by the next non-matching item.
+      - >-
+          Only the last comparison affects the result, so it reports found only if the last item matches.
+      - >-
+          The flag should be initialised to False once, before the loop.
+      - >-
+          Inside the loop it should only ever be set to True, never back to False; breaking out on a match is also correct.
+---
+
+Selection and iteration are two of the three control structures, and between them
+they account for most of the logic errors anyone writes. Neither is complicated.
+The trouble is in the details.
+
+## Selection
+
+```python
+if mark >= 70:
+    grade = "7"
+elif mark >= 60:
+    grade = "6"
+else:
+    grade = "5"
+```
+
+The chain matters. `elif` means *otherwise, if* — evaluation stops at the first
+condition that is true, so exactly one branch runs.
+
+Write the same thing with separate `if`s and it breaks:
+
+```python
+if mark >= 70:
+    grade = "7"
+if mark >= 60:     # not elif
+    grade = "6"
+```
+
+A mark of 85 sets `grade` to `"7"`, then the second condition is also true, so it
+is overwritten with `"6"`. Every high mark comes out as a 6.
+
+<Aside kind="trap" title="Order matters in a chain, and the wrong order fails silently">
+```python
+if mark >= 50: grade = "4"
+elif mark >= 70: grade = "7"
+```
+
+Nothing here is a syntax error and no warning is produced. But a mark of 85 is
+caught by the first condition, so nobody ever gets a 7.
+
+The rule: in a chain of overlapping thresholds, test the **most restrictive**
+condition first. When descending through numeric boundaries, that means starting
+with the highest.
+
+The test that catches it in seconds is to try one value from each band, including
+values exactly on each boundary.
+</Aside>
+
+## Boolean operators
+
+Conditions combine with `and`, `or` and `not`. The same three operators as the
+logic gates — this is not a coincidence, it is the same algebra.
+
+Two behaviours are worth knowing.
+
+**Short-circuit evaluation.** `A and B` stops if `A` is false, because the answer
+is already known. `A or B` stops if `A` is true. This is not only an optimisation:
+it lets a guard protect the test that follows it.
+
+```python
+if len(items) > 0 and items[0] == target:
+```
+
+If the list is empty, the second part is never evaluated, so it never indexes past
+the end. Swap the order and it crashes.
+
+**De Morgan's laws apply here too.** `not (a and b)` is `(not a) or (not b)`.
+Rewriting a tangled negation this way often makes it readable.
+
+## Iteration
+
+**Count-controlled** — a `for` loop, when you know how many times.
+
+```python
+for i in range(5):        # 0, 1, 2, 3, 4
+for item in shopping:     # every element in turn
+```
+
+**Condition-controlled** — a `while` loop, when you do not.
+
+```python
+while not valid:
+    mark = int(input("Mark: "))
+    valid = 0 <= mark <= 100
+```
+
+The choice is decided by one question: **do you know the number of repetitions
+before you start?** If yes, `for`. If no, `while`.
+
+<Py step caption="Every loop mistake in this topic, side by side. Step through the flag example and watch the flag get reset.">{`
+data = [4, 9, 2, 9, 7]
+target = 9
+
+# The classic broken search: the flag is reset inside the loop.
+found = False
+for value in data:
+    if value == target:
+        found = True
+    else:
+        found = False          # <- resets a match already found
+print("broken search says:", found, "(the last item is not 9, so it says no)")
+
+# Correct: initialise once, only ever set to True.
+found = False
+for value in data:
+    if value == target:
+        found = True
+print("fixed search says: ", found)
+
+# Better still: stop as soon as the answer is known.
+found = False
+for index, value in enumerate(data):
+    if value == target:
+        found = True
+        print(f"found at index {index} after {index + 1} comparisons")
+        break
+
+# The off-by-one, shown rather than described.
+print()
+print("range(len(data)) ->", list(range(len(data))), "  every index")
+print("range(1, len(data)) ->", list(range(1, len(data))), "  misses index 0")
+print("last index is", len(data) - 1, "not", len(data))
+
+# Nested loops multiply.
+print()
+count = 0
+for a in range(4):
+    for b in range(4):
+        count += 1
+print("two loops of 4 run the body", count, "times, not 8")
+
+# Short circuiting makes this guard safe.
+print()
+empty = []
+print("guarded:", len(empty) > 0 and empty[0] == 1)
+try:
+    print(empty[0] == 1 and len(empty) > 0)
+except IndexError as e:
+    print("unguarded:", type(e).__name__, "-", e)
+`}</Py>
+
+## Infinite loops
+
+A `while` loop that never becomes false runs forever.
+
+```python
+count = 0
+while count < 10:
+    print(count)      # count is never changed
+```
+
+The rule is that **every path through the body must move the state towards the
+condition becoming false**. Notice "every path" — a `continue` that skips the
+increment reintroduces the bug for one branch only, which is far harder to spot.
+
+## Nesting and cost
+
+A loop inside a loop runs the body the **product** of the counts. Two loops of
+1000 is a million iterations. Two loops of 10,000 is a hundred million.
+
+This is where a program stops being slow and starts being unusable, and it is
+usually visible in the shape of the code before it is ever measured: count the
+levels of indentation.
+
+<Aside kind="deeper" title="A guard clause is usually clearer than nesting">
+Deeply nested conditions are hard to follow because the reader must hold every
+enclosing condition in mind at once.
+
+```python
+if user is not None:
+    if user.active:
+        if user.has_permission:
+            do_the_thing()
+```
+
+Inverting each test and returning early flattens it:
+
+```python
+if user is None: return
+if not user.active: return
+if not user.has_permission: return
+do_the_thing()
+```
+
+Same behaviour, one level of indentation, and each precondition is stated and
+disposed of on its own line. The reader reaches `do_the_thing()` knowing exactly
+what must be true, without holding three open brackets in their head.
+</Aside>
+
+<Takeaway>
+Use `elif` when exactly one branch should run, and order overlapping conditions
+most-restrictive first. Use `for` when the count is known and `while` when it is
+not — and make sure every path through a `while` body moves towards stopping.
+</Takeaway>

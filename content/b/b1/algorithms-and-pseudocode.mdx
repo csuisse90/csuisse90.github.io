@@ -1,0 +1,297 @@
+---
+code: B1.1.2
+title: Algorithms, flowcharts and pseudocode
+lede: >-
+  Writing a method down precisely enough that somebody else could follow it, and the three notations the exam expects.
+prereqs:
+  - B1.1.1
+cards:
+  - q: >-
+      What is an algorithm?
+    a: >-
+      A finite sequence of unambiguous steps that takes an input and produces the intended output.
+  - q: >-
+      Name the four properties every algorithm must have.
+    a: >-
+      **Finite** — it ends. **Unambiguous** — each step has one meaning. **Defined input and output**. **Effective** — every step can actually be carried out.
+  - q: >-
+      What is pseudocode?
+    a: >-
+      A way of writing an algorithm in structured English, precise about logic but free of the syntax of any particular language.
+  - q: >-
+      Why use pseudocode rather than real code in a design?
+    a: >-
+      It keeps attention on the method rather than the syntax, and it can be read by someone who does not know the language you will use.
+  - q: >-
+      What are the three control structures?
+    a: >-
+      **Sequence** — one step after another. **Selection** — choose a branch. **Iteration** — repeat. Every algorithm is built from these three.
+  - q: >-
+      What does a rectangle mean in a flowchart?
+    a: >-
+      A process — a step that does something.
+  - q: >-
+      What does a diamond mean in a flowchart?
+    a: >-
+      A decision. It has one way in and two ways out, labelled with the conditions.
+  - q: >-
+      What do the rounded ends of a flowchart mean?
+    a: >-
+      Terminals — where the algorithm starts and where it stops.
+  - q: >-
+      What is a parallelogram in a flowchart?
+    a: >-
+      Input or output.
+  - q: >-
+      What is a trace table?
+    a: >-
+      A table with one column per variable and one row per step, recording how the values change as an algorithm runs.
+  - q: >-
+      What is an off-by-one error?
+    a: >-
+      Running a loop one time too many or too few, usually from confusing "up to" with "up to and including". It is the commonest bug in this topic.
+  - q: >-
+      What is a dry run?
+    a: >-
+      Working through an algorithm by hand with chosen values, usually recorded in a trace table, to check it does what you think.
+practice:
+  - marks: 4
+    q: >-
+      State the four properties an algorithm must have, explaining one of them.
+    points:
+      - >-
+          It must be finite, terminating after a limited number of steps.
+      - >-
+          It must be unambiguous, so each step has exactly one interpretation.
+      - >-
+          It must have defined inputs and outputs.
+      - >-
+          Each step must be effective, meaning it can actually be carried out; one of the four is explained.
+  - marks: 4
+    q: >-
+      Write pseudocode for an algorithm that reads 10 numbers and outputs the largest.
+    points:
+      - >-
+          A variable is initialised to hold the largest so far, either from the first input or a suitable starting value.
+      - >-
+          A loop repeats the correct number of times.
+      - >-
+          Each input is compared with the largest so far and replaces it when greater.
+      - >-
+          The result is output after the loop, not inside it.
+  - marks: 3
+    q: >-
+      State what each of these flowchart symbols means: rectangle, diamond, parallelogram.
+    points:
+      - >-
+          Rectangle — a process, a step that does something.
+      - >-
+          Diamond — a decision, with two labelled exits.
+      - >-
+          Parallelogram — input or output.
+  - marks: 4
+    q: >-
+      Complete a trace table for the following algorithm with input 4. `total ← 0; count ← 1; WHILE count ≤ n DO total ← total + count; count ← count + 1; ENDWHILE; OUTPUT total`
+    points:
+      - >-
+          Table has columns for count, total and the condition.
+      - >-
+          Rows show total taking values 1, 3, 6 then 10.
+      - >-
+          Count reaches 5 and the condition becomes false.
+      - >-
+          The output is 10.
+  - marks: 3
+    q: >-
+      Explain what an off-by-one error is and give an example.
+    points:
+      - >-
+          The loop executes one time too many, or one time too few.
+      - >-
+          It typically arises from confusing "less than" with "less than or equal to", or from counting from 0 rather than 1.
+      - >-
+          A valid example is given, such as a loop over an array of length $n$ using indices 1 to $n$ and reading past the end.
+  - marks: 4
+    q: >-
+      Explain why an algorithm should be designed before code is written.
+    points:
+      - >-
+          The logic can be checked and corrected before effort is spent on syntax.
+      - >-
+          Errors found at the design stage are far cheaper to fix than errors found in working code.
+      - >-
+          The design can be reviewed by others, including those who do not know the language.
+      - >-
+          The same design can then be implemented in any language.
+  - marks: 5
+    q: >-
+      A student writes an algorithm to find the average of a list of numbers, but it crashes when the list is empty. Explain the problem and how designing with edge cases in mind would have prevented it.
+    points:
+      - >-
+          The average is the total divided by the count, and with an empty list the count is zero.
+      - >-
+          Division by zero causes an error at run time rather than a wrong answer.
+      - >-
+          Considering edge cases means asking what happens at the extremes — empty, one item, very large — before writing code.
+      - >-
+          The design should specify what an empty list means, for example returning zero or reporting that there is no average.
+      - >-
+          A guard checking the count before dividing implements that decision.
+---
+
+An algorithm is a method written down precisely enough that somebody who does not
+understand the problem could still carry it out correctly.
+
+That is a higher bar than it sounds. "Sort the list" is not an algorithm. "Look at
+each pair of neighbours in turn, and if the left one is bigger, swap them; repeat
+until a full pass makes no swaps" is.
+
+## What makes it an algorithm
+
+**Finite.** It stops. A method that might run forever is not an algorithm, however
+correct each step is.
+
+**Unambiguous.** Every step has exactly one meaning. "Pick a suitable value" is not
+a step.
+
+**Defined input and output.** It is clear what it needs and what it produces.
+
+**Effective.** Every step can actually be performed. "Determine whether this
+program halts" is unambiguous and impossible.
+
+## Sequence, selection, iteration
+
+Every algorithm ever written is built from three structures.
+
+**Sequence** — do this, then that. **Selection** — if this, do that, otherwise the
+other. **Iteration** — do this repeatedly, while or until something.
+
+That is the entire vocabulary. It is worth pausing on how small the list is: no
+matter how elaborate the program, there is nothing else in it.
+
+## Pseudocode
+
+Pseudocode is structured English: precise about logic, silent about syntax.
+
+```
+largest ← first number
+FOR each remaining number
+    IF number > largest THEN
+        largest ← number
+    ENDIF
+ENDFOR
+OUTPUT largest
+```
+
+Nobody can run that, which is the point. The design is being checked, not the
+spelling of a keyword. It can also be read by someone who does not know your
+language, and implemented in any of them.
+
+<Aside kind="trap" title="Where marks go missing in a pseudocode question">
+Examiners are not marking syntax; they are marking whether the logic works. The
+losses are almost always one of four things.
+
+**The variable is never initialised.** `largest` is compared before it holds
+anything.
+
+**The output is inside the loop.** The answer is printed once per iteration rather
+than once at the end.
+
+**The loop bound is wrong by one.** Starting at 1 when the data starts at 0, or
+using `<` where `≤` was needed.
+
+**The empty case is not considered.** "The first number" does not exist if there
+are no numbers.
+
+Reading your own pseudocode back with a list of *two* items, and then with a list
+of *none*, catches nearly all of these in under a minute.
+</Aside>
+
+## Flowcharts
+
+The same algorithm as a picture. Four symbols carry almost everything:
+
+| Symbol | Meaning |
+| --- | --- |
+| Rounded box | Start or stop |
+| Rectangle | A process — a step that does something |
+| Diamond | A decision, with two labelled exits |
+| Parallelogram | Input or output |
+
+<Figure caption="The same largest-number algorithm as a flowchart. The loop is visible as a path that returns to a point it has already passed.">
+  <FlowchartExample />
+</Figure>
+
+The strength of a flowchart is that a loop is visibly a loop — a line going back
+where it came from. The weakness is that anything longer than about twenty steps
+becomes a plate of spaghetti, which is why real designs use pseudocode and keep
+flowcharts for explaining a single mechanism.
+
+## Trace tables
+
+A **trace table** records how the variables change, one row per step. It is how
+you check an algorithm without running it, and it is directly examined.
+
+For `total ← 0; count ← 1; WHILE count ≤ 4 DO total ← total + count; count ← count + 1`:
+
+| Step | count | total | count ≤ 4 |
+| --- | --- | --- | --- |
+| start | 1 | 0 | true |
+| 1 | 2 | 1 | true |
+| 2 | 3 | 3 | true |
+| 3 | 4 | 6 | true |
+| 4 | 5 | 10 | **false** |
+| output | | 10 | |
+
+Note the last row. `count` reaches 5 and the loop stops — the variable ends one
+past the last value it was used for, which is exactly where off-by-one errors come
+from and exactly what a trace table exposes.
+
+<Py step caption="Step through this and switch to the trace-table view. That table is the one an exam question asks you to complete by hand.">{`
+def largest(numbers):
+    if not numbers:
+        return None
+    biggest = numbers[0]
+    for value in numbers[1:]:
+        if value > biggest:
+            biggest = value
+    return biggest
+
+def total_to(n):
+    total = 0
+    count = 1
+    while count <= n:
+        total = total + count
+        count = count + 1
+    return total
+
+print("largest:", largest([3, 17, 9, 42, 8]))
+print("largest of nothing:", largest([]))
+print("total to 4:", total_to(4))
+
+# The classic off-by-one, side by side.
+data = ["a", "b", "c"]
+print()
+print("range(len(data)) visits", [i for i in range(len(data))], "— correct")
+print("range(1, len(data)) visits", [i for i in range(1, len(data))], "— misses the first")
+`}</Py>
+
+<Aside kind="deeper" title="Why “it works on my example” is not evidence">
+An algorithm tested on one input has been shown to work on one input.
+
+The inputs that break things are almost never the typical ones. They are the
+**edges**: nothing at all, exactly one item, two identical items, the largest
+value first, the largest value last, a value that is negative when you assumed
+positive.
+
+A short discipline that catches most of it: before writing any loop, ask what it
+does when the collection is empty and when it has exactly one element. Both are
+answerable in a few seconds, and between them they account for a large share of
+the bugs in student code — and a fair share in professional code too.
+</Aside>
+
+<Takeaway>
+Sequence, selection and iteration are the whole vocabulary. Pseudocode checks the
+logic before the syntax can distract from it, and a trace table checks the logic
+before the computer can.
+</Takeaway>

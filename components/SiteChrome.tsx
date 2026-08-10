@@ -27,11 +27,9 @@ const TOOLS = [
   { href: "/reference/", label: "Reference sheet", code: "REF" },
 ];
 
-/** Theme B has not been rewritten yet, so its original notes stay reachable,
- *  along with the two extension pages that belong to no unit. */
+/** B3 and B4 have not been rewritten yet, so their original notes stay
+ *  reachable, along with the two extension pages that belong to no unit. */
 const LEGACY = [
-  { href: "/computational-thinking/", label: "Computational thinking", code: "B1" },
-  { href: "/programming/", label: "Programming", code: "B2" },
   { href: "/oop/", label: "Object-oriented", code: "B3" },
   { href: "/abstract-data-types/", label: "Abstract data types", code: "B4" },
   { href: "/circuits/", label: "Real circuits", code: "EXT" },
@@ -109,7 +107,7 @@ export default function SiteChrome({ children }: { children: React.ReactNode }) 
         ))}
 
         <div className="navTheme">
-          <div className="navThemeHead">Theme B</div>
+          <div className="navThemeHead">Still to come</div>
           <div className="navGroup">
             <div className="navHead">Not yet rewritten</div>
             {LEGACY.map((item) => (

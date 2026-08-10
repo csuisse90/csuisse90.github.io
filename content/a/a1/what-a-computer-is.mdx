@@ -148,6 +148,35 @@ and the same loom weaves something else, with no rebuilding at all.
   <StoredProgram />
 </Figure>
 
+<Py caption="A machine that reads its own instructions from a list. Change the program and the same three lines of hardware do something different — which is the whole idea.">{`
+# The "hardware": it understands four instructions and nothing else.
+def machine(program, data):
+    acc, pc, out = 0, 0, []
+    while pc < len(program):
+        op, arg = program[pc]
+        pc += 1
+        if op == "LOAD":
+            acc = data[arg]
+        elif op == "ADD":
+            acc = acc + data[arg]
+        elif op == "SHOW":
+            out.append(acc)
+        elif op == "STOP":
+            break
+    return out
+
+data = [10, 32, 5]
+
+# Two different programs. The machine is unchanged between them.
+add_first_two = [("LOAD", 0), ("ADD", 1), ("SHOW", 0), ("STOP", 0)]
+add_all_three = [("LOAD", 0), ("ADD", 1), ("ADD", 2), ("SHOW", 0), ("STOP", 0)]
+
+print("program 1 gives", machine(add_first_two, data))
+print("program 2 gives", machine(add_all_three, data))
+print()
+print("nothing about the machine changed - only the list it was reading")
+`}</Py>
+
 <Takeaway>
 A computer is what you get when you push that idea as far as it will go: a
 machine whose behaviour is described by something you can change, rather than
