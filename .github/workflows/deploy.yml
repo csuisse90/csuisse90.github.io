@@ -31,7 +31,10 @@ jobs:
       # CI needs neither emscripten nor a C++ toolchain. Regenerate them with
       # ./core/build.sh and bun run scripts/generate.ts when the C++ changes.
       - name: Build static site
-        run: bunx next build
+        # `bun run build` regenerates the content manifest and the assistant's
+        # site map, then writes the service worker's precache list — all of
+        # which must match the export that is about to be uploaded.
+        run: bun run build
 
       - uses: actions/configure-pages@v5
 
