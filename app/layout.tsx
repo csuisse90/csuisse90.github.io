@@ -6,7 +6,7 @@ import "katex/dist/katex.min.css";
 import "./globals.css";
 import SiteChrome from "@/components/SiteChrome";
 import AiPanel from "@/components/AiPanel";
-import Mascot from "@/components/Mascot";
+import Splash from "@/components/Splash";
 
 // Archivo carries a width axis, which is how the Eurostile Bold Extended feel
 // of the reference is reached without licensing it.
@@ -26,13 +26,13 @@ const mono = JetBrains_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL("https://csuisse90.github.io"),
   title: {
-    default: "eeshaan teaches cs",
-    template: "%s — eeshaan teaches cs",
+    default: "IB CS HL",
+    template: "%s — IB CS HL",
   },
   description:
     "IB Computer Science HL Theme A, first assessment 2027: computer fundamentals (A1) and networks (A2), including an interactive logic gate simulator you can slow right down to watch signals propagate.",
   openGraph: {
-    title: "eeshaan teaches cs",
+    title: "IB CS HL",
     description:
       "Full written course for IB Computer Science HL Theme A, with an interactive logic gate simulator.",
     type: "website",
@@ -48,9 +48,9 @@ export default function RootLayout({
     <html lang="en" className={`${archivo.variable} ${mono.variable}`}>
       <body>
         <Theme accentColor="teal" grayColor="sage" radius="none" scaling="100%">
+          <Splash />
           <SiteChrome>{children}</SiteChrome>
           <AiPanel />
-          <Mascot />
         </Theme>
       </body>
     </html>

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import CircuitFigure from "@/components/CircuitFigure";
 import PageHead from "@/components/PageHead";
+import Practice from "@/components/Practice";
 import { M, MB } from "@/components/Math";
 import { circuit } from "@/lib/circuits";
 
@@ -133,6 +134,38 @@ export default function TruthTablesPage() {
         are not logic errors — they are missing rows, or input columns filled in
         a random order. Count in binary. Every time.
       </p>
+      <Practice
+        items={[
+          {
+            marks: 4,
+            q: <p>Construct a truth table for <M>{"F = A \\cdot B + \\overline{C}"}</M>.</p>,
+            a: (
+              <>
+                <p>Eight rows. Work out <M>{"A \\cdot B"}</M> and <M>{"\\overline{C}"}</M> as separate columns first, then OR them.</p>
+                <p className="mono">000→1 · 001→0 · 010→1 · 011→0 · 100→1 · 101→0 · 110→1 · 111→1</p>
+                <p>The only row where the AND term rescues a 0 from <M>{"\\overline{C}"}</M> is 111. A common error is forgetting that <M>{"\\overline{C}"}</M> is 1 when C is 0.</p>
+              </>
+            ),
+          },
+          {
+            marks: 3,
+            q: <p>A truth table with three inputs has output 1 on rows 3, 5 and 6 only. Write the sum-of-products expression.</p>,
+            a: (
+              <>
+                <p>Row 3 is 011, row 5 is 101, row 6 is 110. Each becomes a product of all three inputs, barred wherever the row has a 0, and the three products are ORed together.</p>
+                <MB>{"F = \\overline{A} \\cdot B \\cdot C + A \\cdot \\overline{B} \\cdot C + A \\cdot B \\cdot \\overline{C}"}</MB>
+              </>
+            ),
+          },
+          {
+            marks: 2,
+            q: <p>Explain why a truth table for a 16-input circuit is not a practical way to analyse it.</p>,
+            a: (
+              <p>The number of rows is <M>{"2^n"}</M>, so 16 inputs give 65,536 rows. The table doubles with every input added, so beyond a handful of inputs it cannot be filled in or checked by hand, and algebraic or software methods are used instead.</p>
+            ),
+          },
+        ]}
+      />
     </>
   );
 }

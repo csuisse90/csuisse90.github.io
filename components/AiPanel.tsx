@@ -2,12 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-
-// The published site is static, so there is no server to ask. The panel talks
-// to a bridge running on the reader's own machine, which shells out to Claude
-// Code. Loopback addresses are exempt from mixed-content blocking, so an
-// https page is allowed to call http://127.0.0.1.
-const BRIDGE = "http://127.0.0.1:8787";
+import { askAi } from "@/lib/ai";
+import RichText from "./RichText";
 
 type Turn = { role: "you" | "claude"; text: string };
 
@@ -27,6 +23,8 @@ const TOPIC_FROM_PATH: Record<string, string> = {
   "/data-transmission/": "data transmission and packet switching",
   "/databases/": "relational databases",
   "/machine-learning/": "machine learning",
+  "/timing/": "propagation delay and hazards",
+  "/circuits/": "adders, multiplexers and latches",
 };
 
 export default function AiPanel() {
@@ -35,115 +33,93 @@ export default function AiPanel() {
   const topic = TOPIC_FROM_PATH[here] ?? "IB computer science";
 
   const [open, setOpen] = useState(false);
-  const [status, setStatus] = useState<"unknown" | "up" | "down">("unknown");
   const [turns, setTurns] = useState<Turn[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const scroller = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (!open || status !== "unknown") return;
-    const ac = new AbortController();
-    const timer = setTimeout(() => ac.abort(), 2500);
-    fetch(`${BRIDGE}/health`, { signal: ac.signal })
-      .then((r) => setStatus(r.ok ? "up" : "down"))
-      .catch(() => setStatus("down"))
-      .finally(() => clearTimeout(timer));
-    return () => ac.abort();
-  }, [open, status]);
+  const abort = useRef<AbortController | null>(null);
 
   useEffect(() => {
     scroller.current?.scrollTo({ top: scroller.current.scrollHeight });
   }, [turns, busy]);
 
+  // Make room for the panel rather than laying it over the reading column.
+  useEffect(() => {
+    document.documentElement.dataset.aiOpen = open ? "true" : "false";
+    return () => {
+      delete document.documentElement.dataset.aiOpen;
+    };
+  }, [open]);
+
   async function ask(prompt: string, display: string) {
     if (busy) return;
-    setTurns((t) => [...t, { role: "you", text: display }]);
+    setTurns((t) => [...t, { role: "you", text: display }, { role: "claude", text: "" }]);
     setInput("");
     setBusy(true);
-    try {
-      const res = await fetch(`${BRIDGE}/ask`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt, topic }),
-      });
-      if (!res.ok) throw new Error(await res.text());
-      const data = (await res.json()) as { text?: string; error?: string };
-      setTurns((t) => [
-        ...t,
-        { role: "claude", text: data.text ?? data.error ?? "(no reply)" },
-      ]);
-      setStatus("up");
-    } catch {
-      setStatus("down");
-      setTurns((t) => [
-        ...t,
-        {
+    abort.current = new AbortController();
+
+    const result = await askAi(prompt, {
+      signal: abort.current.signal,
+      onToken: (chunk) =>
+        setTurns((t) => {
+          const next = [...t];
+          next[next.length - 1] = {
+            role: "claude",
+            text: next[next.length - 1].text + chunk,
+          };
+          return next;
+        }),
+    });
+
+    setTurns((t) => {
+      const next = [...t];
+      if (!next[next.length - 1].text || "error" in result) {
+        next[next.length - 1] = {
           role: "claude",
-          text:
-            "Could not reach the local bridge. Start it with:\n\n  bun run tools/claudeBridge.mjs\n\nThen ask again.",
-        },
-      ]);
-    } finally {
-      setBusy(false);
-    }
+          text: "text" in result ? result.text : result.error,
+        };
+      }
+      return next;
+    });
+    setBusy(false);
   }
 
   return (
     <>
-      <button
-        className="aiToggle"
-        onClick={() => setOpen((o) => !o)}
-        aria-expanded={open}
-        aria-controls="aiPanel"
-      >
-        {open ? "Close" : "Ask Claude"}
-      </button>
+      {!open && (
+        <button
+          className="aiToggle"
+          onClick={() => setOpen(true)}
+          aria-expanded={false}
+          aria-controls="aiPanel"
+        >
+          Ask
+        </button>
+      )}
 
       <aside id="aiPanel" className="aiPanel" data-open={open} aria-hidden={!open}>
         <div className="aiHead">
-          <span>Ask Claude · Haiku 4.5</span>
-          <span
-            className="aiDot"
-            data-status={status}
-            title={
-              status === "up"
-                ? "local bridge connected"
-                : status === "down"
-                  ? "local bridge not running"
-                  : "checking"
-            }
-          />
+          <span />
+          <button className="aiClose" onClick={() => setOpen(false)} aria-label="Close">
+            ×
+          </button>
         </div>
 
         <div className="aiBody" ref={scroller}>
-          {turns.length === 0 && (
-            <div className="aiHint">
-              <p>
-                This asks <strong>Claude Code on your own machine</strong>, not a
-                server. Nothing you type leaves your computer except to your own
-                Claude session.
-              </p>
-              <p>
-                Current topic: <strong>{topic}</strong>.
-              </p>
-              {status === "down" && (
-                <p className="aiWarn">
-                  The bridge is not running. Start it in the project folder with{" "}
-                  <code>bun run tools/claudeBridge.mjs</code>
-                </p>
-              )}
-            </div>
-          )}
-
           {turns.map((t, i) => (
             <div key={i} className="aiTurn" data-role={t.role}>
-              <div className="aiRole">{t.role}</div>
-              <div className="aiText">{t.text}</div>
+              <div className="aiRole">{t.role === "you" ? "you" : ""}</div>
+              <div className="aiText">
+                {t.role === "claude" ? <RichText text={t.text} /> : t.text}
+              </div>
             </div>
           ))}
-
-          {busy && <div className="aiTurn" data-role="claude"><div className="aiRole">claude</div><div className="aiText">thinking…</div></div>}
+          {busy && turns[turns.length - 1]?.text === "" && (
+            <div className="aiTurn" data-role="claude">
+              <div className="aiRole" />
+              <div className="aiText">thinking…</div>
+            </div>
+          )}
         </div>
 
         <div className="aiActions">
@@ -151,7 +127,7 @@ export default function AiPanel() {
             className="paletteBtn"
             onClick={() =>
               ask(
-                `Explain ${topic} to an IB Computer Science student using a single vivid everyday analogy. Keep it under 150 words, plain language, no jargon unless you define it, and no diagrams.`,
+                `Explain ${topic} using a single vivid everyday analogy. Under 150 words.`,
                 `Explain ${topic} as an analogy`,
               )
             }
@@ -163,7 +139,7 @@ export default function AiPanel() {
             className="paletteBtn"
             onClick={() =>
               ask(
-                `Give me one exam-style IB Computer Science question on ${topic}, then the mark scheme underneath it. Keep it short.`,
+                `Give me one exam-style IB Computer Science question on ${topic}, then its mark scheme. Keep it short.`,
                 `Quiz me on ${topic}`,
               )
             }
@@ -178,12 +154,7 @@ export default function AiPanel() {
           onSubmit={(e) => {
             e.preventDefault();
             const q = input.trim();
-            if (q) {
-              ask(
-                `A student studying ${topic} for IB Computer Science asks: ${q}\n\nAnswer in plain language with an analogy where it helps. Be accurate and concise.`,
-                q,
-              );
-            }
+            if (q) ask(`A student studying ${topic} asks: ${q}`, q);
           }}
         >
           <input

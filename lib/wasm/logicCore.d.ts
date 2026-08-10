@@ -27,6 +27,7 @@ export type LogicCore = {
     dontCareCsv: string,
   ): string;
   analyseExpression(src: string): string;
+  spriteGeometry(): string;
   buildFromExpression(circuit: WasmCircuit, src: string): string;
 };
 

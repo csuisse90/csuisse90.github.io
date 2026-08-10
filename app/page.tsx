@@ -7,7 +7,6 @@ export default function Home() {
   return (
     <>
       <PageHead
-        code="Theme A · complete · Theme B · framed"
         title="Computer science, explained until it actually makes sense"
         lede="A full written course for IB Computer Science HL, with a logic simulator you can slow down, Python you can run in the page, and diagrams for everything."
       />
@@ -31,12 +30,8 @@ export default function Home() {
           database.
         </p>
         <p>
-          <strong>Theme A is written out in full</strong>: computer
-          fundamentals, networks, databases and machine learning.{" "}
-          <strong>Theme B is framed</strong> — the topics are mapped so you can
-          see the shape of the course, and the writing is coming next. Anything
-          that goes beyond the syllabus is labelled, so you always know what you
-          are actually accountable for.
+          Anything that goes beyond the syllabus is labelled as such, so you
+          always know what you are actually accountable for.
         </p>
       </div>
 
@@ -44,10 +39,9 @@ export default function Home() {
         <div className="calloutHead">Three things to try</div>
         <p style={{ margin: 0 }}>
           Click a switch on the gate below and press <strong>Run</strong> at
-          1/16× speed. Open <strong>Ask Claude</strong> in the corner for an
-          analogy for whatever page you are on. And on any Python block, change
-          a number and run it again — nothing installs, and nothing is sent
-          anywhere.
+          1/16× speed. Open <strong>Ask Claude</strong> for an analogy for
+          whatever page you are on. And on any Python block, change a number and
+          run it again.
         </p>
       </div>
 
@@ -157,8 +151,8 @@ export default function Home() {
         <Link href="/databases/" className="card">
           <div className="cardTitle">Databases</div>
           <div className="cardBody">
-            Tables, keys, normalisation, SQL and ACID — with a real SQLite
-            database you can query in the browser. A3.
+            Tables, keys, normalisation, SQL and ACID, with a database you can
+            query. A3.
           </div>
         </Link>
         <Link href="/machine-learning/" className="card">
@@ -170,9 +164,16 @@ export default function Home() {
         </Link>
       </div>
 
-      <h2 className="display">Tools, extras and revision</h2>
+      <h2 className="display">Labs, extras and revision</h2>
 
       <div className="cardGrid">
+        <Link href="/labs/" className="card">
+          <div className="cardTitle">All labs</div>
+          <div className="cardBody">
+            Eight interactive labs — numbers, a CPU you can step, scheduling,
+            sampling, circuits, expressions, Karnaugh maps and SQL.
+          </div>
+        </Link>
         <Link href="/builder/" className="card">
           <div className="cardTitle">Circuit builder</div>
           <div className="cardBody">
@@ -200,12 +201,6 @@ export default function Home() {
             Why a circuit can give the wrong answer for a billionth of a second.
           </div>
         </Link>
-        <Link href="/practice/" className="card">
-          <div className="cardTitle">Exam practice</div>
-          <div className="cardBody">
-            Questions in the style of the paper, with worked answers.
-          </div>
-        </Link>
         <Link href="/reference/" className="card">
           <div className="cardTitle">Reference sheet</div>
           <div className="cardBody">
@@ -215,10 +210,6 @@ export default function Home() {
       </div>
 
       <h2 className="display">B · Computational thinking and programming</h2>
-      <p className="prose">
-        Framed, not yet written out. Theme A came first because it is where the
-        marks are hardest to pick up by practice alone.
-      </p>
 
       <div className="cardGrid">
         <Link href="/computational-thinking/" className="card">
@@ -250,14 +241,12 @@ export default function Home() {
         </p>
         <p>
           Code examples are Python, and most of them are{" "}
-          <strong>editable and runnable</strong> right in the page — a complete
-          CPython compiled to WebAssembly, so nothing is installed and nothing
-          is sent anywhere. Change a number, run it again, see what breaks.
+          <strong>editable and runnable</strong> right in the page. Change a
+          number, run it again, see what breaks.
         </p>
         <p>
-          The <strong>Ask Claude</strong> button in the corner will explain
-          whatever page you are on as an analogy, or answer a question. It talks
-          to Claude Code on your own machine rather than to a server.
+          The <strong>Ask Claude</strong> button will explain whatever page you
+          are on as an analogy, or answer a question.
         </p>
       </div>
     </>

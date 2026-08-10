@@ -1,0 +1,5 @@
+name = "eeshaan-ai-proxy"
+main = "openrouterProxy.js"
+compatibility_date = "2026-01-01"
+
+# Set the key with:  npx wrangler secret put OPENROUTER_API_KEY

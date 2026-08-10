@@ -75,7 +75,7 @@ export function FetchDecodeExecute() {
       title="The fetch–decode–execute cycle"
       meta="A1.1.5"
       width={620}
-      height={230}
+      height={262}
       caption="One pass round this loop is one instruction. A 3 GHz processor completes it roughly three billion times a second."
     >
       <Box x={40} y={40} w={150} h={70} label="FETCH" accent />
@@ -114,15 +114,16 @@ export function FetchDecodeExecute() {
       <Arrow x1={190} y1={75} x2={235} y2={75} />
       <Arrow x1={385} y1={75} x2={430} y2={75} />
 
-      {/* wrap back round */}
+      {/* Return path routed around the outside: taking it straight down from
+          the boxes would draw it through the caption text underneath them. */}
       <path
-        d="M505,110 L505,190 L115,190 L115,110"
+        d="M580,75 L600,75 L600,232 L20,232 L20,75 L36,75"
         fill="none"
         stroke={LINE}
         strokeWidth={1.8}
         markerEnd="url(#arrowEnd)"
       />
-      <Caption x={310} y={184}>
+      <Caption x={310} y={225}>
         repeat, forever
       </Caption>
     </Figure>
@@ -135,7 +136,7 @@ export function MemoryHierarchy() {
     <Figure
       title="The memory hierarchy"
       meta="A1.1.4"
-      width={560}
+      width={620}
       height={280}
       caption="Every step down is roughly a hundred times slower and a great deal cheaper per byte. Cache exists purely because the gap between registers and RAM is too expensive to pay on every access."
     >
@@ -147,7 +148,7 @@ export function MemoryHierarchy() {
       ].map((r, i) => (
         <g key={r.label}>
           <rect
-            x={280 - r.w / 2}
+            x={310 - r.w / 2}
             y={30 + i * 52}
             width={r.w}
             height={44}
@@ -156,7 +157,7 @@ export function MemoryHierarchy() {
             strokeWidth={1.8}
           />
           <text
-            x={280}
+            x={310}
             y={46 + i * 52}
             textAnchor="middle"
             fontFamily="var(--font-mono), monospace"
@@ -166,7 +167,7 @@ export function MemoryHierarchy() {
             {r.label}
           </text>
           <text
-            x={280}
+            x={310}
             y={62 + i * 52}
             textAnchor="middle"
             fontFamily="var(--font-mono), monospace"
@@ -177,12 +178,12 @@ export function MemoryHierarchy() {
           </text>
         </g>
       ))}
-      <Arrow x1={40} y1={40} x2={40} y2={230} />
-      <Caption x={34} y={140} anchor="end">
+      <Arrow x1={58} y1={40} x2={58} y2={230} />
+      <Caption x={50} y={140} anchor="end">
         slower
       </Caption>
-      <Arrow x1={524} y1={230} x2={524} y2={40} />
-      <Caption x={530} y={140} anchor="start">
+      <Arrow x1={506} y1={230} x2={506} y2={40} />
+      <Caption x={514} y={140} anchor="start">
         costlier
       </Caption>
     </Figure>
@@ -279,13 +280,12 @@ export function ControlSystem() {
       title="A control system"
       meta="A1.3.6"
       width={620}
-      height={230}
+      height={252}
       caption="The feedback arrow is what makes it a control system rather than a one-off command: the effect of the actuator changes what the sensor next measures."
     >
       <Box x={30} y={70} w={120} h={54} label="SENSOR" sub="measures" />
       <Box x={200} y={70} w={140} h={54} label="PROCESSOR" sub="compares & decides" />
       <Box x={390} y={70} w={120} h={54} label="ACTUATOR" sub="acts" />
-      <Box x={390} y={0} w={120} h={0} />
 
       <Arrow x1={150} y1={97} x2={200} y2={97} label="reading" />
       <Arrow x1={340} y1={97} x2={390} y2={97} label="command" />
@@ -294,14 +294,14 @@ export function ControlSystem() {
       <Arrow x1={510} y1={97} x2={520} y2={97} />
 
       <path
-        d="M560,124 L560,180 L90,180 L90,124"
+        d="M560,124 L560,206 L90,206 L90,124"
         fill="none"
         stroke={ACCENT}
         strokeWidth={1.8}
         strokeDasharray="5 3"
         markerEnd="url(#arrowAccent)"
       />
-      <Caption x={325} y={174} colour={ACCENT}>
+      <Caption x={325} y={199} colour={ACCENT}>
         feedback loop
       </Caption>
     </Figure>
@@ -461,6 +461,15 @@ export function OsLayers() {
 
 /** Interrupt handling, as a timeline. */
 export function InterruptTimeline() {
+  // Evenly spaced stops with every label on the same side, so nothing can
+  // collide with the arrow above or with its neighbour.
+  const stops = [
+    { x: 80, label: "program", hot: false },
+    { x: 190, label: "finish", hot: false },
+    { x: 300, label: "save state", hot: true },
+    { x: 410, label: "run ISR", hot: true },
+    { x: 520, label: "restore", hot: false },
+  ];
   return (
     <Figure
       title="Handling an interrupt"
@@ -469,46 +478,36 @@ export function InterruptTimeline() {
       height={200}
       caption="The processor never stops mid-instruction. It finishes the one it is on, saves everything it would otherwise lose, deals with the interruption, then restores its state so precisely that the interrupted program cannot tell."
     >
-      <line x1={30} y1={100} x2={590} y2={100} stroke={INK} strokeWidth={1.6} />
-      {[
-        [60, "program", false],
-        [170, "finish", false],
-        [280, "save state", true],
-        [390, "run ISR", true],
-        [500, "restore", false],
-      ].map(([x, label, hot], i) => (
-        <g key={i}>
+      <line x1={40} y1={110} x2={580} y2={110} stroke={INK} strokeWidth={1.6} />
+
+      {stops.map((stop) => (
+        <g key={stop.label}>
           <circle
-            cx={x as number}
-            cy={100}
+            cx={stop.x}
+            cy={110}
             r={6}
-            fill={hot ? ACCENT : FILL}
-            stroke={hot ? ACCENT : INK}
+            fill={stop.hot ? ACCENT : FILL}
+            stroke={stop.hot ? ACCENT : INK}
             strokeWidth={1.8}
           />
-          <text
-            x={x as number}
-            y={i % 2 ? 78 : 128}
-            textAnchor="middle"
-            fontFamily="var(--font-mono), monospace"
-            fontSize={10}
-            fill={hot ? ACCENT : INK}
-          >
-            {label as string}
-          </text>
+          <Caption x={stop.x} y={136} colour={stop.hot ? ACCENT : INK}>
+            {stop.label}
+          </Caption>
         </g>
       ))}
+
       <path
-        d="M170,40 L170,88"
+        d="M190,52 L190,98"
         stroke={ACCENT}
         strokeWidth={1.8}
         markerEnd="url(#arrowAccent)"
         fill="none"
       />
-      <Caption x={170} y={32} colour={ACCENT}>
+      <Caption x={190} y={42} colour={ACCENT}>
         interrupt raised
       </Caption>
-      <Caption x={560} y={128}>
+
+      <Caption x={520} y={156}>
         program resumes
       </Caption>
     </Figure>

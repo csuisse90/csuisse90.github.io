@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import PageHead from "@/components/PageHead";
+import Practice from "@/components/Practice";
 import PyRunner from "@/components/PyRunner";
 import { SpecList } from "@/components/Spec";
 import { M, MB } from "@/components/Math";
@@ -121,7 +122,7 @@ export default function MachineLearningPage() {
       </div>
 
       <PyRunner
-        caption="Gradient descent with nothing hidden — no libraries, about twenty lines. It learns the relationship between hours revised and exam mark from five examples."
+        caption="Gradient descent in about twenty lines, no libraries. It learns the relationship between hours revised and exam mark from five examples."
         code={`# Learn: mark = w * hours + b, from five examples.
 data = [(1, 32), (2, 44), (3, 51), (4, 66), (5, 72)]
 
@@ -389,6 +390,42 @@ print("Model A wins on accuracy and would kill people.")`}
         mitigation such as auditing the training set or holding out a
         representative test set.
       </p>
+      <Practice
+        items={[
+          {
+            marks: 4,
+            q: <p>Distinguish between supervised and unsupervised learning, giving one application of each.</p>,
+            a: (
+              <p>Supervised learning trains on data that already carries the correct answers, so the model learns a mapping from inputs to known labels — for example classifying email as spam or not spam. Unsupervised learning has no labels and instead looks for structure in the data itself — for example clustering customers by buying habits when nobody knows in advance what the groups should be.</p>
+            ),
+          },
+          {
+            marks: 5,
+            q: <p>Explain what overfitting is, how it is detected, and one way to reduce it.</p>,
+            a: (
+              <p>Overfitting is when a model learns the training data too closely, including its noise and quirks, instead of the underlying pattern. It is detected by holding data back: the model performs excellently on the training set and poorly on unseen test data. It can be reduced by training on more and more varied data, by simplifying the model so it has less capacity to memorise, or by stopping training earlier using a validation set.</p>
+            ),
+          },
+          {
+            marks: 5,
+            q: <p>A screening model for a rare disease is 99% accurate. Explain why this figure may be misleading and name two better measures.</p>,
+            a: (
+              <p>If only one person in a hundred has the disease, a model that answers &ldquo;no&rdquo; to everybody is 99% accurate and catches nobody. Accuracy hides the difference between the two kinds of error. <strong>Recall</strong> asks what fraction of real cases were caught, which is what matters here because a missed diagnosis is severe. <strong>Precision</strong> asks how often a positive prediction was correct, which governs how many people are alarmed and tested unnecessarily.</p>
+            ),
+          },
+          {
+            marks: 6,
+            q: <p>A recruitment company trains a model on ten years of its own hiring decisions. Discuss the ethical risks and one mitigation.</p>,
+            a: (
+              <>
+                <p>The training data records past human decisions, including any discrimination in them. The model will learn those patterns as if they were the target and reproduce them at scale, while appearing objective — which makes the outcome harder to challenge than an individual biased decision.</p>
+                <p>There is also an explainability problem: a candidate rejected by the model cannot easily be told why, which matters when a decision must be justified or appealed, and accountability must still rest with the company rather than with the algorithm.</p>
+                <p>Mitigations include auditing the training data for imbalance, testing outcomes separately across protected groups rather than only overall accuracy, removing proxies for protected characteristics, and keeping a human decision-maker who can be held responsible.</p>
+              </>
+            ),
+          },
+        ]}
+      />
     </>
   );
 }

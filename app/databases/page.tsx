@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import PageHead from "@/components/PageHead";
+import Practice from "@/components/Practice";
 import PyRunner from "@/components/PyRunner";
 import { SpecList } from "@/components/Spec";
 import { M } from "@/components/Math";
@@ -198,15 +199,12 @@ ORDER BY e.grade DESC;`}</pre>
       />
 
       <div className="prose">
-        <p>
-          Python ships with SQLite built in, so you can run a real database
-          right here. Change the query and run it again.
-        </p>
+        <p>Change the query and run it again.</p>
       </div>
 
       <PyRunner
         packages={["sqlite3"]}
-        caption="A complete relational database — three tables, foreign keys, and a join — running inside your browser."
+        caption="Three tables, foreign keys, a join, and a constraint doing its job."
         code={`import sqlite3
 
 db = sqlite3.connect(":memory:")
@@ -350,6 +348,42 @@ except sqlite3.IntegrityError as e:
         say <em>why</em> using the word anomaly, then show the resulting tables
         with primary and foreign keys marked. All three steps earn marks.
       </p>
+      <Practice
+        items={[
+          {
+            marks: 5,
+            q: <p>A table stores studentId, studentName, tutorId and tutorRoom. Identify which normal form is broken, name the anomaly it causes, and give the normalised tables.</p>,
+            a: (
+              <>
+                <p>Third normal form is broken: tutorRoom depends on tutorId, a non-key column, rather than on the primary key studentId. This is a transitive dependency.</p>
+                <p>It causes an <strong>update anomaly</strong>: the room is repeated for every student with that tutor, so changing it in some rows and not others leaves the database contradicting itself.</p>
+                <p>Split into <span className="mono">Student(studentId PK, studentName, tutorId FK)</span> and <span className="mono">Tutor(tutorId PK, tutorRoom)</span>.</p>
+              </>
+            ),
+          },
+          {
+            marks: 4,
+            q: <p>Explain the difference between a primary key and a foreign key, and what referential integrity guarantees.</p>,
+            a: (
+              <p>A primary key uniquely identifies each row in its own table and can never be empty or duplicated. A foreign key is a column holding another table&apos;s primary key, which is how a relationship between tables is expressed. Referential integrity guarantees that a foreign key always refers to a row that actually exists, so the database refuses to store an enrolment for a student who is not in the Student table, and refuses to delete a student who still has enrolments.</p>
+            ),
+          },
+          {
+            marks: 4,
+            q: <p>A bank transfer debits one account and credits another. Explain, using two of the ACID properties, why this must be a transaction.</p>,
+            a: (
+              <p><strong>Atomicity</strong> means either both writes happen or neither does; a crash between them would otherwise destroy the money, because the debit would stand with no matching credit. <strong>Isolation</strong> means a concurrent transaction cannot see the half-finished state, so another withdrawal cannot read a balance that is momentarily wrong and act on it.</p>
+            ),
+          },
+          {
+            marks: 3,
+            q: <p>Explain what SQL injection is and how parameterised queries prevent it.</p>,
+            a: (
+              <p>If a query is assembled by concatenating user input into a string, a user can type SQL rather than data and have it executed — reading or destroying records they should never reach. A parameterised query sends the command and the data to the database separately, with placeholders marking where values go, so the input is only ever treated as a value and never parsed as instructions.</p>
+            ),
+          },
+        ]}
+      />
     </>
   );
 }

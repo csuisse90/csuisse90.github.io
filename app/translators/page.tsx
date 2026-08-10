@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import PageHead from "@/components/PageHead";
+import Practice from "@/components/Practice";
 import { SpecList } from "@/components/Spec";
 import PyRunner from "@/components/PyRunner";
 import { CompilerPipeline } from "@/components/figures/systems";
@@ -226,6 +227,35 @@ for source in ["2 + 3 * 4", "(2 + 3) * 4", "2 * (3 +"]:
         compiling itself takes time that interpreting does not. Say which you
         mean and the mark is yours.
       </p>
+      <Practice
+        items={[
+          {
+            marks: 6,
+            q: <p>Compare a compiler with an interpreter, referring to speed, error reporting and portability.</p>,
+            a: (
+              <>
+                <p><strong>Speed.</strong> Compiled code executes faster because translation happened beforehand; an interpreter re-translates each statement every time, including on every pass through a loop. Compiling itself, however, takes time that interpreting does not.</p>
+                <p><strong>Errors.</strong> A compiler reports every error it can find before the program runs at all. An interpreter stops at the first error it reaches, so mistakes in rarely-used branches can go unnoticed for a long time.</p>
+                <p><strong>Portability.</strong> Source code runs anywhere the interpreter exists. A compiled executable is tied to one processor architecture and operating system and must be recompiled for each.</p>
+              </>
+            ),
+          },
+          {
+            marks: 3,
+            q: <p>A team is developing and testing a program many times an hour. Recommend a translator and justify it.</p>,
+            a: (
+              <p>An interpreter. The edit-and-run cycle is immediate with no wait for a build, and errors surface as soon as the offending line is reached, which suits frequent small changes. Execution speed matters less during development than turnaround time. They may still compile the finished product for release.</p>
+            ),
+          },
+          {
+            marks: 4,
+            q: <p>State the first two stages of compilation and give one error that each would detect.</p>,
+            a: (
+              <p>Lexical analysis breaks the source into tokens and discards whitespace and comments; it detects an illegal character, such as a stray symbol that belongs to no token. Syntax analysis checks the tokens against the grammar and builds a tree; it detects a missing closing bracket or a statement in the wrong order.</p>
+            ),
+          },
+        ]}
+      />
     </>
   );
 }

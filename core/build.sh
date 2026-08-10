@@ -14,6 +14,15 @@ here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 root="$(dirname "$here")"
 sources=("$here/logic.cpp" "$here/qm.cpp" "$here/expr.cpp" "$here/layout.cpp")
 
+if [[ "${1:-}" == "--sprite" ]]; then
+  out="$(mktemp -d)/sprite"
+  clang++ -std=c++17 -O1 -I"$here" "$here/qm.cpp" "$here/sprite.cpp" -o "$out"
+  mkdir -p "$root/lib/generated"
+  "$out" > "$root/lib/generated/sprite.json"
+  echo "wrote lib/generated/sprite.json"
+  exit 0
+fi
+
 if [[ "${1:-}" == "--test" ]]; then
   out="$(mktemp -d)/coretest"
   clang++ -std=c++17 -O1 -Wall -Wextra -Wno-unused-parameter \

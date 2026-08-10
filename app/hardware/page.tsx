@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import PageHead from "@/components/PageHead";
+import Practice from "@/components/Practice";
 import { SpecList } from "@/components/Spec";
 import { M, MB } from "@/components/Math";
 import PyRunner from "@/components/PyRunner";
@@ -168,18 +169,18 @@ pc = 0            # program counter
 accumulator = 0
 running = True
 
-print(f"{'PC':>3} {'IR':<10} {'MAR':>4} {'MDR':>4} {'AC':>4}")
-print("-" * 32)
+print(f"{'PC':>3}  {'IR':<9} {'MAR':>4} {'MDR':>5} {'AC':>4}")
+print("-" * 30)
 
 while running:
-    # FETCH
+    # FETCH — the instruction itself comes back on the data bus
     mar = pc
-    mdr = memory[mar]
-    ir = mdr
+    ir = memory[mar]
     pc += 1
 
     # DECODE
     opcode, operand = ir
+    mdr = "-"     # nothing has crossed the data bus yet this stage
 
     # EXECUTE
     if opcode == "LDA":
@@ -192,12 +193,13 @@ while running:
         accumulator += mdr
     elif opcode == "STA":
         mar = operand
-        memory[mar] = accumulator
         mdr = accumulator
+        memory[mar] = accumulator
     elif opcode == "HLT":
         running = False
 
-    print(f"{pc:>3} {opcode + ' ' + str(operand):<10} {mar:>4} {mdr:>4} {accumulator:>4}")
+    shown = opcode if opcode == "HLT" else f"{opcode} {operand}"
+    print(f"{pc:>3}  {shown:<9} {mar:>4} {str(mdr):>5} {accumulator:>4}")
 
 print()
 print("address 20 now holds:", memory[20])`}
@@ -406,6 +408,53 @@ print("address 20 now holds:", memory[20])`}
         common ones: how MAR and MDR work together, why cache exists, why more
         cores does not always mean a faster program.
       </p>
+      <Practice
+        items={[
+          {
+            marks: 4,
+            q: <p>Describe the role of the MAR and the MDR, and explain how they work together during the fetch stage.</p>,
+            a: (
+              <>
+                <p>The MAR holds the <em>address</em> being accessed; the MDR holds the <em>data</em> travelling to or from it.</p>
+                <p>During fetch, the address in the program counter is copied into the MAR. Memory is read at that address and the instruction returned is placed in the MDR, from where it is copied into the instruction register. One says where, the other says what — they are always used as a pair.</p>
+              </>
+            ),
+          },
+          {
+            marks: 6,
+            q: <p>Outline the three stages of the fetch–decode–execute cycle, naming the registers involved at each stage.</p>,
+            a: (
+              <>
+                <p><strong>Fetch.</strong> PC → MAR; the instruction at that address is read into the MDR and copied to the IR; the PC is incremented.</p>
+                <p><strong>Decode.</strong> The control unit reads the IR and works out the operation and which data it needs.</p>
+                <p><strong>Execute.</strong> The ALU performs the operation or memory is accessed; any result is placed in the accumulator.</p>
+                <p>Two marks per stage: one for the description, one for naming the registers correctly.</p>
+              </>
+            ),
+          },
+          {
+            marks: 3,
+            q: <p>Explain why cache memory improves performance, and why making it very large would not keep improving it.</p>,
+            a: (
+              <p>The CPU is far faster than RAM, so it would otherwise spend most cycles waiting. Cache holds recently and frequently used data much closer and faster, so most requests are answered without touching RAM. Cache is expensive per byte and gets slower as it grows, because a larger store takes longer to search — so beyond a point the extra capacity costs more time than it saves.</p>
+            ),
+          },
+          {
+            marks: 4,
+            q: <p>A video editing company is choosing between a faster CPU and a better GPU. Explain which suits rendering thousands of frames, with reference to how each is built.</p>,
+            a: (
+              <p>The GPU. Rendering applies the same operation to enormous numbers of pixels independently, which is data parallelism. A GPU has thousands of simple cores able to do that simultaneously, whereas a CPU has a few powerful cores optimised for sequential work with heavy branching. The CPU would still be needed for the program logic and file handling, but the rendering throughput comes from the GPU.</p>
+            ),
+          },
+          {
+            marks: 4,
+            q: <p>Distinguish between lossy and lossless compression, giving one suitable use of each.</p>,
+            a: (
+              <p>Lossless compression removes redundancy only, so the original is recoverable bit for bit — suitable for text and program files, where one altered bit is corruption. Lossy compression permanently discards detail people are unlikely to notice, achieving far smaller files — suitable for streamed video or music, where exactness does not matter and bandwidth does.</p>
+            ),
+          },
+        ]}
+      />
     </>
   );
 }

@@ -35,6 +35,7 @@ EMSCRIPTEN_BINDINGS(logicCore) {
       .function("describe", &lg::Circuit::describe);
 
   function("minimise", &lg::minimiseJson);
+  function("spriteGeometry", &lg::spriteGeometryJson);
   function("analyseExpression", &lg::analyseExpression);
   function("buildFromExpression", &buildFromExpr);
 }

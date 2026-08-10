@@ -835,22 +835,24 @@ table.kmap td .cellIndex {
   background: rgba(211, 58, 28, 0.05);
 }
 
+/* Individually bordered cards. The old version faked the borders with a 1px
+   gap over a grey backdrop, which left a grey slab wherever the last row was
+   short. */
 .cardGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
-  gap: 1px;
-  background: var(--hairline);
-  border: 1px solid var(--hairline);
+  gap: 0.9rem;
   margin: 2rem 0;
+  align-items: stretch;
 }
 
 .card {
   background: var(--paper-lift);
+  border: 1px solid var(--hairline);
   padding: 1rem;
   text-decoration: none;
   color: inherit;
   display: block;
-  transition: background 120ms linear;
 }
 
 .card:hover {
@@ -1112,131 +1114,41 @@ pre.listing {
   margin: 0;
 }
 
-/* ---- mascot -------------------------------------------------------------- */
-
-.mascot {
-  position: fixed;
-  left: 1.1rem;
-  bottom: 1.1rem;
-  z-index: 58;
-  display: flex;
-  align-items: flex-end;
-  gap: 0.6rem;
-  pointer-events: none;
-}
-
-.mascot > * {
-  pointer-events: auto;
-}
-
-.mascotBody {
-  border: 0;
-  background: none;
-  padding: 0;
-  cursor: pointer;
-  line-height: 0;
-  animation: bob 4.5s ease-in-out infinite;
-  transition: transform 160ms ease-out;
-}
-
-.mascotBody:hover {
-  transform: translateY(-3px) rotate(-2deg);
-}
-
-@keyframes bob {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
-}
-
-.mascotBlip {
-  animation: blip 2.6s ease-in-out infinite;
-}
-
-@keyframes blip {
-  0%, 70%, 100% { opacity: 1; }
-  80% { opacity: 0.15; }
-}
-
-.mascotEyes {
-  transform-origin: center 36px;
-  animation: blink 6.5s ease-in-out infinite;
-}
-
-@keyframes blink {
-  0%, 92%, 100% { transform: scaleY(1); }
-  95% { transform: scaleY(0.08); }
-}
-
-.mascotArm {
-  transform-origin: 60px 34px;
-}
-
-.mascotBody[data-waving="true"] .mascotArm {
-  animation: wave 380ms ease-in-out 4;
-}
-
-@keyframes wave {
-  0%, 100% { transform: rotate(0deg); }
-  50% { transform: rotate(-26deg); }
-}
-
-.mascotBubble {
-  max-width: 17rem;
-  border: 1px solid var(--ink);
-  background: var(--paper-lift);
-  padding: 0.7rem 0.8rem;
-  font-size: 0.82rem;
-  line-height: 1.5;
-  color: var(--ink);
-  opacity: 0;
-  transform: translateY(6px) scale(0.97);
-  transition: opacity 200ms ease-out, transform 200ms ease-out;
-  margin-bottom: 0.5rem;
-}
-
-.mascot[data-visible="true"] .mascotBubble {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-}
-
-.mascotBubble p {
-  margin: 0 0 0.55rem;
-}
-
-.mascotBtns {
-  display: flex;
-  gap: 0.3rem;
-}
-
-.mascotBtns .paletteBtn {
-  width: auto;
-  margin: 0;
-  font-size: 0.62rem;
-  padding: 0.22rem 0.4rem;
-}
-
 /* ---- page motion --------------------------------------------------------- */
 
-.main > * {
-  animation: rise 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+/* Only ever animate when the browser is actually going to run the animation.
+   Using fill-mode `both` on an animation that never starts would strand the
+   page at opacity 0 — which is exactly what happened when printing. */
+@media screen and (prefers-reduced-motion: no-preference) {
+  .main > * {
+    animation: rise 620ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    will-change: transform, opacity;
+  }
 }
 
-.main > *:nth-child(2) { animation-delay: 40ms; }
-.main > *:nth-child(3) { animation-delay: 80ms; }
-.main > *:nth-child(4) { animation-delay: 120ms; }
-.main > *:nth-child(n + 5) { animation-delay: 150ms; }
+.main > *:nth-child(2) { animation-delay: 60ms; }
+.main > *:nth-child(3) { animation-delay: 120ms; }
+.main > *:nth-child(4) { animation-delay: 180ms; }
+.main > *:nth-child(n + 5) { animation-delay: 220ms; }
 
 @keyframes rise {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translate3d(0, 14px, 0); }
   to { opacity: 1; transform: none; }
 }
 
 .card {
-  transition: background 140ms linear, transform 160ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition:
+    background 220ms cubic-bezier(0.33, 1, 0.68, 1),
+    border-color 220ms cubic-bezier(0.33, 1, 0.68, 1),
+    transform 380ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 380ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
 }
 
 .card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
+  border-color: var(--ice-deep);
+  box-shadow: 0 6px 18px -12px rgba(15, 20, 19, 0.4);
 }
 
 .panel {
@@ -1248,7 +1160,10 @@ pre.listing {
 }
 
 .navLink {
-  transition: background 120ms linear, border-color 120ms linear, padding-left 140ms ease-out;
+  transition:
+    background 200ms cubic-bezier(0.33, 1, 0.68, 1),
+    border-color 200ms cubic-bezier(0.33, 1, 0.68, 1),
+    padding-left 260ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .navLink:hover {
@@ -1260,18 +1175,266 @@ pre.listing {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .mascotBody,
-  .mascotBlip,
-  .mascotEyes,
-  .mascotArm,
-  .kicker::before,
+    }
+
+/* ---- python syntax highlighting (VS Code light) -------------------------- */
+
+:root {
+  --claude: #d97757;
+  --tk-keyword: #0000ff;
+  --tk-control: #af00db;
+  --tk-string: #a31515;
+  --tk-comment: #008000;
+  --tk-number: #098658;
+  --tk-fn: #795e26;
+  --tk-builtin: #267f99;
+  --tk-op: #383838;
+}
+
+.pyEditor {
+  position: relative;
+  border-bottom: 1px solid var(--hairline);
+  background: #fffffe;
+}
+
+.pyHighlight,
+.pyEditor textarea.pyCode {
+  margin: 0;
+  border: 0;
+  padding: 0.8rem 0.9rem;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.82rem;
+  line-height: 1.62;
+  tab-size: 4;
+  white-space: pre;
+  overflow: auto;
+  letter-spacing: normal;
+}
+
+.pyHighlight {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  color: var(--ink);
+  background: transparent;
+}
+
+.pyEditor textarea.pyCode {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+  display: block;
+  background: transparent;
+  color: transparent;
+  caret-color: var(--ink);
+  resize: vertical;
+}
+
+.pyEditor textarea.pyCode:focus {
+  outline: none;
+  background: transparent;
+}
+
+.pyEditor textarea.pyCode::selection {
+  background: rgba(111, 157, 173, 0.35);
+}
+
+.tk-keyword { color: var(--tk-keyword); }
+.tk-string  { color: var(--tk-string); }
+.tk-comment { color: var(--tk-comment); font-style: italic; }
+.tk-number  { color: var(--tk-number); }
+.tk-fn      { color: var(--tk-fn); }
+.tk-builtin { color: var(--tk-builtin); }
+.tk-op      { color: var(--tk-op); }
+
+/* ---- ask claude panel: pop, not slide ------------------------------------ */
+
+.aiPanel {
+  transform-origin: bottom right;
+  will-change: transform, opacity;
+  transform: translate3d(0, 18px, 0) scale(0.92);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    transform 340ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 200ms cubic-bezier(0.33, 1, 0.68, 1),
+    visibility 0s linear 340ms;
+}
+
+.aiPanel[data-open="true"] {
+  transform: translate3d(0, 0, 0) scale(1);
+  opacity: 1;
+  visibility: visible;
+  transition:
+    transform 420ms cubic-bezier(0.16, 1.12, 0.28, 1),
+    opacity 180ms cubic-bezier(0.33, 1, 0.68, 1),
+    visibility 0s;
+}
+
+.aiHead {
+  justify-content: space-between;
+}
+
+.aiClose {
+  border: 0;
+  background: none;
+  color: var(--ink-faint);
+  font-size: 1.15rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 0.15rem;
+}
+
+.aiClose:hover {
+  color: var(--alarm);
+}
+
+.aiToggle {
+  background: var(--claude);
+  border-color: var(--claude);
+  transition: transform 160ms cubic-bezier(0.16, 1.2, 0.3, 1), background 140ms linear;
+}
+
+.aiToggle:hover {
+  background: var(--ink);
+  border-color: var(--ink);
+  transform: translateY(-2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .aiPanel { transition: opacity 120ms linear, visibility 0s !important; }
+}
+
+
+/* ---- print --------------------------------------------------------------- */
+
+@media print {
   .main > * {
     animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
   }
-  .mascotBubble,
-  .card,
-  .navLink,
-  .panel {
-    transition: none !important;
+  .sidebar,
+  .aiToggle,
+  .aiPanel,
+    .shell {
+    grid-template-columns: 1fr;
   }
+  .main {
+    padding: 0;
+  }
+  body::before,
+  body::after {
+    display: none;
+  }
+  .panel,
+  .callout,
+  table.tt {
+    break-inside: avoid;
+  }
+}
+
+
+
+/* ---- HL-only topics ------------------------------------------------------ */
+
+.hlTag {
+  margin-left: auto;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.52rem;
+  letter-spacing: 0.14em;
+  color: var(--claude);
+  border: 1px solid var(--claude);
+  padding: 0 0.22rem;
+  line-height: 1.5;
+}
+
+.navLink[data-hl="true"] {
+  color: var(--claude);
+}
+
+.navLink[data-hl="true"] .code {
+  color: var(--claude);
+}
+
+/* ---- entry splash -------------------------------------------------------- */
+
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  background: var(--paper);
+  transition: opacity 700ms cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+.splash[data-phase="in"] {
+  opacity: 1;
+}
+
+.splash[data-phase="out"] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.splashSprite {
+  opacity: 0;
+  animation:
+    splashFade 620ms cubic-bezier(0.16, 1, 0.3, 1) forwards,
+    splashGrow 2000ms cubic-bezier(0.33, 0.6, 0.4, 1) forwards;
+  will-change: transform, opacity;
+}
+
+@keyframes splashFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes splashGrow {
+  from { transform: scale(0.55); }
+  to { transform: scale(1.6); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .splash { display: none; }
+}
+
+/* ---- assistant panel: make room rather than cover ------------------------ */
+
+:root {
+  --ai-width: 25rem;
+}
+
+.shell {
+  transition: padding-right 380ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+html[data-ai-open="true"] .shell {
+  padding-right: var(--ai-width);
+}
+
+html[data-ai-open="true"] 
+
+@media (max-width: 900px) {
+  html[data-ai-open="true"] .shell {
+    padding-right: 0;
+  }
+  .aiPanel {
+    width: 100vw;
+  }
+}
+
+.aiPanel {
+  width: var(--ai-width);
+}
+
+/* The reply body needs room for rendered maths. */
+.aiText .katex-display {
+  margin: 0.6rem 0;
+}
+
+.aiText .katex {
+  font-size: 0.95em;
 }

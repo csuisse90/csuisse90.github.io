@@ -322,3 +322,42 @@ std::string minimiseJson(int numVars, const std::string& varNames,
 }
 
 }  // namespace lg
+
+namespace lg {
+
+std::string spriteGeometryJson() {
+  struct R { int x, y, w, h; };
+  // A 100 x 81 grid: body, two side nubs, four legs.
+  const R body[] = {
+      {10, 0, 80, 60}, {0, 19, 10, 21}, {90, 19, 10, 21},
+      {10, 60, 9, 21}, {29, 60, 10, 21}, {61, 60, 10, 21}, {81, 60, 9, 21},
+  };
+  const R eyes[] = {{19, 21, 10, 10}, {71, 21, 10, 10}};
+
+  jw::Out o;
+  o.beginObj();
+  o.key("width");
+  o.num(100);
+  o.key("height");
+  o.num(81);
+  auto emit = [&](const R* rs, size_t n) {
+    o.beginArr();
+    for (size_t i = 0; i < n; ++i) {
+      o.beginObj();
+      o.key("x"); o.num(rs[i].x);
+      o.key("y"); o.num(rs[i].y);
+      o.key("w"); o.num(rs[i].w);
+      o.key("h"); o.num(rs[i].h);
+      o.endObj();
+    }
+    o.endArr();
+  };
+  o.key("body");
+  emit(body, sizeof body / sizeof body[0]);
+  o.key("eyes");
+  emit(eyes, sizeof eyes / sizeof eyes[0]);
+  o.endObj();
+  return o.done();
+}
+
+}  // namespace lg

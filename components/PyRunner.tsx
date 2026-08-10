@@ -1,9 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { HighlightedPython } from "./pyHighlight";
 
-// Pyodide is a full CPython compiled to WebAssembly, about 10 MB, so it is
-// loaded from a CDN on first use rather than bundled or loaded on page load.
+// Loaded from a CDN on first use rather than bundled: it is a large download
+// and most readers never open a code cell.
 const PYODIDE_VERSION = "0.26.4";
 const PYODIDE_URL = `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/`;
 
@@ -98,23 +99,32 @@ export default function PyRunner({
     <div className="panel">
       <div className="panelHead">
         <span>Python</span>
-        <span>
-          {state === "loading"
-            ? "starting CPython in the browser…"
-            : state === "running"
-              ? "running"
-              : "editable — change it and run again"}
-        </span>
+        <span>{state === "loading" ? "loading" : state === "running" ? "running" : ""}</span>
       </div>
       <div className="panelBody" style={{ padding: 0 }}>
-        <textarea
-          value={source}
-          onChange={(e) => setSource(e.target.value)}
-          spellCheck={false}
-          rows={lineCount}
-          aria-label="Python code"
-          className="pyCode"
-        />
+        {/* The coloured layer sits underneath a transparent textarea, both
+            using identical metrics so the caret lands where it looks like it
+            should. */}
+        <div className="pyEditor" style={{ minHeight: `${lineCount * 1.62 + 1.6}rem` }}>
+          <pre className="pyHighlight" aria-hidden>
+            <HighlightedPython source={source + "\n"} />
+          </pre>
+          <textarea
+            value={source}
+            onChange={(e) => setSource(e.target.value)}
+            onScroll={(e) => {
+              const pre = e.currentTarget.previousElementSibling as HTMLElement | null;
+              if (pre) {
+                pre.scrollTop = e.currentTarget.scrollTop;
+                pre.scrollLeft = e.currentTarget.scrollLeft;
+              }
+            }}
+            spellCheck={false}
+            rows={lineCount}
+            aria-label="Python code"
+            className="pyCode"
+          />
+        </div>
       </div>
       <div className="transport">
         <button
@@ -136,9 +146,7 @@ export default function PyRunner({
         >
           Reset
         </button>
-        <span>
-          {state === "error" ? "raised an exception" : "runs entirely in your browser"}
-        </span>
+
       </div>
       {output && (
         <pre className="pyOut" data-error={state === "error"}>

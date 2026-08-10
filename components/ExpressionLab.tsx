@@ -45,7 +45,7 @@ export default function ExpressionLab() {
       <div className="panel">
         <div className="panelHead">
           <span>Boolean expression</span>
-          <span>parsed in C++</span>
+          <span>live</span>
         </div>
         <div className="panelBody">
           <input
@@ -128,9 +128,11 @@ export default function ExpressionLab() {
               </h3>
               <p className="prose" style={{ fontSize: "0.95rem" }}>
                 Minterms where the output is 1:{" "}
-                <span className="mono">
-                  Σ({analysis.minterms.join(", ") || "none"})
-                </span>
+                {analysis.minterms.length ? (
+                  <M>{`\\Sigma(${analysis.minterms.join(", ")})`}</M>
+                ) : (
+                  <M>{"\\varnothing"}</M>
+                )}
               </p>
               <MB>{analysis.minimised.sopLatex}</MB>
               <p className="prose" style={{ fontSize: "0.95rem" }}>

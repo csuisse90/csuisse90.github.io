@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-type Item = { href: string; label: string; code: string };
+type Item = { href: string; label: string; code: string; hl?: boolean };
 type Group = { head: string; items: Item[] };
 
 export const NAV: Group[] = [
@@ -47,14 +47,20 @@ export const NAV: Group[] = [
       { href: "/computational-thinking/", label: "Computational thinking", code: "B1" },
       { href: "/programming/", label: "Programming", code: "B2" },
       { href: "/oop/", label: "Object-oriented", code: "B3" },
-      { href: "/abstract-data-types/", label: "Abstract data types", code: "B4 HL" },
+      { href: "/abstract-data-types/", label: "Abstract data types", code: "B4", hl: true },
     ],
   },
   {
-    head: "Tools",
+    head: "Labs",
     items: [
-      { href: "/builder/", label: "Circuit builder", code: "LAB" },
-      { href: "/expression/", label: "Expression lab", code: "LAB" },
+      { href: "/labs/", label: "All labs", code: "IDX" },
+      { href: "/labs/numbers/", label: "Number lab", code: "A1.2" },
+      { href: "/labs/cpu/", label: "CPU lab", code: "A1.1" },
+      { href: "/labs/scheduling/", label: "Scheduling lab", code: "A1.3" },
+      { href: "/labs/sampling/", label: "Sampling lab", code: "A1.2" },
+      { href: "/builder/", label: "Circuit builder", code: "A1.2" },
+      { href: "/expression/", label: "Expression lab", code: "A1.2" },
+      { href: "/labs/sql/", label: "SQL lab", code: "A3" },
     ],
   },
   {
@@ -66,10 +72,7 @@ export const NAV: Group[] = [
   },
   {
     head: "Revision",
-    items: [
-      { href: "/practice/", label: "Exam practice", code: "Q" },
-      { href: "/reference/", label: "Reference sheet", code: "REF" },
-    ],
+    items: [{ href: "/reference/", label: "Reference sheet", code: "REF" }],
   },
 ];
 
@@ -82,11 +85,10 @@ export default function SiteChrome({ children }: { children: React.ReactNode }) 
       <nav className="sidebar">
         <Link href="/" className="brand">
           <span className="name">
-            eeshaan
+            IB CS
             <br />
-            teaches cs
+            HL
           </span>
-          <span className="sub">Theme A · IB CS HL · 2027</span>
         </Link>
 
         {NAV.map((group) => (
@@ -98,9 +100,11 @@ export default function SiteChrome({ children }: { children: React.ReactNode }) 
                 href={item.href}
                 className="navLink"
                 data-active={here === item.href}
+                data-hl={item.hl ? true : undefined}
               >
                 <span className="code">{item.code}</span>
                 <span>{item.label}</span>
+                {item.hl && <span className="hlTag">HL</span>}
               </Link>
             ))}
           </div>

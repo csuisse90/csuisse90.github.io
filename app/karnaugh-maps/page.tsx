@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import KMap from "@/components/KMap";
 import PageHead from "@/components/PageHead";
+import Practice from "@/components/Practice";
 import { M, MB } from "@/components/Math";
 
 export const metadata: Metadata = { title: "Karnaugh maps" };
@@ -91,9 +92,9 @@ export default function KarnaughPage() {
       <div className="prose">
         <p>
           Click cells to set them to 1, then again for don&apos;t care. The
-          simplified expression is recomputed as you go by a Quine–McCluskey
-          minimiser running in WebAssembly — the same answer a perfect grouping
-          by hand would give. Hover a term to see which cells it covers.
+          simplified expression is recomputed as you go — the same answer a
+          perfect grouping by hand would give. Hover a term to see which cells
+          it covers.
         </p>
       </div>
 
@@ -134,6 +135,28 @@ export default function KarnaughPage() {
         reasonable and it is always wrong — the algebra only cancels for powers
         of two. Take two, or take four and include a don&apos;t care.
       </p>
+      <Practice
+        items={[
+          {
+            marks: 4,
+            q: <p>Use a Karnaugh map to simplify <M>{"F(A,B,C) = \\Sigma(1, 3, 5, 7)"}</M>.</p>,
+            a: (
+              <>
+                <p>Those minterms are 001, 011, 101 and 111 — every row where <M>C</M> is 1. On the map they form a single block of four filling the columns where C = 1.</p>
+                <p>Across that block A varies and B varies, but C is constantly 1, so everything that varies drops out: <M>{"F = C"}</M>.</p>
+                <p>Marks are for a correctly labelled Gray-code map, one maximal group of four, and the final answer.</p>
+              </>
+            ),
+          },
+          {
+            marks: 3,
+            q: <p>Explain why a group of three adjacent 1s is never valid on a Karnaugh map.</p>,
+            a: (
+              <p>Grouping works because pairing two cells that differ in one variable lets that variable cancel, by <M>{"X + \\overline{X} = 1"}</M>. The cancellation only works for groups whose size is a power of two, because each doubling eliminates exactly one further variable. A group of three does not correspond to any such cancellation, so no valid term can be read from it.</p>
+            ),
+          },
+        ]}
+      />
     </>
   );
 }

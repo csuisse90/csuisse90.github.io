@@ -197,7 +197,7 @@ export function AcidDiagram() {
         strokeWidth={1.6}
         strokeDasharray="6 4"
       />
-      <Caption x={205} y={130} colour={ACCENT} size={11}>
+      <Caption x={205} y={136} colour={ACCENT} size={11}>
         one transaction — all of it, or none of it
       </Caption>
 
@@ -268,7 +268,7 @@ export function TrainingLoop() {
       title="How a model learns"
       meta="A4"
       width={620}
-      height={210}
+      height={232}
       caption="The loop runs thousands of times. Nothing about it is intelligent — it is a very patient process of being wrong slightly less each time."
     >
       {[
@@ -283,13 +283,13 @@ export function TrainingLoop() {
         </g>
       ))}
       <path
-        d="M582,98 L582,160 L82,160 L82,98"
+        d="M582,98 L582,186 L82,186 L82,98"
         fill="none"
         stroke={ACCENT}
         strokeWidth={1.8}
         markerEnd="url(#arrowAccent)"
       />
-      <Caption x={332} y={154} colour={ACCENT}>
+      <Caption x={332} y={179} colour={ACCENT}>
         repeat for every example, many times over
       </Caption>
     </Figure>
