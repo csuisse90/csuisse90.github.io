@@ -1,0 +1,311 @@
+---
+code: A1.3.2
+title: Scheduling and interrupts
+lede: >-
+  Deciding which process runs next, why every fair answer is unfair to somebody, and how the machine gets interrupted mid-sentence.
+prereqs:
+  - A1.3.1
+cards:
+  - q: >-
+      What is scheduling?
+    a: >-
+      Deciding which of the ready processes gets the processor next, and for how long.
+  - q: >-
+      What is first come first served?
+    a: >-
+      Processes run to completion in arrival order. Simple, but one long job delays everything behind it.
+  - q: >-
+      What is the convoy effect?
+    a: >-
+      Under first come first served, a single long process holds up many short ones behind it, ruining the average waiting time.
+  - q: >-
+      What is shortest job first?
+    a: >-
+      The process with the smallest expected run time goes next. Best average waiting time, but it needs run times known in advance and can starve long jobs.
+  - q: >-
+      What is round robin?
+    a: >-
+      Each process gets a fixed time slice in turn; if it does not finish it goes to the back of the queue. Nobody starves and response time is predictable.
+  - q: >-
+      What is a time slice or quantum?
+    a: >-
+      The longest a process may run before being pre-empted. Too long and the system feels unresponsive; too short and context switching wastes the processor.
+  - q: >-
+      What is pre-emption?
+    a: >-
+      Taking the processor away from a running process before it has finished, so the operating system stays in control.
+  - q: >-
+      What is starvation?
+    a: >-
+      When a process never gets the processor because higher-priority work keeps arriving. Priority schedulers are vulnerable to it.
+  - q: >-
+      What is ageing?
+    a: >-
+      Gradually raising the priority of a process that has waited a long time, so it eventually runs. It is the standard cure for starvation.
+  - q: >-
+      What is an interrupt?
+    a: >-
+      A signal that causes the processor to suspend what it is doing and run a handler. It is how hardware gets attention without being asked.
+  - q: >-
+      What happens when an interrupt occurs?
+    a: >-
+      The current instruction finishes, the processor's state is pushed onto a stack, the handler's address is loaded into the PC, the handler runs, and the saved state is restored.
+  - q: >-
+      What is polling, and why are interrupts usually better?
+    a: >-
+      Polling means repeatedly asking a device whether it is ready, which wastes processor time. An interrupt lets the device speak up only when something has happened.
+practice:
+  - marks: 4
+    q: >-
+      Three processes arrive at time 0 with burst times of 12 ms, 3 ms and 5 ms. Calculate the average waiting time under first come first served in that order, and under shortest job first.
+    points:
+      - >-
+          FCFS waiting times are $0$, $12$ and $15$ ms.
+      - >-
+          FCFS average is $(0+12+15)/3 = 9$ ms.
+      - >-
+          SJF order is 3, 5, 12 with waiting times $0$, $3$ and $8$ ms.
+      - >-
+          SJF average is $(0+3+8)/3 \approx 3.67$ ms, which is lower.
+  - marks: 3
+    q: >-
+      Explain the convoy effect and state which scheduling algorithm suffers from it.
+    points:
+      - >-
+          A long-running process occupies the processor while short processes wait behind it.
+      - >-
+          Average waiting time rises sharply even though the total work is unchanged.
+      - >-
+          It affects first come first served, which is non-pre-emptive and runs in arrival order.
+  - marks: 4
+    q: >-
+      Explain the effect of choosing a very short time quantum, and of choosing a very long one, in round robin scheduling.
+    points:
+      - >-
+          A very short quantum means processes are switched frequently.
+      - >-
+          A large proportion of processor time is then spent context switching rather than doing useful work.
+      - >-
+          A very long quantum means a process may run for a long time before being pre-empted.
+      - >-
+          Interactive processes then wait longer, so the system feels unresponsive, and behaviour approaches first come first served.
+  - marks: 3
+    q: >-
+      Explain what starvation is and describe one technique for preventing it.
+    points:
+      - >-
+          A low-priority process never runs because higher-priority processes keep arriving.
+      - >-
+          Ageing gradually increases the priority of processes that have been waiting.
+      - >-
+          Eventually the waiting process's priority is high enough for it to be scheduled.
+  - marks: 4
+    q: >-
+      Describe the sequence of events that occurs when an interrupt is received.
+    points:
+      - >-
+          The processor completes the instruction currently being executed.
+      - >-
+          The contents of the registers and program counter are saved, typically on a stack.
+      - >-
+          The address of the appropriate interrupt service routine is loaded into the program counter and the handler executes.
+      - >-
+          The saved state is restored and the interrupted program resumes where it left off.
+  - marks: 4
+    q: >-
+      Compare interrupts with polling as ways of handling input from a keyboard.
+    points:
+      - >-
+          Polling requires the processor to check the keyboard repeatedly whether or not a key has been pressed.
+      - >-
+          Most checks find nothing, so processor time is wasted.
+      - >-
+          With interrupts the keyboard signals only when a key is pressed, so no time is spent checking.
+      - >-
+          Interrupts add complexity and a small handling latency, but are far more efficient for infrequent events.
+  - marks: 5
+    q: >-
+      A system runs a mixture of interactive editing and long background rendering. Recommend a scheduling approach and justify it.
+    points:
+      - >-
+          Interactive processes need short response times to feel usable.
+      - >-
+          Background rendering needs throughput but can tolerate delay.
+      - >-
+          A pre-emptive priority scheme with a short quantum for interactive work suits both.
+      - >-
+          Ageing should be applied so the rendering is not starved by continuous interaction.
+      - >-
+          A clear recommendation is stated and justified against both requirements.
+---
+
+Several processes are ready and there is one processor. Something must choose.
+That choice is **scheduling**, and no answer is best by every measure — the
+algorithms differ in which unfairness they accept.
+
+Three quantities are being traded:
+
+- **Throughput** — how many processes complete per unit time.
+- **Waiting time** — how long a process spends ready but not running.
+- **Response time** — how long before a process first reacts, which is what a user
+  actually feels.
+
+<Figure caption="The same three processes under different policies. Total work is identical; the waiting times are not.">
+  <SchedulingGantt />
+</Figure>
+
+## First come first served
+
+Run each process to completion in arrival order. Trivial to implement and fair in
+the queueing-at-a-shop sense.
+
+It also produces the **convoy effect**. One long process at the front holds up
+everything behind it. Three processes of 12, 3 and 5 ms give waiting times of 0,
+12 and 15 ms — an average of 9 ms — and the two short jobs, which could have
+finished almost immediately, are the ones that suffer.
+
+FCFS is also **non-pre-emptive**: once a process has the processor it keeps it
+until it blocks or finishes.
+
+## Shortest job first
+
+Run the shortest process next. Reorder the same three as 3, 5, 12 and the waiting
+times become 0, 3 and 8 — an average of 3.67 ms, less than half.
+
+That is not luck. Shortest job first is **provably optimal** for average waiting
+time; nothing can beat it on that measure.
+
+It has two serious problems. It needs to know how long each process will take,
+which is not knowable in advance and must be estimated from past behaviour. And a
+long process can be **starved** indefinitely if short ones keep arriving.
+
+## Round robin
+
+Give each process a fixed **time slice**; if it has not finished when the slice
+expires, pre-empt it and send it to the back of the queue.
+
+Nobody starves, because the queue advances. Response time is bounded: with $n$
+processes and quantum $q$, no process waits more than $(n-1)q$ before running.
+That predictability is why interactive systems use round robin or a variant of it.
+
+The quantum is the tuning knob, and both extremes are bad:
+
+- Too **long**, and it degenerates into first come first served.
+- Too **short**, and the processor spends its time switching instead of computing.
+  With a 5 ms quantum and a 0.1 ms switch, 2% of the machine is lost to overhead;
+  with a 0.5 ms quantum it is 17%.
+
+Typical values are 10–100 ms, which feels instantaneous while keeping overhead
+around a per cent.
+
+<Py caption="The three policies on the same workload. Change the burst times and watch the ranking shift.">{`
+def fcfs(jobs):
+    time, waits = 0, []
+    for name, burst in jobs:
+        waits.append((name, time))
+        time += burst
+    return waits
+
+def sjf(jobs):
+    return fcfs(sorted(jobs, key=lambda j: j[1]))
+
+def round_robin(jobs, quantum):
+    remaining = {n: b for n, b in jobs}
+    order = [n for n, _ in jobs]
+    time, finished = 0, {}
+    while order:
+        name = order.pop(0)
+        used = min(quantum, remaining[name])
+        time += used
+        remaining[name] -= used
+        if remaining[name] > 0:
+            order.append(name)
+        else:
+            finished[name] = time
+    return finished
+
+jobs = [("render", 12), ("save", 3), ("spell-check", 5)]
+
+for label, result in (("first come first served", fcfs(jobs)), ("shortest job first", sjf(jobs))):
+    average = sum(w for _, w in result) / len(result)
+    shown = ", ".join(f"{n} waits {w}ms" for n, w in result)
+    print(f"{label}:")
+    print(f"   {shown}")
+    print(f"   average wait {average:.2f} ms")
+
+print()
+for q in (1, 4, 12):
+    done = round_robin(jobs, q)
+    mean = sum(done.values()) / len(done)
+    print(f"round robin, quantum {q:>2} ms -> mean turnaround {mean:.2f} ms")
+
+print()
+print("total work is", sum(b for _, b in jobs), "ms whatever the policy")
+`}</Py>
+
+## Priority and starvation
+
+Real systems give processes **priorities**: the audio driver must not be delayed by
+a file indexer.
+
+The danger is **starvation** — if high-priority work keeps arriving, a low-priority
+process may never run. The standard cure is **ageing**: raise a process's priority
+the longer it waits, so anything ignored long enough eventually becomes urgent.
+
+<Aside kind="history" title="Priority inversion on Mars">
+In July 1997 the Mars Pathfinder rover began resetting itself repeatedly, days into
+its mission.
+
+The cause was **priority inversion**. A low-priority weather task took a lock on a
+shared bus. A high-priority bus management task then needed the same lock and had
+to wait. Meanwhile a medium-priority communications task, needing no lock,
+pre-empted the low-priority one — so it could not finish, could not release the
+lock, and the high-priority task stayed blocked. A watchdog timer noticed the
+important task had not run, and reset the spacecraft.
+
+The fix, uploaded from Earth, enabled **priority inheritance**: a process holding a
+lock temporarily inherits the priority of anything waiting for it. The bug had been
+seen in testing and dismissed as unlikely.
+</Aside>
+
+## Interrupts
+
+Scheduling assumes the operating system can regain control. Interrupts are how.
+
+An **interrupt** is a signal on the control bus that makes the processor stop and
+run a handler:
+
+1. The current instruction completes — never abandoned part-way.
+2. The program counter and registers are pushed onto a stack.
+3. The handler's address is looked up in the interrupt vector table and loaded into
+   the PC.
+4. The **interrupt service routine** runs, doing the minimum necessary.
+5. The saved state is popped back and the interrupted program resumes, unaware.
+
+<Figure caption="The interrupted program never observes the gap. Its state is restored exactly, so from its point of view no time passed.">
+  <InterruptTimeline />
+</Figure>
+
+The alternative is **polling** — asking each device repeatedly whether it needs
+attention. For a keyboard at one keystroke a second, and a processor checking a
+million times a second, 999,999 checks in every million find nothing. Interrupts
+invert the arrangement: say nothing until there is something to say.
+
+<Aside kind="trap" title="Interrupt handlers must be short">
+While a handler runs, interrupts of the same or lower priority are usually
+disabled, so anything else that happens is delayed or lost.
+
+The convention is therefore to do almost nothing in the handler: acknowledge the
+device, copy a byte into a buffer, set a flag, return. The real work is deferred to
+a normal process scheduled afterwards.
+
+A handler that does heavy work is a classic cause of dropped input and stuttering
+audio — and the symptom looks like a performance problem rather than a correctness
+one, which is what makes it hard to find.
+</Aside>
+
+<Takeaway>
+Every scheduler optimises something at another's expense: FCFS optimises
+simplicity, SJF optimises average waiting, round robin optimises predictability.
+Working out which the question cares about is how you choose.
+</Takeaway>
