@@ -81,7 +81,7 @@ export default function ReferencePage() {
 
       <h2 className="display">Symbols and tables</h2>
       <p className="prose">
-        Drawn to IEEE Std 91-1984 — the distinctive shapes used in IB papers.
+        The distinctive shapes used in IB papers.
       </p>
 
       <div
@@ -188,35 +188,6 @@ export default function ReferencePage() {
           <li>Work backwards through the brackets.</li>
           <li>Dot every junction where a signal branches.</li>
         </ol>
-      </div>
-
-      <h2 className="display">One thing that is not on the syllabus</h2>
-      <p className="prose">
-        You may occasionally see gates drawn as plain rectangles with{" "}
-        <span className="mono">&amp;</span>,{" "}
-        <span className="mono">≥1</span> or <span className="mono">=1</span>{" "}
-        inside. That is the IEC 60617-12 standard, common in European
-        engineering documents. IB papers use the distinctive shapes above, so
-        draw those — but recognise the rectangles if a textbook shows them.
-      </p>
-
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(15rem, 1fr))",
-          gap: "1rem",
-        }}
-      >
-        {["and2", "or2", "not1", "xor2"].map((id) => (
-          <CircuitView
-            key={id}
-            data={circuit(id)}
-            interactive={false}
-            animate={false}
-            iec
-            maxHeight={130}
-          />
-        ))}
       </div>
 
       <p className="annotation">

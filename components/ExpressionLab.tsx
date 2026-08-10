@@ -45,7 +45,7 @@ export default function ExpressionLab() {
       <div className="panel">
         <div className="panelHead">
           <span>Boolean expression</span>
-          <span>parsed in C++</span>
+          <span>live</span>
         </div>
         <div className="panelBody">
           <input

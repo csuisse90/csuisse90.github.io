@@ -51,10 +51,16 @@ export const NAV: Group[] = [
     ],
   },
   {
-    head: "Tools",
+    head: "Labs",
     items: [
-      { href: "/builder/", label: "Circuit builder", code: "LAB" },
-      { href: "/expression/", label: "Expression lab", code: "LAB" },
+      { href: "/labs/", label: "All labs", code: "IDX" },
+      { href: "/labs/numbers/", label: "Number lab", code: "A1.2" },
+      { href: "/labs/cpu/", label: "CPU lab", code: "A1.1" },
+      { href: "/labs/scheduling/", label: "Scheduling lab", code: "A1.3" },
+      { href: "/labs/sampling/", label: "Sampling lab", code: "A1.2" },
+      { href: "/builder/", label: "Circuit builder", code: "A1.2" },
+      { href: "/expression/", label: "Expression lab", code: "A1.2" },
+      { href: "/labs/sql/", label: "SQL lab", code: "A3" },
     ],
   },
   {

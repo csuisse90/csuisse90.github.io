@@ -202,12 +202,12 @@ export function OsiStack() {
     <Figure
       title="The OSI model"
       meta="A2.1"
-      width={560}
+      width={720}
       height={330}
       caption="Each layer talks only to its opposite number at the far end, and relies on the layer below to get it there. Swapping cable for Wi-Fi changes layer 1 and nothing above it."
     >
       <Stack
-        x={70}
+        x={150}
         y={20}
         w={420}
         rowH={42}
@@ -221,12 +221,12 @@ export function OsiStack() {
           { label: "1 · Physical", note: "cable, radio" },
         ]}
       />
-      <Arrow x1={40} y1={30} x2={40} y2={300} />
-      <Caption x={34} y={165} anchor="end">
+      <Arrow x1={126} y1={30} x2={126} y2={300} />
+      <Caption x={118} y={165} anchor="end">
         down at the sender
       </Caption>
-      <Arrow x1={520} y1={300} x2={520} y2={30} />
-      <Caption x={526} y={165} anchor="start">
+      <Arrow x1={594} y1={300} x2={594} y2={30} />
+      <Caption x={604} y={165} anchor="start">
         up at the receiver
       </Caption>
     </Figure>

@@ -91,9 +91,9 @@ export default function KarnaughPage() {
       <div className="prose">
         <p>
           Click cells to set them to 1, then again for don&apos;t care. The
-          simplified expression is recomputed as you go by a Quine–McCluskey
-          minimiser running in WebAssembly — the same answer a perfect grouping
-          by hand would give. Hover a term to see which cells it covers.
+          simplified expression is recomputed as you go — the same answer a
+          perfect grouping by hand would give. Hover a term to see which cells
+          it covers.
         </p>
       </div>
 

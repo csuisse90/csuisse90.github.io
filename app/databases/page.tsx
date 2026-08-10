@@ -198,15 +198,12 @@ ORDER BY e.grade DESC;`}</pre>
       />
 
       <div className="prose">
-        <p>
-          Python ships with SQLite built in, so you can run a real database
-          right here. Change the query and run it again.
-        </p>
+        <p>Change the query and run it again.</p>
       </div>
 
       <PyRunner
         packages={["sqlite3"]}
-        caption="A complete relational database — three tables, foreign keys, and a join — running inside your browser."
+        caption="Three tables, foreign keys, a join, and a constraint doing its job."
         code={`import sqlite3
 
 db = sqlite3.connect(":memory:")

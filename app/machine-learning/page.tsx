@@ -121,7 +121,7 @@ export default function MachineLearningPage() {
       </div>
 
       <PyRunner
-        caption="Gradient descent with nothing hidden — no libraries, about twenty lines. It learns the relationship between hours revised and exam mark from five examples."
+        caption="Gradient descent in about twenty lines, no libraries. It learns the relationship between hours revised and exam mark from five examples."
         code={`# Learn: mark = w * hours + b, from five examples.
 data = [(1, 32), (2, 44), (3, 51), (4, 66), (5, 72)]
 

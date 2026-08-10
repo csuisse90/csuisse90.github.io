@@ -1217,8 +1217,13 @@ pre.listing {
 
 /* ---- page motion --------------------------------------------------------- */
 
-.main > * {
-  animation: rise 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+/* Only ever animate when the browser is actually going to run the animation.
+   Using fill-mode `both` on an animation that never starts would strand the
+   page at opacity 0 — which is exactly what happened when printing. */
+@media screen and (prefers-reduced-motion: no-preference) {
+  .main > * {
+    animation: rise 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
 }
 
 .main > *:nth-child(2) { animation-delay: 40ms; }
@@ -1273,5 +1278,200 @@ pre.listing {
   .navLink,
   .panel {
     transition: none !important;
+  }
+}
+
+/* ---- python syntax highlighting (VS Code light) -------------------------- */
+
+:root {
+  --claude: #d97757;
+  --tk-keyword: #0000ff;
+  --tk-control: #af00db;
+  --tk-string: #a31515;
+  --tk-comment: #008000;
+  --tk-number: #098658;
+  --tk-fn: #795e26;
+  --tk-builtin: #267f99;
+  --tk-op: #383838;
+}
+
+.pyEditor {
+  position: relative;
+  border-bottom: 1px solid var(--hairline);
+  background: #fffffe;
+}
+
+.pyHighlight,
+.pyEditor textarea.pyCode {
+  margin: 0;
+  border: 0;
+  padding: 0.8rem 0.9rem;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.82rem;
+  line-height: 1.62;
+  tab-size: 4;
+  white-space: pre;
+  overflow: auto;
+  letter-spacing: normal;
+}
+
+.pyHighlight {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  color: var(--ink);
+  background: transparent;
+}
+
+.pyEditor textarea.pyCode {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+  display: block;
+  background: transparent;
+  color: transparent;
+  caret-color: var(--ink);
+  resize: vertical;
+}
+
+.pyEditor textarea.pyCode:focus {
+  outline: none;
+  background: transparent;
+}
+
+.pyEditor textarea.pyCode::selection {
+  background: rgba(111, 157, 173, 0.35);
+}
+
+.tk-keyword { color: var(--tk-keyword); }
+.tk-string  { color: var(--tk-string); }
+.tk-comment { color: var(--tk-comment); font-style: italic; }
+.tk-number  { color: var(--tk-number); }
+.tk-fn      { color: var(--tk-fn); }
+.tk-builtin { color: var(--tk-builtin); }
+.tk-op      { color: var(--tk-op); }
+
+/* ---- mascot: Claude starburst -------------------------------------------- */
+
+.mascotBody[data-jumping="true"] {
+  animation: mascotJump 900ms cubic-bezier(0.28, 0.84, 0.42, 1);
+}
+
+@keyframes mascotJump {
+  0%   { transform: translateY(0) scale(1, 1); }
+  15%  { transform: translateY(0) scale(1.12, 0.88); }
+  40%  { transform: translateY(-46px) scale(0.92, 1.1); }
+  60%  { transform: translateY(-52px) scale(1, 1); }
+  85%  { transform: translateY(0) scale(1.1, 0.9); }
+  100% { transform: translateY(0) scale(1, 1); }
+}
+
+.burstSpin {
+  transform-origin: center;
+  animation: burstTurn 22s linear infinite;
+}
+
+@keyframes burstTurn {
+  to { transform: rotate(360deg); }
+}
+
+.burstFace {
+  animation: blink 6.5s ease-in-out infinite;
+  transform-origin: center;
+}
+
+/* ---- ask claude panel: pop, not slide ------------------------------------ */
+
+.aiPanel {
+  transform-origin: bottom right;
+  transform: translateY(14px) scale(0.9);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    transform 260ms cubic-bezier(0.16, 1.2, 0.3, 1),
+    opacity 160ms ease-out,
+    visibility 0s linear 260ms;
+}
+
+.aiPanel[data-open="true"] {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+  visibility: visible;
+  transition:
+    transform 320ms cubic-bezier(0.16, 1.2, 0.3, 1),
+    opacity 140ms ease-out,
+    visibility 0s;
+}
+
+.aiHead {
+  justify-content: space-between;
+}
+
+.aiClose {
+  border: 0;
+  background: none;
+  color: var(--ink-faint);
+  font-size: 1.15rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 0.15rem;
+}
+
+.aiClose:hover {
+  color: var(--alarm);
+}
+
+.aiToggle {
+  background: var(--claude);
+  border-color: var(--claude);
+  transition: transform 160ms cubic-bezier(0.16, 1.2, 0.3, 1), background 140ms linear;
+}
+
+.aiToggle:hover {
+  background: var(--ink);
+  border-color: var(--ink);
+  transform: translateY(-2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mascotBody[data-jumping="true"],
+  .burstSpin,
+  .burstFace {
+    animation: none !important;
+  }
+  .aiPanel { transition: opacity 120ms linear, visibility 0s !important; }
+}
+
+
+/* ---- print --------------------------------------------------------------- */
+
+@media print {
+  .main > * {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .sidebar,
+  .aiToggle,
+  .aiPanel,
+  .mascot,
+  .transport {
+    display: none !important;
+  }
+  .shell {
+    grid-template-columns: 1fr;
+  }
+  .main {
+    padding: 0;
+  }
+  body::before,
+  body::after {
+    display: none;
+  }
+  .panel,
+  .callout,
+  table.tt {
+    break-inside: avoid;
   }
 }

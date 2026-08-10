@@ -158,10 +158,7 @@ export default function CircuitView({
     <div className="panel">
       <div className="panelHead">
         <span>{data.title}</span>
-        <span>
-          {iec ? "IEC 60617-12" : "IEEE Std 91-1984"}
-          {data.cyclic ? " · sequential" : ""}
-        </span>
+        <span>{data.cyclic ? "sequential" : ""}</span>
       </div>
 
       <div className="panelBody" style={{ padding: "0.5rem" }}>

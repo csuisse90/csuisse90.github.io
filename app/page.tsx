@@ -44,10 +44,9 @@ export default function Home() {
         <div className="calloutHead">Three things to try</div>
         <p style={{ margin: 0 }}>
           Click a switch on the gate below and press <strong>Run</strong> at
-          1/16× speed. Open <strong>Ask Claude</strong> in the corner for an
-          analogy for whatever page you are on. And on any Python block, change
-          a number and run it again — nothing installs, and nothing is sent
-          anywhere.
+          1/16× speed. Open <strong>Ask Claude</strong> for an analogy for
+          whatever page you are on. And on any Python block, change a number and
+          run it again.
         </p>
       </div>
 
@@ -158,7 +157,7 @@ export default function Home() {
           <div className="cardTitle">Databases</div>
           <div className="cardBody">
             Tables, keys, normalisation, SQL and ACID — with a real SQLite
-            database you can query in the browser. A3.
+            database you can query. A3.
           </div>
         </Link>
         <Link href="/machine-learning/" className="card">
@@ -170,9 +169,16 @@ export default function Home() {
         </Link>
       </div>
 
-      <h2 className="display">Tools, extras and revision</h2>
+      <h2 className="display">Labs, extras and revision</h2>
 
       <div className="cardGrid">
+        <Link href="/labs/" className="card">
+          <div className="cardTitle">All labs</div>
+          <div className="cardBody">
+            Eight interactive labs — numbers, a CPU you can step, scheduling,
+            sampling, circuits, expressions, Karnaugh maps and SQL.
+          </div>
+        </Link>
         <Link href="/builder/" className="card">
           <div className="cardTitle">Circuit builder</div>
           <div className="cardBody">
@@ -250,14 +256,12 @@ export default function Home() {
         </p>
         <p>
           Code examples are Python, and most of them are{" "}
-          <strong>editable and runnable</strong> right in the page — a complete
-          CPython compiled to WebAssembly, so nothing is installed and nothing
-          is sent anywhere. Change a number, run it again, see what breaks.
+          <strong>editable and runnable</strong> right in the page. Change a
+          number, run it again, see what breaks.
         </p>
         <p>
-          The <strong>Ask Claude</strong> button in the corner will explain
-          whatever page you are on as an analogy, or answer a question. It talks
-          to Claude Code on your own machine rather than to a server.
+          The <strong>Ask Claude</strong> button will explain whatever page you
+          are on as an analogy, or answer a question.
         </p>
       </div>
     </>

@@ -102,37 +102,33 @@ export default function AiPanel() {
 
       <aside id="aiPanel" className="aiPanel" data-open={open} aria-hidden={!open}>
         <div className="aiHead">
-          <span>Ask Claude · Haiku 4.5</span>
           <span
             className="aiDot"
             data-status={status}
             title={
               status === "up"
-                ? "local bridge connected"
+                ? "connected"
                 : status === "down"
-                  ? "local bridge not running"
+                  ? "not running"
                   : "checking"
             }
           />
+          <button
+            className="aiClose"
+            onClick={() => setOpen(false)}
+            aria-label="Close"
+          >
+            ×
+          </button>
         </div>
 
         <div className="aiBody" ref={scroller}>
-          {turns.length === 0 && (
+          {turns.length === 0 && status === "down" && (
             <div className="aiHint">
-              <p>
-                This asks <strong>Claude Code on your own machine</strong>, not a
-                server. Nothing you type leaves your computer except to your own
-                Claude session.
+              <p className="aiWarn">
+                Not connected. Start the helper with{" "}
+                <code>bun run tools/claudeBridge.mjs</code>
               </p>
-              <p>
-                Current topic: <strong>{topic}</strong>.
-              </p>
-              {status === "down" && (
-                <p className="aiWarn">
-                  The bridge is not running. Start it in the project folder with{" "}
-                  <code>bun run tools/claudeBridge.mjs</code>
-                </p>
-              )}
             </div>
           )}
 

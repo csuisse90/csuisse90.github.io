@@ -135,7 +135,7 @@ export function MemoryHierarchy() {
     <Figure
       title="The memory hierarchy"
       meta="A1.1.4"
-      width={560}
+      width={660}
       height={280}
       caption="Every step down is roughly a hundred times slower and a great deal cheaper per byte. Cache exists purely because the gap between registers and RAM is too expensive to pay on every access."
     >
@@ -147,7 +147,7 @@ export function MemoryHierarchy() {
       ].map((r, i) => (
         <g key={r.label}>
           <rect
-            x={280 - r.w / 2}
+            x={300 - r.w / 2}
             y={30 + i * 52}
             width={r.w}
             height={44}
@@ -156,7 +156,7 @@ export function MemoryHierarchy() {
             strokeWidth={1.8}
           />
           <text
-            x={280}
+            x={300}
             y={46 + i * 52}
             textAnchor="middle"
             fontFamily="var(--font-mono), monospace"
@@ -166,7 +166,7 @@ export function MemoryHierarchy() {
             {r.label}
           </text>
           <text
-            x={280}
+            x={300}
             y={62 + i * 52}
             textAnchor="middle"
             fontFamily="var(--font-mono), monospace"
@@ -177,12 +177,12 @@ export function MemoryHierarchy() {
           </text>
         </g>
       ))}
-      <Arrow x1={40} y1={40} x2={40} y2={230} />
-      <Caption x={34} y={140} anchor="end">
+      <Arrow x1={62} y1={40} x2={62} y2={230} />
+      <Caption x={56} y={140} anchor="end">
         slower
       </Caption>
-      <Arrow x1={524} y1={230} x2={524} y2={40} />
-      <Caption x={530} y={140} anchor="start">
+      <Arrow x1={498} y1={230} x2={498} y2={40} />
+      <Caption x={508} y={140} anchor="start">
         costlier
       </Caption>
     </Figure>
