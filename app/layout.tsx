@@ -6,7 +6,6 @@ import "katex/dist/katex.min.css";
 import "./globals.css";
 import SiteChrome from "@/components/SiteChrome";
 import AiPanel from "@/components/AiPanel";
-import Mascot from "@/components/Mascot";
 import Splash from "@/components/Splash";
 
 // Archivo carries a width axis, which is how the Eurostile Bold Extended feel
@@ -52,7 +51,6 @@ export default function RootLayout({
           <Splash />
           <SiteChrome>{children}</SiteChrome>
           <AiPanel />
-          <Mascot />
         </Theme>
       </body>
     </html>

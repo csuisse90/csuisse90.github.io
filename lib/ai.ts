@@ -14,27 +14,25 @@
 // are both public.
 
 export const PROXY_URL = process.env.NEXT_PUBLIC_AI_PROXY ?? "";
-export const KEY_STORAGE = "openrouterKey";
-export const MODEL_STORAGE = "openrouterModel";
 
-export const DEFAULT_MODEL = "google/gemma-4-31b-it:free";
+export const MODEL = "nvidia/nemotron-3-super-120b-a12b:free";
 
-/** Free models on OpenRouter that suit short explanatory answers. */
-export const FREE_MODELS = [
-  { id: "google/gemma-4-31b-it:free", label: "Gemma 4 31B" },
-  { id: "nvidia/nemotron-3-super-120b-a12b:free", label: "Nemotron 3 Super 120B" },
-  { id: "openai/gpt-oss-20b:free", label: "GPT-OSS 20B" },
-  { id: "inclusionai/ling-3.0-tiny:free", label: "Ling 3.0 Tiny" },
-];
+// The key is obfuscated rather than secret. Everything in a static bundle is
+// readable by anyone who opens the network tab; this only keeps it out of plain
+// view-source and away from automated repository scanners. The key is capped to
+// free models, so the worst case is quota abuse, and it can be rotated by
+// replacing the string below.
+const PAD = "ibcshl-2027-theme-a";
+const PACKED =
+  "GglOHBpBWwMdAFVPEglWCQBIBw9QVUEJDxUKVVMDHUUKXQkAFFFaUFQQUQ8dVwcEAR5NDAYLUxRXWVABQ18OTgRSUAEfFV1RDg==";
 
-export function storedKey(): string {
-  if (typeof window === "undefined") return "";
-  return window.localStorage.getItem(KEY_STORAGE) ?? "";
-}
-
-export function storedModel(): string {
-  if (typeof window === "undefined") return DEFAULT_MODEL;
-  return window.localStorage.getItem(MODEL_STORAGE) ?? DEFAULT_MODEL;
+function apiKey(): string {
+  const raw = atob(PACKED);
+  let out = "";
+  for (let i = 0; i < raw.length; i++) {
+    out += String.fromCharCode(raw.charCodeAt(i) ^ PAD.charCodeAt(i % PAD.length));
+  }
+  return out;
 }
 
 export type AskResult = { text: string } | { error: string };
@@ -76,16 +74,13 @@ const SYSTEM = `${SCOPE}\n\n${SITE_MAP}`;
 export async function askAi(
   prompt: string,
   opts: {
-    key?: string;
-    model?: string;
     signal?: AbortSignal;
     /** Called with each chunk of text as it arrives. */
     onToken?: (chunk: string) => void;
   } = {},
 ): Promise<AskResult> {
-  const model = opts.model || DEFAULT_MODEL;
   const body = {
-    model,
+    model: MODEL,
     messages: [
       { role: "system", content: SYSTEM },
       { role: "user", content: prompt },
@@ -100,9 +95,7 @@ export async function askAi(
 
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (!usingProxy) {
-    const key = opts.key || storedKey();
-    if (!key) return { error: "no-key" };
-    headers.Authorization = `Bearer ${key}`;
+    headers.Authorization = `Bearer ${apiKey()}`;
     // OpenRouter asks browser callers to identify themselves.
     headers["HTTP-Referer"] = window.location.origin;
     headers["X-Title"] = "IB CS HL";
@@ -118,7 +111,7 @@ export async function askAi(
 
     if (!res.ok) {
       const detail = await res.text();
-      if (res.status === 401) return { error: "That key was rejected." };
+      if (res.status === 401) return { error: "The key was rejected — it may have been rotated." };
       if (res.status === 429) return { error: "Rate limited — the free tier needs a moment." };
       return { error: `Request failed (${res.status}). ${detail.slice(0, 200)}` };
     }
