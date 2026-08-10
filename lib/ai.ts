@@ -98,6 +98,12 @@ export async function askAi(
     signal?: AbortSignal;
     /** Called with each chunk of text as it arrives. */
     onToken?: (chunk: string) => void;
+    /** Overrides the tutor persona. The marker uses its own instructions. */
+    system?: string;
+    /** Marking is a judgement about a fixed mark scheme, so it must not search. */
+    web?: boolean;
+    temperature?: number;
+    maxTokens?: number;
   } = {},
 ): Promise<AskResult> {
   // Web search runs at OpenRouter's end: it searches, pastes the results into
@@ -106,12 +112,12 @@ export async function askAi(
   const body = {
     model: MODEL,
     messages: [
-      { role: "system", content: SYSTEM },
+      { role: "system", content: opts.system ?? SYSTEM },
       { role: "user", content: prompt },
     ],
-    plugins: [{ id: "web", max_results: 3 }] as unknown[] | undefined,
-    max_tokens: 700,
-    temperature: 0.6,
+    plugins: (opts.web ?? true) ? ([{ id: "web", max_results: 3 }] as unknown[]) : undefined,
+    max_tokens: opts.maxTokens ?? 700,
+    temperature: opts.temperature ?? 0.6,
     stream: Boolean(opts.onToken),
   };
 

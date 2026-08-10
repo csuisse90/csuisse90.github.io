@@ -381,6 +381,22 @@ export default function CircuitView({
             </button>
           ))}
 
+          {/* Dragging through the delays is how a hazard becomes obvious: the
+              glitch is one step wide and easy to miss at playback speed. */}
+          <input
+            className="delayScrub"
+            type="range"
+            min={0}
+            max={lastStep}
+            value={Math.min(step, lastStep)}
+            onChange={(e) => {
+              setPlaying(false);
+              setStep(Number(e.target.value));
+            }}
+            aria-label="Gate delay"
+            disabled={lastStep === 0}
+          />
+
           <span className="stepBar" aria-hidden>
             {trace.steps.map((_, i) => (
               <i key={i} data-done={i <= step} data-now={i === step} />

@@ -2,6 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import CircuitFigure from "./CircuitFigure";
+import CircuitView from "./CircuitView";
+import FaultFinder from "./FaultFinder";
+import Hazards from "./Hazards";
 import TruthTable from "./TruthTable";
 import { M, MB } from "./Math";
 import { snapshot, useLogicCore } from "@/lib/live";
@@ -26,6 +29,16 @@ export default function ExpressionLab() {
   }, [core, src]);
 
   const [diagram, setDiagram] = useState<CircuitData | null>(null);
+  const [tab, setTab] = useState<"build" | "hazards" | "fault">("build");
+  const [mask, setMask] = useState(0);
+
+  // Showing a hazard means actually making the transition: set the starting
+  // inputs, then flip to the ending ones a tick later so the view records a
+  // change rather than a fresh settled state.
+  function showTransition(from: number, to: number) {
+    setMask(from);
+    setTimeout(() => setMask(to), 60);
+  }
 
   useEffect(() => {
     if (!core || !analysis?.ok) {
@@ -158,12 +171,48 @@ export default function ExpressionLab() {
           {diagram && (
             <>
               <h3 className="display">As a logic diagram</h3>
-              <p className="prose">
-                Built straight from the parse tree, so the shape of the diagram
-                is the shape of the expression. Click a switch and watch the
-                result travel to the output.
-              </p>
-              <CircuitFigure data={diagram} animate withTable showIndex />
+              <div className="tabBar">
+                {([
+                  ["build", "Watch it settle"],
+                  ["hazards", "Hazards"],
+                  ["fault", "Find the fault"],
+                ] as const).map(([id, label]) => (
+                  <button
+                    key={id}
+                    className="tabBtn"
+                    data-active={tab === id}
+                    onClick={() => setTab(id)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              {tab === "build" && (
+                <>
+                  <p className="prose">
+                    Built straight from the parse tree, so the shape of the diagram is the
+                    shape of the expression. Flip a switch, then drag the delay slider to
+                    walk the change through the circuit one gate at a time.
+                  </p>
+                  <CircuitFigure data={diagram} animate withTable showIndex />
+                </>
+              )}
+
+              {tab === "hazards" && (
+                <>
+                  <Hazards data={diagram} onShow={showTransition} />
+                  <CircuitView
+                    data={diagram}
+                    animate
+                    interactive
+                    mask={mask}
+                    onMaskChange={setMask}
+                  />
+                </>
+              )}
+
+              {tab === "fault" && <FaultFinder data={diagram} />}
             </>
           )}
         </>
