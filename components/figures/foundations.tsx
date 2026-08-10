@@ -444,3 +444,97 @@ export function ThreeViews() {
     </Figure>
   );
 }
+
+/** Inner join against left join, as row sets rather than Venn circles. */
+export function JoinShapes() {
+  const rowH = 22;
+  const left = [
+    ["B1", "Godel Escher Bach"],
+    ["B2", "Mythical Man-Month"],
+    ["B3", "Structure & Interp."],
+    ["B4", "Never Borrowed"],
+  ];
+  const matched = new Set(["B1", "B2", "B3"]);
+
+  return (
+    <Figure
+      title="Inner join against left join"
+      meta="the rows that differ"
+      width={560}
+      height={228}
+      caption="An inner join drops B4 because it has no matching loan. A left join keeps it, with nulls — which is the only way to ask which books have never been borrowed."
+    >
+      <Caption x={0} y={22} anchor="start" colour={SOFT}>
+        Book
+      </Caption>
+      {left.map(([id, title], i) => (
+        <g key={id}>
+          <rect
+            x={0}
+            y={34 + i * rowH}
+            width={168}
+            height={rowH}
+            fill={FILL}
+            stroke={matched.has(id) ? INK : ACCENT}
+            strokeWidth={1.2}
+          />
+          <text
+            x={8}
+            y={34 + i * rowH + rowH / 2}
+            dominantBaseline="middle"
+            fontFamily="var(--font-mono), monospace"
+            fontSize={9.5}
+            fill={matched.has(id) ? INK : ACCENT}
+          >
+            {`${id}  ${title}`}
+          </text>
+        </g>
+      ))}
+
+      <Caption x={210} y={22} anchor="start" colour={SOFT}>
+        Loan
+      </Caption>
+      {["B1", "B2", "B3", "B1"].map((id, i) => (
+        <g key={i}>
+          <rect
+            x={210}
+            y={34 + i * rowH}
+            width={92}
+            height={rowH}
+            fill={FILL}
+            stroke={INK}
+            strokeWidth={1.2}
+          />
+          <text
+            x={218}
+            y={34 + i * rowH + rowH / 2}
+            dominantBaseline="middle"
+            fontFamily="var(--font-mono), monospace"
+            fontSize={9.5}
+            fill={INK}
+          >
+            {`L${i + 1}  ${id}`}
+          </text>
+        </g>
+      ))}
+
+      <Caption x={352} y={22} anchor="start" colour={SOFT}>
+        result
+      </Caption>
+      <Box x={352} y={30} w={200} h={64} label="INNER JOIN" sub="3 rows — B4 vanishes" />
+      <Box
+        x={352}
+        y={104}
+        w={200}
+        h={64}
+        label="LEFT JOIN"
+        sub="4 rows — B4 kept, nulls"
+        accent
+      />
+
+      <Caption x={280} y={214}>
+        the rows an inner join discards are exactly the ones an absence query wants
+      </Caption>
+    </Figure>
+  );
+}

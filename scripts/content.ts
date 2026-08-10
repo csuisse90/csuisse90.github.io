@@ -67,6 +67,15 @@ for (const file of walk(contentDir)) {
     }
   }
 
+  // A Py snippet lives inside a JavaScript template literal, so a stray
+  // backtick in the Python ends the literal early and MDX fails with an
+  // unhelpful acorn error a long way from the cause.
+  for (const block of body.matchAll(/<Py[^>]*>\{`\n([\s\S]*?)\n`\}<\/Py>/g)) {
+    if (block[1].includes("`")) {
+      fail(file, "a Python snippet contains a backtick, which closes the template literal");
+    }
+  }
+
   const { data } = matter(raw);
   const fm = data as Frontmatter;
 
