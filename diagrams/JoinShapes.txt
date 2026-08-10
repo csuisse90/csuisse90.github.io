@@ -1,0 +1,1 @@
+An inner join drops B4 because it has no matching loan. A left join keeps it, with nulls — which is the only way to ask which books have never been borrowed.

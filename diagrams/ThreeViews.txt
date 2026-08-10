@@ -1,0 +1,1 @@
+Any one of these can be converted into either of the others. Sum-of-products goes table to expression; reading gate by gate goes circuit to expression; enumerating inputs goes either to table.

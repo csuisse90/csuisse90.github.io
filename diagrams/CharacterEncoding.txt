@@ -1,0 +1,1 @@
+The code point is the character set&#x27;s answer; the bytes are the encoding&#x27;s. Notice the leading bits: 110 starts a two-byte sequence, 1110 a three-byte one, and every continuation byte starts 10.

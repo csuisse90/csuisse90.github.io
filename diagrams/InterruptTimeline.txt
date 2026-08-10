@@ -1,0 +1,1 @@
+The processor never stops mid-instruction. It finishes the one it is on, saves everything it would otherwise lose, deals with the interruption, then restores its state so precisely that the interrupted program cannot tell.

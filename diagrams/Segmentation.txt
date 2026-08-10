@@ -1,0 +1,1 @@
+Traffic between segments has to pass the firewall, which is the whole point: it creates one place where it can be inspected and refused. A compromised student laptop cannot reach the examinations server.

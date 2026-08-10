@@ -1,0 +1,1 @@
+On the left the tutor&#x27;s room is stored three times. Change it once and the other two are now wrong — that is an update anomaly. On the right it is stored once, and there is nothing to disagree with.

@@ -3,7 +3,7 @@
 // the only check that would notice.
 //
 //   bun run scripts/checkSnippets.ts
-import { readdirSync, statSync, readFileSync, writeFileSync, mkdtempSync } from "node:fs";
+import { existsSync, readdirSync, statSync, readFileSync, writeFileSync, mkdtempSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { spawnSync } from "node:child_process";
@@ -13,6 +13,16 @@ function walk(dir: string): string[] {
     const full = join(dir, e);
     return statSync(full).isDirectory() ? walk(full) : full.endsWith(".mdx") ? [full] : [];
   });
+}
+
+// Snippets import numpy and pandas, which the browser gets from Pyodide. The
+// checker needs its own interpreter with them installed, or it would report a
+// perfectly good snippet as broken. Create it with:
+//   uv venv .venv-check --python 3.12
+//   uv pip install --python .venv-check/bin/python numpy pandas
+const PYTHON = existsSync(".venv-check/bin/python") ? ".venv-check/bin/python" : "python3";
+if (PYTHON === "python3") {
+  console.warn("no .venv-check found — snippets importing numpy or pandas will fail");
 }
 
 const scratch = mkdtempSync(join(tmpdir(), "snippets-"));
@@ -26,7 +36,7 @@ for (const file of walk("content")) {
     const code = match[1].replace(/\\\\/g, "\\").replace(/\\`/g, "`").replace(/\\\$/g, "$");
     const path = join(scratch, `s${ran}.py`);
     writeFileSync(path, code);
-    const result = spawnSync("python3", [path], { encoding: "utf8" });
+    const result = spawnSync(PYTHON, [path], { encoding: "utf8" });
     ran++;
     if (result.status !== 0) {
       failed++;

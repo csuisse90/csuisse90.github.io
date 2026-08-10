@@ -1,0 +1,1 @@
+Only the leftmost column changes: its weight is negative. −128 + 16 + 8 + 2 + 1 = −101. Any number beginning with 1 is negative.

@@ -1,0 +1,326 @@
+---
+code: A4.1.4
+title: Neural networks, bias and responsibility
+lede: >-
+  What a neuron actually computes, why depth helps, and the ways a technically correct model can still do harm.
+hl: true
+prereqs:
+  - A4.1.2
+cards:
+  - q: >-
+      What is an artificial neuron?
+    a: >-
+      A unit that multiplies each input by a **weight**, adds them up with a **bias**, and passes the total through an **activation function**.
+  - q: >-
+      Write down what a neuron computes.
+    a: >-
+      $y = f\left(\sum_i w_i x_i + b\right)$, where $f$ is the activation function.
+  - q: >-
+      What is a weight?
+    a: >-
+      A number saying how much one input matters to this neuron. Weights are what training adjusts.
+  - q: >-
+      What is an activation function, and why is one needed?
+    a: >-
+      A non-linear function applied to the neuron's total. Without it, any stack of layers collapses into a single linear function and depth buys nothing.
+  - q: >-
+      Name the three kinds of layer.
+    a: >-
+      **Input** — one unit per feature. **Hidden** — the layers in between, where the work happens. **Output** — one unit per thing being predicted.
+  - q: >-
+      What is a loss function?
+    a: >-
+      A single number measuring how wrong the network's outputs are on the training data. Training is the search for weights that make it small.
+  - q: >-
+      What is backpropagation?
+    a: >-
+      Working out how much each weight contributed to the loss, by pushing the error backwards through the layers, so every weight can be nudged in the right direction.
+  - q: >-
+      What is gradient descent?
+    a: >-
+      Repeatedly adjusting every weight a small step in the direction that reduces the loss.
+  - q: >-
+      What is the learning rate?
+    a: >-
+      How big those steps are. Too small and training crawls; too large and it overshoots and never settles.
+  - q: >-
+      What is an epoch?
+    a: >-
+      One complete pass through the whole training set.
+  - q: >-
+      Where does bias in a model come from?
+    a: >-
+      From the data. A model trained on past decisions reproduces the patterns in those decisions, including the unfair ones.
+  - q: >-
+      What is the black box problem?
+    a: >-
+      A trained network's behaviour lives in millions of weights, so it can be tested but not read. Nobody can say **why** it decided as it did.
+practice:
+  - marks: 4
+    q: >-
+      Describe what a single artificial neuron computes.
+    points:
+      - >-
+          Each input is multiplied by its own weight.
+      - >-
+          The weighted inputs are summed, and a bias term is added.
+      - >-
+          The total is passed through an activation function.
+      - >-
+          The result of that function is the neuron's output, which may feed other neurons.
+  - marks: 4
+    q: >-
+      Explain why a neural network needs non-linear activation functions.
+    points:
+      - >-
+          Without them each layer computes a linear combination of its inputs.
+      - >-
+          A linear function of a linear function is itself linear.
+      - >-
+          Any number of layers would therefore be equivalent to a single layer.
+      - >-
+          Non-linearity allows the network to represent relationships a straight line cannot, which is the point of adding depth.
+  - marks: 4
+    q: >-
+      Describe how a neural network is trained.
+    points:
+      - >-
+          Training examples are passed forwards through the network to produce outputs.
+      - >-
+          A loss function measures how far those outputs are from the correct labels.
+      - >-
+          Backpropagation determines how much each weight contributed to the loss.
+      - >-
+          Each weight is adjusted by a small step in the direction that reduces the loss, and the process repeats for many epochs.
+  - marks: 3
+    q: >-
+      Explain the effect of setting the learning rate too high and too low.
+    points:
+      - >-
+          Too low, and the weights change very slowly, so training takes an impractical amount of time.
+      - >-
+          Too high, and the steps overshoot the minimum.
+      - >-
+          The loss then oscillates or grows rather than settling, so the network may never converge.
+  - marks: 4
+    q: >-
+      A recruitment model trained on ten years of past hiring decisions rejects more female applicants. Explain how this happened and what should be done.
+    points:
+      - >-
+          The training data records past human decisions, which were themselves biased.
+      - >-
+          The model learned to reproduce those patterns, since matching the historical labels is exactly what it was optimised to do.
+      - >-
+          Removing the gender field is insufficient, because other features correlate with it and act as proxies.
+      - >-
+          Outcomes should be audited across groups, and the system should support rather than replace human decisions.
+  - marks: 4
+    q: >-
+      Explain what is meant by the black box problem and why it matters.
+    points:
+      - >-
+          A trained network's behaviour is distributed across a very large number of weights with no individual meaning.
+      - >-
+          It is therefore possible to test what it does but not to read why it did it.
+      - >-
+          In consequential decisions such as credit, medicine or justice, the affected person cannot be given a reason.
+      - >-
+          This makes errors hard to challenge and may conflict with a legal right to an explanation.
+  - marks: 5
+    q: >-
+      A hospital proposes replacing an initial diagnostic assessment with a neural network that outperforms junior doctors on test data. Discuss whether it should.
+    points:
+      - >-
+          Better measured performance is a genuine argument, since missed diagnoses cause harm.
+      - >-
+          However test performance may not transfer, if the deployment population differs from the training data.
+      - >-
+          The model cannot explain its reasoning, so a clinician cannot check it or a patient challenge it.
+      - >-
+          Responsibility for a wrong diagnosis becomes unclear when no person made the decision.
+      - >-
+          A reasoned conclusion is reached, for example that it should advise rather than decide, with human sign-off retained.
+---
+
+A neural network is not a model of the brain. The name is historical and it
+misleads. What it actually is: a large arrangement of very simple arithmetic units,
+with numbers between them that get adjusted until the outputs come out right.
+
+## One neuron
+
+<Figure caption="Inputs on the left, one hidden layer, an output. Every line carries a weight, and training is the search for good values for all of them.">
+  <NeuralNetwork />
+</Figure>
+
+A single unit does three things:
+
+1. Multiply each input $x_i$ by a **weight** $w_i$.
+2. Add them up, plus a **bias** $b$.
+3. Pass the total through an **activation function** $f$.
+
+$$y = f\left(\sum_{i} w_i x_i + b\right)$$
+
+The weights say how much each input matters. The bias shifts the threshold at which
+the unit becomes active. Both are found by training; neither is chosen by a person.
+
+## Why the activation function is not optional
+
+It is tempting to drop step 3 — it looks like decoration.
+
+It is not. Without it, each layer computes a linear combination of its inputs, and
+a linear function of a linear function is still linear. A hundred layers would
+collapse, exactly, into one. All that depth would buy nothing whatsoever.
+
+The non-linearity is what allows successive layers to build up something a straight
+line cannot express. Common choices are **ReLU** ($f(x) = \max(0, x)$ — cheap and
+what nearly everything uses now) and the **sigmoid** ($f(x) = 1/(1+e^{-x})$, which
+squashes any input into the range $0$ to $1$).
+
+<Aside kind="deeper" title="What the layers end up doing">
+In a network trained to recognise images, the layers specialise in a way nobody
+programmed, and which can be inspected afterwards.
+
+The first hidden layer responds to edges at particular angles. The next combines
+edges into corners and simple textures. The next into recognisable parts — an eye,
+a wheel, a letter stroke. The last into whole objects.
+
+Nobody designed that hierarchy. It emerges because it is an efficient way to
+satisfy the loss function, and it happens to resemble how the visual cortex is
+organised — which is a genuine and slightly eerie coincidence rather than a
+design goal.
+</Aside>
+
+## Training
+
+<Figure caption="The same loop as any supervised method, with backpropagation doing the work of deciding which weights to blame.">
+  <TrainingLoop />
+</Figure>
+
+1. **Forward pass.** Push a training example through and get an output.
+2. **Loss.** Measure how wrong it was, as a single number.
+3. **Backpropagation.** Work backwards through the layers, computing how much each
+   weight contributed to that error.
+4. **Update.** Nudge every weight a small step in the direction that reduces the
+   loss — **gradient descent**.
+5. Repeat, for many passes over the whole dataset. One pass is an **epoch**.
+
+The **learning rate** is the size of the step and it matters more than it sounds.
+Too small and training takes days it should not take. Too large and each step
+overshoots the minimum, so the loss bounces around or grows without limit.
+
+<Py packages={["numpy"]} caption="A network with one hidden layer, learning XOR — a function no single neuron can compute. Run it and watch the loss fall.">{`
+import numpy as np
+
+rng = np.random.default_rng(1)
+
+# XOR: output 1 when the inputs differ. Not linearly separable, so a single
+# neuron cannot do it however it is trained.
+X = np.array([[0.0, 0.0], [0.0, 1.0], [1.0, 0.0], [1.0, 1.0]])
+y = np.array([[0.0], [1.0], [1.0], [0.0]])
+
+def sigmoid(z):
+    return 1.0 / (1.0 + np.exp(-z))
+
+w1 = rng.normal(0, 1, (2, 4)); b1 = np.zeros((1, 4))
+w2 = rng.normal(0, 1, (4, 1)); b2 = np.zeros((1, 1))
+rate = 0.5
+
+for epoch in range(1, 20001):
+    hidden = sigmoid(X @ w1 + b1)
+    out = sigmoid(hidden @ w2 + b2)
+    loss = float(np.mean((out - y) ** 2))
+
+    # Backpropagation: the error, pushed back through each layer in turn.
+    d_out = (out - y) * out * (1 - out)
+    d_hidden = (d_out @ w2.T) * hidden * (1 - hidden)
+
+    w2 -= rate * hidden.T @ d_out
+    b2 -= rate * d_out.sum(axis=0, keepdims=True)
+    w1 -= rate * X.T @ d_hidden
+    b1 -= rate * d_hidden.sum(axis=0, keepdims=True)
+
+    if epoch in (1, 100, 1000, 5000, 20000):
+        print(f"epoch {epoch:>6}  loss {loss:.6f}")
+
+print()
+print("what it learned:")
+final = sigmoid(sigmoid(X @ w1 + b1) @ w2 + b2)
+for inputs, want, got in zip(X, y.ravel(), final.ravel()):
+    print(f"   {int(inputs[0])} xor {int(inputs[1])} -> want {int(want)}, got {got:.3f}")
+
+print()
+print("the four hidden units, and the weights feeding each:")
+for unit in range(4):
+    print(f"   unit {unit}: {w1[0, unit]:+6.2f} {w1[1, unit]:+6.2f}  bias {b1[0, unit]:+6.2f}")
+print()
+print("those numbers are the whole of what it knows, and none of them means anything on its own")
+`}</Py>
+
+## Bias
+
+A model trained on past decisions learns the past, including the parts of it nobody
+would defend.
+
+The mechanism is not mysterious. Training minimises disagreement with the labels.
+If the labels record biased human decisions, then reproducing that bias is
+**exactly what the model was asked to do**. It is succeeding, not malfunctioning.
+
+Amazon abandoned a recruitment model in 2018 for this reason. Trained on ten years
+of applications and outcomes in a male-dominated industry, it learned to downgrade
+CVs containing the word "women's" — as in "women's chess club captain" — and to
+prefer verbs more common in men's CVs.
+
+<Aside kind="trap" title="Deleting the sensitive field does not remove the bias">
+The intuitive fix is to leave gender or race out of the training data.
+
+It does not work, because other features are **proxies**. Postcode correlates
+strongly with ethnicity. The name of a school, a first name, membership of a
+society, even patterns of phrasing all carry the information. A model with enough
+data will reconstruct the protected attribute from its correlates and discriminate
+just as effectively, while now being harder to audit — because the variable you
+would check is not in the model.
+
+The workable approach is to measure **outcomes** by group after the fact, rather
+than to try to make the model blind. If error rates differ by group, there is a
+problem, whatever the inputs were.
+</Aside>
+
+## Responsibility
+
+Three problems arrive with deployment, and questions ask about all three.
+
+**Explainability.** A network's behaviour is distributed across millions of weights,
+none individually meaningful. It can be tested exhaustively and still not explained.
+When a model refuses a mortgage, the applicant cannot be told why, which makes the
+decision impossible to challenge and may not be lawful.
+
+**Accountability.** If a self-driving car injures somebody, who is responsible? The
+manufacturer, the engineer, the owner, the supplier of the training data? Existing
+law assumes a person decided, and no person did.
+
+**Displacement and automation.** Automating a decision changes who holds power over
+it, not only how much it costs. A person can be argued with, and can make an
+exception; a deployed model applies the same rule to everybody, including the cases
+its training data did not contain.
+
+<Aside kind="why" title="What an examiner is looking for in the ethics question">
+The marks are not for concluding that AI is dangerous, or that it is beneficial.
+They are for weighing specifics.
+
+A strong answer names the actual mechanism — biased training data, absent
+explainability, unclear liability — connects it to the scenario in front of it, and
+reaches a conclusion the argument supports. "It could be biased" is one mark;
+"it will reproduce the pattern in the historical decisions it was trained on,
+because matching those labels is what it was optimised for" is the argument.
+
+It is also worth being specific about what should happen instead. "Keep a human in
+the loop" is stronger when it says *where* in the loop and *what* the human is
+checking.
+</Aside>
+
+<Takeaway>
+A neural network is arithmetic and adjustment: weights, a non-linearity, and a
+loop that makes the error smaller. Everything difficult about it — bias,
+opacity, responsibility — comes from the fact that it learns what it was shown
+rather than what anyone intended.
+</Takeaway>

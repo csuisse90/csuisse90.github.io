@@ -1,0 +1,1 @@
+Each layer wraps what it was handed in its own header, like putting a letter in an envelope, in a sack, in a van. The far end unwraps them in reverse.

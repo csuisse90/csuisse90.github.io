@@ -1,0 +1,1 @@
+P1 needs 12 units, P2 needs 3, P3 needs 5. Under first come first served, P2 waits 12 units for three units of work. Round robin has both short jobs finished by unit 11 — the total time is identical, but short jobs stop being punished for arriving behind a long one.

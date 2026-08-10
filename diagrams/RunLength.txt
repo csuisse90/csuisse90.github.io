@@ -1,0 +1,1 @@
+The same method on two inputs. Long runs collapse; alternating values gain a count on every symbol and the output grows.

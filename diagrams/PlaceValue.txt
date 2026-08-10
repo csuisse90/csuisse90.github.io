@@ -1,0 +1,1 @@
+Write the column values above the bits, then add the ones with a 1 underneath. 64 + 16 + 8 + 2 = 90.

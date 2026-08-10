@@ -1,0 +1,1 @@
+The smooth line is the real sound. The bars are what gets stored. More samples per second, and more bits per sample, means the bars follow the curve more closely — and the file grows in proportion.

@@ -1,0 +1,1 @@
+Every arrow carries a weight — a number saying how much that input matters. Training is nothing more than nudging those numbers until the outputs stop being wrong.

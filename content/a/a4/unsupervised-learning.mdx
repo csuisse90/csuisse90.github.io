@@ -1,0 +1,301 @@
+---
+code: A4.1.3
+title: Unsupervised learning
+lede: >-
+  Finding structure nobody labelled, why there is no right answer to check against, and how k-means actually works.
+prereqs:
+  - A4.1.1
+cards:
+  - q: >-
+      What is clustering?
+    a: >-
+      Grouping data points so that those in a group are more similar to each other than to those in other groups. No group is defined in advance.
+  - q: >-
+      Give two uses of clustering.
+    a: >-
+      Segmenting customers by behaviour, grouping documents by topic, spotting which readings do not fit any group.
+  - q: >-
+      Describe the k-means algorithm.
+    a: >-
+      Place $k$ centres, assign each point to its nearest centre, move each centre to the mean of its points, and repeat until nothing moves.
+  - q: >-
+      What does the $k$ in k-means stand for?
+    a: >-
+      The number of clusters, which you must choose **before** running it. The algorithm will not tell you the right number.
+  - q: >-
+      Why can k-means give different answers on the same data?
+    a: >-
+      It starts from randomly placed centres and settles on the nearest good arrangement, which is not always the best one.
+  - q: >-
+      How is the quality of a clustering judged?
+    a: >-
+      By how tight the clusters are and how far apart, and ultimately by whether the groups are useful to a person. There is no correct answer to compare with.
+  - q: >-
+      What is anomaly detection?
+    a: >-
+      Finding points that fit no cluster or lie far from all of them — used for fraud, faults and intrusions.
+  - q: >-
+      What is dimensionality reduction?
+    a: >-
+      Reducing many features to a few that carry most of the variation, making data easier to visualise, store and learn from.
+  - q: >-
+      Why must features be scaled before clustering?
+    a: >-
+      Distance is dominated by whichever feature has the largest numeric range. Income in pounds would swamp age in years.
+  - q: >-
+      What is the elbow method?
+    a: >-
+      Plotting cluster tightness against $k$ and choosing the point where improvement suddenly slows — the bend in the curve.
+  - q: >-
+      Why is unsupervised learning harder to evaluate than supervised?
+    a: >-
+      There are no labels, so there is nothing to be right or wrong about. Judgement about usefulness replaces measurement.
+practice:
+  - marks: 3
+    q: >-
+      Explain what clustering is and give one practical use.
+    points:
+      - >-
+          Data points are grouped so that members of a group are more similar to each other than to members of other groups.
+      - >-
+          The groups are discovered from the data rather than specified in advance.
+      - >-
+          A valid use is given, such as segmenting customers, grouping documents by topic, or detecting unusual behaviour.
+  - marks: 4
+    q: >-
+      Describe the steps of the k-means algorithm.
+    points:
+      - >-
+          Choose $k$ and place $k$ cluster centres, usually at random positions or random data points.
+      - >-
+          Assign every data point to the nearest centre.
+      - >-
+          Move each centre to the mean position of the points assigned to it.
+      - >-
+          Repeat the assignment and update steps until the assignments stop changing.
+  - marks: 3
+    q: >-
+      Explain why running k-means twice on identical data can produce different clusters.
+    points:
+      - >-
+          The initial centre positions are chosen randomly.
+      - >-
+          The algorithm converges to a locally good arrangement rather than a guaranteed best one.
+      - >-
+          Different starting positions can therefore lead to different final clusterings, so it is usually run several times.
+  - marks: 4
+    q: >-
+      A dataset contains age in years and income in pounds. Explain why the data should be scaled before clustering, and what happens if it is not.
+    points:
+      - >-
+          Clustering assigns points by distance between them.
+      - >-
+          Income values are numerically thousands of times larger than ages.
+      - >-
+          Distance is therefore dominated almost entirely by income, and age has effectively no influence.
+      - >-
+          Scaling each feature to a comparable range lets both contribute to the grouping.
+  - marks: 3
+    q: >-
+      Explain what the elbow method is used for and how it works.
+    points:
+      - >-
+          It is used to choose a sensible value of $k$, which the algorithm cannot determine itself.
+      - >-
+          A measure of within-cluster spread is plotted against increasing $k$.
+      - >-
+          The value at which further increases stop reducing spread substantially — the bend — is chosen.
+  - marks: 4
+    q: >-
+      Explain why evaluating an unsupervised model is harder than evaluating a supervised one.
+    points:
+      - >-
+          Supervised learning has labels, so predictions can be compared with known correct answers.
+      - >-
+          Unsupervised learning has no labels, so there is nothing to compare against.
+      - >-
+          Numeric measures of cluster tightness and separation exist but do not establish that the grouping is meaningful.
+      - >-
+          Ultimately a person must judge whether the discovered groups are useful for the purpose intended.
+  - marks: 5
+    q: >-
+      A supermarket wants to group its customers to target offers. Discuss how it should approach this and what could go wrong.
+    points:
+      - >-
+          Features should be chosen that reflect purchasing behaviour, such as spend, frequency and category mix.
+      - >-
+          Features must be scaled so that no single one dominates the distance calculation.
+      - >-
+          $k$ must be chosen deliberately, for example by the elbow method, and the resulting groups inspected by staff.
+      - >-
+          The groups may encode something unintended, such as income proxies, leading to unfair or intrusive targeting.
+      - >-
+          A reasoned conclusion is reached about validating the groups before acting on them.
+---
+
+Supervised learning is given the answers. Unsupervised learning is given a pile of
+data and asked what is in it.
+
+The question is genuinely different, and so is what counts as success. There is
+nothing to be right about — only structure that turns out to be useful, or not.
+
+## Clustering
+
+The commonest task: put the data into groups so that things in a group resemble
+each other more than they resemble things elsewhere. Nobody says how many groups,
+what they mean, or which point belongs where.
+
+Applications look like this: which of our customers behave alike; which documents
+are about the same thing; which sensor readings resemble nothing else we have seen.
+
+That last one is **anomaly detection**, and it is unsupervised for a good reason.
+Fraud, intrusions and faults are rare and constantly changing, so there are not
+enough labelled examples to learn from — but "unlike everything normal" needs no
+examples of the thing you are looking for.
+
+## k-means
+
+The algorithm you are expected to know, and it is four lines.
+
+1. Choose $k$ and place $k$ **centres**, usually at randomly chosen data points.
+2. Assign every point to its **nearest** centre.
+3. Move each centre to the **mean** of the points assigned to it.
+4. Repeat 2 and 3 until the assignments stop changing.
+
+It always terminates, because each step can only reduce the total distance from
+points to their centres, and that cannot decrease forever.
+
+<Py packages={["numpy"]} caption="k-means run to convergence. Step through it and watch the centres move, then stop moving.">{`
+import numpy as np
+
+rng = np.random.default_rng(3)
+
+# Three genuine groups, which the algorithm is not told about.
+groups = [(2.0, 2.0), (8.0, 3.0), (5.0, 8.0)]
+points = np.vstack([rng.normal(c, 0.8, (14, 2)) for c in groups])
+
+k = 3
+centres = points[rng.choice(len(points), k, replace=False)].copy()
+
+for step in range(1, 21):
+    # Assign: every point joins its nearest centre.
+    distances = np.linalg.norm(points[:, None, :] - centres[None, :, :], axis=2)
+    labels = distances.argmin(axis=1)
+
+    # Update: every centre moves to the mean of what joined it.
+    moved = np.array([points[labels == i].mean(axis=0) for i in range(k)])
+    shift = float(np.linalg.norm(moved - centres))
+    centres = moved
+
+    sizes = [int((labels == i).sum()) for i in range(k)]
+    print(f"step {step:>2}  sizes {sizes}  centres moved {shift:.4f}")
+    if shift < 1e-6:
+        print("       settled — assignments stopped changing")
+        break
+
+print()
+print("found centres, sorted:")
+for c in sorted(centres.tolist()):
+    print(f"   ({c[0]:.2f}, {c[1]:.2f})")
+print("the groups the data actually came from:")
+for c in sorted(groups):
+    print(f"   ({c[0]:.2f}, {c[1]:.2f})")
+print()
+print("close, and the algorithm was never told there were three, or where")
+`}</Py>
+
+<Aside kind="why" title="Why the same data can give different clusters">
+k-means starts from randomly placed centres, and where it ends depends on where it
+began. It finds a **local** optimum: an arrangement no small change improves, which
+is not necessarily the best arrangement overall.
+
+Picture a landscape of possible clusterings where height is total error. k-means
+rolls downhill from wherever it is dropped, and stops in the nearest valley. A
+deeper valley elsewhere is invisible to it.
+
+The practical response is to run it several times from different starts and keep
+the best result. It is worth noticing that this is not a defect of the
+implementation — the problem of finding the genuinely optimal clustering is
+computationally intractable, so every practical method settles for a good one.
+</Aside>
+
+## Choosing k
+
+The algorithm cannot tell you $k$. Ask for two clusters and it produces two; ask
+for twenty and it produces twenty, splitting real groups arbitrarily. Set $k$ to
+the number of data points and every point becomes its own perfect cluster, which is
+both optimal by the obvious measure and completely useless.
+
+The **elbow method** is the standard approach: plot the total within-cluster spread
+against $k$. It always falls as $k$ rises, but there is usually a bend — a value
+after which adding clusters stops buying much. That bend is a reasonable choice.
+
+<Py packages={["numpy"]} caption="The elbow, printed as a chart. The bend at the true number of groups is visible in the numbers as well as the bars.">{`
+import numpy as np
+
+rng = np.random.default_rng(3)
+groups = [(2.0, 2.0), (8.0, 3.0), (5.0, 8.0)]
+points = np.vstack([rng.normal(c, 0.8, (14, 2)) for c in groups])
+
+def total_spread(points, k, attempts=8):
+    best = None
+    for attempt in range(attempts):
+        r = np.random.default_rng(attempt)
+        centres = points[r.choice(len(points), k, replace=False)].copy()
+        for _ in range(40):
+            d = np.linalg.norm(points[:, None, :] - centres[None, :, :], axis=2)
+            labels = d.argmin(axis=1)
+            moved = np.array([points[labels == i].mean(axis=0)
+                              if (labels == i).any() else centres[i] for i in range(k)])
+            if np.allclose(moved, centres):
+                break
+            centres = moved
+        d = np.linalg.norm(points[:, None, :] - centres[None, :, :], axis=2)
+        spread = float((d.min(axis=1) ** 2).sum())
+        best = spread if best is None else min(best, spread)
+    return best
+
+print(f"{'k':>3} {'spread':>9}   {'':<40}")
+previous = None
+for k in range(1, 8):
+    spread = total_spread(points, k)
+    bar = "#" * int(spread / 8)
+    drop = "" if previous is None else f"  (down {100 * (previous - spread) / previous:4.0f}%)"
+    print(f"{k:>3} {spread:>9.1f}   {bar}{drop}")
+    previous = spread
+
+print()
+print("the big drops stop after k = 3, which is where the elbow is")
+`}</Py>
+
+## Scaling matters
+
+Clustering works on **distance**, and distance is dominated by whichever feature
+has the biggest numbers.
+
+Cluster customers on age in years (18–90) and income in pounds (15,000–200,000),
+and income differences are thousands of times larger. The age column might as well
+not be there. Every cluster you get back is a clustering by income alone.
+
+The fix is to rescale each feature to a comparable range before clustering. It is a
+one-line operation and forgetting it silently produces confident nonsense.
+
+<Aside kind="trap" title="A clustering is not a discovery">
+k-means always returns clusters. Give it random noise with no structure whatsoever
+and it will hand back $k$ tidy groups, with centres and memberships, looking
+exactly like a result.
+
+Nothing in the output distinguishes real structure from an arbitrary partition of
+uniform data. The check has to come from outside: do these groups correspond to
+something, do they persist on new data, does someone who knows the domain
+recognise them?
+
+This is the substantive difference from supervised learning. There, a test set
+tells you objectively whether you have something. Here, you have to argue for it.
+</Aside>
+
+<Takeaway>
+Unsupervised learning finds structure without being told what to look for, which
+means it also cannot tell you whether what it found is real. That judgement never
+leaves the person using it.
+</Takeaway>

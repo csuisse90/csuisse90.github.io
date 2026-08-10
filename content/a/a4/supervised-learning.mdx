@@ -1,0 +1,321 @@
+---
+code: A4.1.2
+title: Supervised learning and how it fails
+lede: >-
+  Classification, regression, and the two ways a model can be wrong that have nothing to do with the algorithm being bad.
+prereqs:
+  - A4.1.1
+cards:
+  - q: >-
+      What is classification?
+    a: >-
+      Supervised learning where the output is a **category** — spam or not spam, which digit, which species.
+  - q: >-
+      What is regression?
+    a: >-
+      Supervised learning where the output is a **number on a continuous scale** — a price, a temperature, a time.
+  - q: >-
+      What is a training set, and what is a test set?
+    a: >-
+      The **training set** is used to fit the model. The **test set** is held back and used only once, to estimate how it will perform on data it has never seen.
+  - q: >-
+      What is overfitting?
+    a: >-
+      When a model learns the noise and quirks of the training data rather than the general pattern. It scores well on training data and badly on anything new.
+  - q: >-
+      What is underfitting?
+    a: >-
+      When a model is too simple to capture the real pattern, so it does badly on training and test data alike.
+  - q: >-
+      How do you detect overfitting?
+    a: >-
+      Training accuracy keeps rising while test accuracy stops rising and then falls. The **gap** between them is the symptom.
+  - q: >-
+      Name three ways to reduce overfitting.
+    a: >-
+      More training data, a simpler model, or stopping training earlier. Removing irrelevant features also helps.
+  - q: >-
+      What is a confusion matrix?
+    a: >-
+      A table of true positives, false positives, true negatives and false negatives, showing not just how often the model is wrong but **how** it is wrong.
+  - q: >-
+      What is a false positive?
+    a: >-
+      The model said yes and the truth was no — a legitimate email marked as spam, a healthy patient told they are ill.
+  - q: >-
+      What is a false negative?
+    a: >-
+      The model said no and the truth was yes — spam reaching the inbox, an illness missed.
+  - q: >-
+      Why can accuracy be a misleading measure?
+    a: >-
+      On imbalanced data it rewards ignoring the rare class. If 1 in 1000 transactions is fraud, always answering "not fraud" is 99.9% accurate and useless.
+  - q: >-
+      What are precision and recall?
+    a: >-
+      **Precision** is how many of the flagged cases were real. **Recall** is how many of the real cases were flagged. Raising one usually lowers the other.
+practice:
+  - marks: 3
+    q: >-
+      Distinguish between classification and regression, giving an example of each.
+    points:
+      - >-
+          Classification predicts which of a set of discrete categories an input belongs to.
+      - >-
+          An example is deciding whether an email is spam, or which handwritten digit an image shows.
+      - >-
+          Regression predicts a continuous numeric value, such as a house price or tomorrow's temperature.
+  - marks: 4
+    q: >-
+      Explain what overfitting is and how it can be detected.
+    points:
+      - >-
+          The model learns detail and noise specific to the training data rather than the underlying pattern.
+      - >-
+          It therefore performs very well on training data but poorly on new data.
+      - >-
+          It is detected by evaluating on a separate test set that was not used in training.
+      - >-
+          A widening gap between training accuracy and test accuracy indicates overfitting.
+  - marks: 3
+    q: >-
+      State three ways of reducing overfitting.
+    points:
+      - >-
+          Provide more training data, so the noise averages out relative to the real pattern.
+      - >-
+          Use a simpler model with fewer parameters, so it cannot memorise individual examples.
+      - >-
+          Stop training earlier, or remove irrelevant features, so it fits less closely to the training set.
+  - marks: 4
+    q: >-
+      A medical screening model is 99% accurate on a population where 1% have the disease. Explain why this figure is not reassuring.
+    points:
+      - >-
+          A model that always predicted "no disease" would also be 99% accurate.
+      - >-
+          Accuracy therefore says nothing about whether the rare positive cases are being found.
+      - >-
+          The model might be missing every genuine case, which is precisely the failure that matters.
+      - >-
+          Recall, or the number of false negatives, should be reported instead of, or as well as, accuracy.
+  - marks: 4
+    q: >-
+      Explain the difference between a false positive and a false negative, and give a situation where each is the more serious.
+    points:
+      - >-
+          A false positive is a case wrongly flagged as belonging to the class of interest.
+      - >-
+          A false negative is a genuine case that the model failed to flag.
+      - >-
+          A false negative is more serious in disease screening, where a missed illness goes untreated.
+      - >-
+          A false positive is more serious in an automatic spam filter that deletes mail, where a real message is lost.
+  - marks: 4
+    q: >-
+      Explain what precision and recall measure and why improving one usually worsens the other.
+    points:
+      - >-
+          Precision is the proportion of flagged cases that were genuinely positive.
+      - >-
+          Recall is the proportion of genuinely positive cases that were flagged.
+      - >-
+          Lowering the threshold flags more cases, catching more real ones but also more wrong ones.
+      - >-
+          Recall therefore rises while precision falls, and the balance must be chosen to suit the consequences of each error.
+  - marks: 5
+    q: >-
+      A bank is building a fraud detection model. Discuss how it should decide the balance between false positives and false negatives.
+    points:
+      - >-
+          A false negative means fraud goes undetected and money is lost.
+      - >-
+          A false positive means a legitimate transaction is blocked, inconveniencing a customer.
+      - >-
+          The costs are not equal and are not purely financial — repeated false blocks damage trust and may lose customers.
+      - >-
+          A sensible design flags borderline cases for human review rather than deciding automatically.
+      - >-
+          A reasoned position is reached, weighing the cost of each error type for this specific application.
+---
+
+Supervised learning has the answers. Every training example is an input paired
+with the output it should produce, and the model's job is to find a rule that maps
+one to the other well enough to work on inputs it has never seen.
+
+## Two shapes of problem
+
+**Classification** predicts a category. Spam or not spam. Which of ten digits.
+Which of three species of iris. The output is one of a fixed set.
+
+**Regression** predicts a number on a continuous scale. A price, a temperature, a
+journey time. The output could be anything in a range.
+
+The distinction matters because it changes how you measure success. A
+classification is right or wrong; a regression is off by some amount, and being
+off by £500 on a £400,000 house is quite different from being off by £500 on a
+£2,000 one.
+
+## Training, validation, test
+
+The single most important discipline in the whole subject:
+
+**Never evaluate a model on data it was trained on.**
+
+A model with enough parameters can memorise its training set completely and score
+100%, having learned nothing that transfers. The only honest measurement comes
+from data it has not seen.
+
+So the data is split, typically 70 / 15 / 15:
+
+- **Training set** — used to fit the model.
+- **Validation set** — used to make decisions *about* the model: how complex,
+  when to stop, which features.
+- **Test set** — touched **once**, at the very end, to report performance.
+
+The validation set exists because of a subtle leak. If you try fifty models and
+pick whichever scores best on the test set, you have used the test set to make a
+choice, and its score is no longer an honest estimate — you have fitted your
+*decisions* to it. The validation set absorbs that, keeping the test set clean.
+
+## Overfitting
+
+<Figure caption="Both lines pass close to the training points. The wiggly one passes closer, and is worse — it has fitted noise that will not recur.">
+  <Overfitting />
+</Figure>
+
+**Overfitting** is learning the accidents of the training data as though they were
+the pattern. A model complex enough to pass through every point exactly will do so,
+including the points that are only there because of measurement noise.
+
+**Underfitting** is the opposite: a model too simple to capture the real
+relationship. A straight line through data that genuinely curves will be wrong
+everywhere, on training and test data alike.
+
+The signature that tells them apart:
+
+| | Training accuracy | Test accuracy |
+| --- | --- | --- |
+| Underfitting | Poor | Poor |
+| Good fit | Good | Good |
+| Overfitting | Excellent | Poor |
+
+<Py packages={["numpy"]} caption="Overfitting made visible. Higher-degree polynomials fit the training data ever more closely while getting worse at everything else.">{`
+import numpy as np
+
+rng = np.random.default_rng(7)
+
+# The truth is a gentle curve. The measurements are noisy.
+def truth(x):
+    return 2.0 + 0.9 * x - 0.05 * x ** 2
+
+train_x = np.linspace(0, 10, 12)
+train_y = truth(train_x) + rng.normal(0, 0.8, train_x.size)
+
+test_x = np.linspace(0, 10, 40)
+test_y = truth(test_x) + rng.normal(0, 0.8, test_x.size)
+
+def rms(a, b):
+    return float(np.sqrt(np.mean((a - b) ** 2)))
+
+print(f"{'degree':>7} {'train err':>10} {'test err':>10}   verdict")
+for degree in (1, 2, 3, 5, 8, 11):
+    coeffs = np.polyfit(train_x, train_y, degree)
+    train_err = rms(np.polyval(coeffs, train_x), train_y)
+    test_err = rms(np.polyval(coeffs, test_x), test_y)
+    verdict = "overfitting" if test_err > train_err * 2.5 else "reasonable"
+    print(f"{degree:>7} {train_err:>10.3f} {test_err:>10.3f}   {verdict}")
+
+print()
+print("degree 11 fits 12 points almost exactly and is the worst model here;")
+print("training error alone would have chosen it")
+`}</Py>
+
+<Aside kind="deeper" title="Why more data helps, in one sentence">
+Noise is random and the pattern is not.
+
+Average over ten examples and the noise in them barely cancels, so a flexible model
+can chase it. Average over ten thousand and the noise largely cancels while the
+pattern accumulates, leaving much less spurious detail available to fit.
+
+This is why "get more data" is so often the most effective response to
+overfitting, and why it beats cleverness surprisingly often.
+</Aside>
+
+## Measuring properly
+
+<Figure caption="Four outcomes, not two. Accuracy adds the diagonal together and throws away the distinction between the other two, which is usually the distinction that matters.">
+  <ConfusionMatrix />
+</Figure>
+
+**Accuracy** — the proportion of predictions that were right — is the obvious
+measure and it is frequently useless.
+
+Consider fraud detection where 1 transaction in 1000 is fraudulent. A model that
+answers "not fraud" every single time achieves **99.9% accuracy** and detects
+nothing at all. On imbalanced data, accuracy rewards ignoring the rare class, which
+is invariably the class you built the system to find.
+
+The **confusion matrix** breaks the result into four:
+
+- **True positive** — flagged, and genuinely was.
+- **False positive** — flagged, and was not. A false alarm.
+- **True negative** — not flagged, and genuinely was not.
+- **False negative** — not flagged, and genuinely was. A miss.
+
+From these:
+
+$$\text{precision} = \frac{TP}{TP + FP} \qquad \text{recall} = \frac{TP}{TP + FN}$$
+
+**Precision** answers "when it says yes, how often is it right?". **Recall**
+answers "of the cases that really exist, how many did it find?".
+
+<Py caption="The same model at different thresholds. Watch precision and recall move in opposite directions — there is no setting that maximises both.">{`
+# 20 transactions, with the model's confidence that each is fraud,
+# and the truth about each.
+scores = [0.95, 0.91, 0.88, 0.77, 0.71, 0.66, 0.61, 0.55, 0.49, 0.44,
+          0.40, 0.36, 0.31, 0.27, 0.22, 0.18, 0.14, 0.09, 0.05, 0.02]
+truth  = [1, 1, 0, 1, 0, 1, 0, 0, 1, 0,
+          0, 0, 1, 0, 0, 0, 0, 0, 0, 0]
+
+print(f"{'threshold':>10} {'flagged':>8} {'TP':>4} {'FP':>4} {'FN':>4} "
+      f"{'precision':>10} {'recall':>8}")
+
+for threshold in (0.9, 0.7, 0.5, 0.3, 0.1):
+    tp = sum(1 for s, t in zip(scores, truth) if s >= threshold and t == 1)
+    fp = sum(1 for s, t in zip(scores, truth) if s >= threshold and t == 0)
+    fn = sum(1 for s, t in zip(scores, truth) if s < threshold and t == 1)
+    precision = tp / (tp + fp) if tp + fp else 0.0
+    recall = tp / (tp + fn) if tp + fn else 0.0
+    print(f"{threshold:>10.1f} {tp + fp:>8} {tp:>4} {fp:>4} {fn:>4} "
+          f"{precision:>10.2f} {recall:>8.2f}")
+
+print()
+print("a strict threshold is precise and misses most fraud;")
+print("a loose one catches nearly all of it and blocks honest customers")
+print()
+frauds = sum(truth)
+print(f"always answering 'not fraud' would be "
+      f"{(len(truth) - frauds) / len(truth):.0%} accurate and catch none of the {frauds}")
+`}</Py>
+
+<Aside kind="trap" title="Which error is worse is not a technical question">
+Precision and recall trade against each other, and no algorithm decides where to
+sit on that trade. A person does, by asking what each mistake costs.
+
+In cancer screening a false negative means an untreated illness and a false
+positive means an anxious week and a second test. Recall matters far more, and a
+high false-positive rate is worth accepting.
+
+In an email filter that deletes rather than quarantines, a false positive destroys
+a real message and a false negative means seeing one advert. Precision matters far
+more.
+
+Exam answers that pick a threshold without reference to the consequences have
+missed the point of the question.
+</Aside>
+
+<Takeaway>
+A model is only as good as its score on data it has never seen, and that score is
+only meaningful if it is broken down by the kind of mistake being made.
+</Takeaway>

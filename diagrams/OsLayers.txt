@@ -1,0 +1,1 @@
+Applications never touch hardware directly. Everything goes through the OS, which is what lets one program run on machines with completely different components.

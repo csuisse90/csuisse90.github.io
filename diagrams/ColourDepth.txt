@@ -1,0 +1,1 @@
+One bit per pixel gives two colours. Eight bits give 256. Twenty-four bits — eight each for red, green and blue — give about 16.7 million, and cost three bytes for every single pixel.

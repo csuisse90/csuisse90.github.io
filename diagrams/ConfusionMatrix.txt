@@ -1,0 +1,1 @@
+Accuracy alone hides the difference between the two mistakes. Missing a disease and raising a false alarm are both errors, and they are not equally bad.
