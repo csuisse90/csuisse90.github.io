@@ -1,0 +1,268 @@
+---
+code: A1.1.4
+title: Primary memory and the hierarchy
+lede: >-
+  Why a computer has five kinds of memory instead of one good one, and why the answer is economics rather than engineering.
+prereqs:
+  - A1.1.2
+cards:
+  - q: >-
+      What is primary memory?
+    a: >-
+      Memory the processor can address directly — RAM and ROM. Anything the CPU works on must be here first.
+  - q: >-
+      What does volatile mean?
+    a: >-
+      The contents are lost when power is removed. RAM is volatile; ROM and secondary storage are not.
+  - q: >-
+      What is RAM used for?
+    a: >-
+      Holding the programs currently running and the data they are working on. It is read/write and volatile.
+  - q: >-
+      What is ROM used for?
+    a: >-
+      Holding the instructions needed to start the machine — the bootstrap or firmware. Non-volatile, so something is there before anything has been loaded.
+  - q: >-
+      Why does a computer need ROM as well as RAM?
+    a: >-
+      At power-on RAM is empty and there is no operating system yet. Something non-volatile must hold the first instructions, or the machine could never start.
+  - q: >-
+      What is cache memory?
+    a: >-
+      A small amount of very fast SRAM between the CPU and main memory, holding recently and frequently used data so the CPU waits less often.
+  - q: >-
+      Put registers, cache, RAM and secondary storage in order of speed.
+    a: >-
+      Registers (fastest, smallest, dearest), then cache, then RAM, then secondary storage (slowest, largest, cheapest). Speed, cost per bit and capacity all trade against each other.
+  - q: >-
+      What is a cache hit and a cache miss?
+    a: >-
+      A **hit** is finding the wanted data already in cache. A **miss** means fetching it from slower memory — and the delay of a miss is why hit rate matters so much.
+  - q: >-
+      What is locality of reference?
+    a: >-
+      The observation that programs tend to reuse the same data soon (**temporal**) and to use data stored nearby (**spatial**). Caching only works because this is true.
+  - q: >-
+      What is virtual memory?
+    a: >-
+      Using part of secondary storage as though it were extra RAM, so programs larger than physical memory can run. Far slower, because the disc is involved.
+  - q: >-
+      What is disc thrashing?
+    a: >-
+      When there is so little real RAM that the machine spends most of its time swapping pages in and out of virtual memory rather than doing useful work.
+  - q: >-
+      Why not build a computer entirely from registers?
+    a: >-
+      Cost and physics. Register-speed storage needs about six transistors per bit and must sit close to the CPU; a machine with gigabytes of it would be unaffordable and too large to stay fast.
+practice:
+  - marks: 4
+    q: >-
+      Compare RAM and ROM, referring to volatility, whether they can be written to, and their typical use.
+    points:
+      - >-
+          RAM is volatile, losing its contents when power is removed; ROM is non-volatile and retains them.
+      - >-
+          RAM can be read and written freely during normal operation.
+      - >-
+          ROM cannot be written to in normal use, or only through a special procedure.
+      - >-
+          RAM holds running programs and their data; ROM holds start-up instructions or firmware.
+  - marks: 3
+    q: >-
+      Explain why a computer cannot start up with RAM alone.
+    points:
+      - >-
+          RAM is volatile, so at power-on it contains nothing usable.
+      - >-
+          The processor must have instructions to fetch immediately, before any software has been loaded.
+      - >-
+          Those first instructions must therefore be held in non-volatile memory such as ROM.
+  - marks: 4
+    q: >-
+      Explain how cache memory improves performance, using the terms hit, miss and locality of reference.
+    points:
+      - >-
+          Cache holds copies of recently or frequently accessed data and instructions.
+      - >-
+          A hit means the CPU finds what it needs in cache and avoids the much slower main memory access.
+      - >-
+          Programs display locality of reference, reusing the same data and data stored nearby, so hits are common.
+      - >-
+          A miss costs the full main-memory access, so overall benefit depends on the hit rate being high.
+  - marks: 4
+    q: >-
+      A computer has a cache with a hit rate of 90%. A cache access takes 2 ns and a main memory access takes 60 ns. Calculate the average access time and comment on the result.
+    points:
+      - >-
+          Average $= 0.9 \times 2 + 0.1 \times 60$.
+      - >-
+          $= 1.8 + 6.0 = 7.8\,\text{ns}$.
+      - >-
+          This is far closer to cache speed than to memory speed, despite one access in ten missing.
+      - >-
+          The remaining 10% of accesses contribute most of the time, so raising the hit rate further has a large effect.
+  - marks: 3
+    q: >-
+      Explain why the memory in a computer is arranged as a hierarchy rather than as a single type.
+    points:
+      - >-
+          Fast memory is expensive per bit and cannot be provided in large quantities affordably.
+      - >-
+          Large cheap memory is slow, and using it alone would leave the processor waiting.
+      - >-
+          A hierarchy gives a small amount of fast memory in front of a large amount of slow memory, approaching the speed of the first at close to the cost of the second.
+  - marks: 4
+    q: >-
+      Explain what virtual memory is and describe one drawback of relying on it.
+    points:
+      - >-
+          Part of secondary storage is used as though it were additional RAM.
+      - >-
+          Pages of data are moved between RAM and the disc as they are needed, so programs larger than physical memory can run.
+      - >-
+          Secondary storage is orders of magnitude slower than RAM, so performance drops when it is used heavily.
+      - >-
+          In the extreme the system thrashes, spending most of its time swapping rather than doing useful work.
+  - marks: 5
+    q: >-
+      A laptop with 8 GB of RAM becomes very slow when several large applications are open. Explain what is happening and evaluate two possible responses.
+    points:
+      - >-
+          The combined demand exceeds physical RAM, so the operating system moves pages to virtual memory on the disc.
+      - >-
+          Access to swapped pages is far slower than RAM, and in the worst case the machine thrashes.
+      - >-
+          Installing more RAM addresses the cause directly and lets more of the working set stay in memory.
+      - >-
+          Closing applications reduces demand immediately and costs nothing, but limits what the user can do at once.
+      - >-
+          A reasoned judgement is given, for example that more RAM is the better long-term fix if the workload is genuinely needed.
+---
+
+Ask why a computer does not simply have one large, fast memory and the honest
+answer is that nobody knows how to make one at a price anybody would pay. Every
+memory technology trades speed against cost per bit, and no technology wins on
+both. So machines are built out of several kinds at once, arranged so the fast
+expensive stuff sits in front of the slow cheap stuff.
+
+<Figure caption="Each step down is roughly ten times slower and ten times cheaper per bit than the one above. The pyramid shape is a cost curve, not an engineering preference.">
+  <MemoryHierarchy />
+</Figure>
+
+## Primary memory: what the CPU can reach
+
+**Primary memory** means memory the processor can address directly — put an
+address on the address bus and the contents come back. That is RAM and ROM.
+Everything else, however fast, is secondary: the CPU cannot read a hard disc by
+naming an address, it has to ask the operating system to fetch it.
+
+**RAM** is where running programs and their data live. It is read/write and it is
+**volatile**: cut the power and it is gone. The name is a historical accident —
+"random access" meant any location costs the same to reach, as opposed to tape,
+where reaching the middle means winding through everything before it. Every
+memory in a modern computer is random access in that sense, so the name no longer
+distinguishes anything.
+
+**ROM** holds the instructions the machine needs before it has loaded anything.
+This is the answer to a question worth taking seriously: at the instant you press
+the power button, RAM contains noise, there is no operating system, and the
+program counter is about to be set to some fixed address. Whatever is at that
+address had better be a real instruction. So it is in ROM, it is called the
+**bootstrap**, and its job is to find and load enough of the operating system to
+load the rest.
+
+<Aside kind="history" title="Why it is called bootstrapping">
+From "to pull oneself up by one's own bootstraps" — a deliberately absurd image,
+because the machine appears to start itself from nothing. The joke stuck, and
+gave us the verb "to boot". The absurdity is resolved by the ROM: the machine
+does not start from nothing, it starts from a small program somebody put in
+hardware in advance.
+</Aside>
+
+## The hierarchy, level by level
+
+| Level | Typical size | Typical access time | Cost per bit |
+| --- | --- | --- | --- |
+| Registers | a few hundred bytes | $0.3\,\text{ns}$ | highest |
+| L1 cache | 32–64 KiB | $1\,\text{ns}$ | very high |
+| L2 / L3 cache | 256 KiB – 32 MiB | $4$–$20\,\text{ns}$ | high |
+| Main memory (RAM) | 8–64 GiB | $60\,\text{ns}$ | moderate |
+| SSD | 0.5–4 TiB | $50{,}000\,\text{ns}$ | low |
+| Hard disc | 1–20 TiB | $5{,}000{,}000\,\text{ns}$ | lowest |
+
+Those numbers deserve a moment, because the ratios are hard to feel. If a
+register access took one second, then main memory would take about three minutes,
+an SSD would take a day and a half, and a hard disc seek would take five months.
+This is why a processor waiting on memory is such a catastrophe, and why so much
+of computer architecture is arrangements for not waiting.
+
+## Cache, and why it works at all
+
+**Cache** is a small amount of SRAM sitting between the CPU and main memory. When
+the CPU asks for an address, the cache is checked first. Found — a **hit** — and
+the value arrives in a nanosecond or two. Not found — a **miss** — and the full
+memory access happens, with the value copied into cache on the way past in case it
+is wanted again.
+
+The part that should bother you is why this ever helps. Cache is thousands of
+times smaller than main memory. If a program touched addresses at random, the
+chance of a hit would be vanishingly small and cache would be pointless.
+
+Programs do not touch addresses at random. They exhibit **locality of reference**,
+in two flavours:
+
+- **Temporal locality** — data used once is likely to be used again soon. A loop
+  counter is read and written on every iteration.
+- **Spatial locality** — data near recently used data is likely to be used next.
+  Walking through an array touches consecutive addresses.
+
+Cache exploits both: a hit satisfies temporal locality, and because a miss fetches
+a whole **cache line** — typically 64 bytes, not the single byte requested — the
+neighbours come along too, satisfying spatial locality in advance.
+
+<Aside kind="deeper" title="A hit rate of 90% is not 90% of the benefit">
+Take the numbers from the practice question: a 2 ns cache and a 60 ns memory, with
+90% hits. Average access is $0.9(2) + 0.1(60) = 7.8\,\text{ns}$.
+
+Now notice how that time is spent. The 90% of accesses that hit contribute
+$1.8\,\text{ns}$; the 10% that miss contribute $6.0\,\text{ns}$. **More than three
+quarters of the total time is spent on one access in ten.** Raise the hit rate to
+99% and average access falls to $2.6\,\text{ns}$ — a further threefold improvement
+from a change that sounds like a rounding error.
+
+This is why cache design is obsessive about the last few per cent, and it is a good
+general lesson: when one branch of an average is much larger than the other, the
+average is governed by the rare expensive case, not the common cheap one.
+</Aside>
+
+<Py caption="The arithmetic above, made adjustable. Change the hit rate and watch how sharply average access time falls near the top of the range.">{`
+CACHE_NS = 2
+MEMORY_NS = 60
+
+print(f"{'hit rate':>9} {'average':>9}  {'':<24}")
+for percent in (0, 50, 80, 90, 95, 99, 99.9):
+    h = percent / 100
+    average = h * CACHE_NS + (1 - h) * MEMORY_NS
+    bar = "#" * round(average / 2)
+    print(f"{percent:>8}% {average:>8.2f}ns  {bar}")
+`}</Py>
+
+## Virtual memory
+
+Suppose a program needs more memory than the machine has. Rather than refusing to
+run it, the operating system pretends there is more, keeping the parts not
+currently in use out on the disc and fetching them back when they are touched.
+That is **virtual memory**, and the units moved back and forth are **pages**.
+
+It works, and it is why you can open a very large file on a modest machine. What
+it costs is speed: a page fetched from disc is, on the numbers above, tens of
+thousands of times slower than one already in RAM. When demand rises far enough
+that the system spends most of its time shuffling pages rather than running code,
+it is **thrashing**, and the symptom is a machine that becomes unusably slow while
+the disc light stays on.
+
+<Takeaway>
+Every level of the hierarchy is the same bargain: keep the small amount you are
+using now somewhere fast, and everything else somewhere cheap. Cache does it
+between CPU and RAM. Virtual memory does it between RAM and disc.
+</Takeaway>

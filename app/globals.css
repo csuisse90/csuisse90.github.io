@@ -2369,71 +2369,6 @@ html[data-ai-open="true"]
   color: var(--ink-faint);
 }
 
-.editorPane {
-  display: grid;
-  grid-template-columns: 2.6rem minmax(0, 1fr);
-  border: 1px solid var(--hairline);
-  background: var(--paper-lift);
-}
-
-.editorGutter {
-  display: flex;
-  flex-direction: column;
-  padding: 0.9rem 0.5rem 0.9rem 0;
-  text-align: right;
-  border-right: 1px solid var(--hairline);
-  font-family: var(--font-mono), monospace;
-  font-size: 0.78rem;
-  line-height: 1.65;
-  color: var(--ink-faint);
-  user-select: none;
-  overflow: hidden;
-}
-
-.editorCode {
-  position: relative;
-  min-width: 0;
-}
-
-.editorUnder,
-.editorInput {
-  margin: 0;
-  padding: 0.9rem 1rem;
-  font-family: var(--font-mono), monospace;
-  font-size: 0.78rem;
-  line-height: 1.65;
-  white-space: pre;
-  overflow-wrap: normal;
-  tab-size: 4;
-  border: 0;
-}
-
-.editorUnder {
-  overflow-x: auto;
-  min-height: 26rem;
-  pointer-events: none;
-}
-
-.editorInput {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  resize: none;
-  background: transparent;
-  color: transparent;
-  caret-color: var(--alarm);
-  overflow: auto;
-}
-
-.editorInput:focus {
-  outline: none;
-}
-
-.editorInput::selection {
-  background: rgba(111, 157, 173, 0.35);
-}
-
 .editorOut {
   margin-top: 0.6rem;
   border: 1px solid var(--hairline);
@@ -2827,4 +2762,116 @@ html[data-ai-open="true"]
   .faultTables {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+/* ---- monaco, vim mode and the library picker ----------------------------- */
+
+.cmWrap {
+  border: 1px solid var(--hairline);
+  background: var(--paper-lift);
+}
+
+.editorLoading {
+  height: 30rem;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+/* CodeMirror's own vim panel, restyled to match the site. */
+.cmWrap .cm-vim-panel {
+  padding: 0.3rem 0.7rem;
+  border-top: 1px solid var(--hairline);
+  background: var(--paper);
+  font-family: var(--font-mono), monospace;
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+}
+
+.cmWrap .cm-vim-panel input {
+  border: 0;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  color: var(--alarm);
+  width: 100%;
+}
+
+.cmWrap .cm-editor {
+  font-size: 0.82rem;
+}
+
+.cmWrap .cm-editor.cm-focused {
+  outline: none;
+}
+
+.cmWrap .cm-scroller {
+  font-family: var(--font-mono), monospace;
+  line-height: 1.65;
+}
+
+.cmWrap .cm-gutters {
+  border-right: 1px solid var(--hairline);
+  background: var(--paper);
+}
+
+.cmWrap[data-vim="true"] .cm-cursor {
+  border-left-width: 0.55ch;
+  border-left-color: var(--alarm);
+  opacity: 0.65;
+}
+
+.paletteBtn[data-on="true"] {
+  border-color: var(--alarm);
+  color: var(--alarm);
+}
+
+.libPicker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.6rem;
+  padding: 0.7rem;
+  border: 1px solid var(--hairline);
+  background: var(--paper-lift);
+}
+
+.libChip {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--hairline);
+  background: var(--paper);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  color: var(--ink-soft);
+}
+
+.libChip:hover {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+.libChip code {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.75rem;
+  color: var(--ink);
+  background: none;
+  padding: 0;
+}
+
+.libChip span {
+  font-size: 0.68rem;
+  color: var(--ink-faint);
+}
+
+.libPicker .markNote {
+  flex-basis: 100%;
+  margin: 0.4rem 0 0;
 }

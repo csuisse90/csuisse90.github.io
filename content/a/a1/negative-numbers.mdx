@@ -1,0 +1,290 @@
+---
+code: A1.2.2
+title: Negative numbers and two's complement
+lede: >-
+  How to write a minus sign using only zeros and ones, and why the obvious method was abandoned for a stranger one that makes subtraction free.
+prereqs:
+  - A1.2.1
+cards:
+  - q: >-
+      What is sign and magnitude?
+    a: >-
+      Use the leftmost bit as a sign ($0$ positive, $1$ negative) and the rest as the size. Simple to read, but it gives two zeros and needs separate circuitry for subtraction.
+  - q: >-
+      Why was sign and magnitude abandoned?
+    a: >-
+      It has $+0$ and $-0$, wasting a pattern and complicating comparisons, and adding a positive to a negative needs a special subtractor rather than the ordinary adder.
+  - q: >-
+      How do you form the two's complement of a binary number?
+    a: >-
+      **Invert every bit, then add one.** Equivalently, copy bits from the right up to and including the first $1$, then invert everything to the left of it.
+  - q: >-
+      What is $-40$ in 8-bit two's complement?
+    a: >-
+      $40 = 0010\,1000$. Invert to $1101\,0111$, add one to get $1101\,1000_2$.
+  - q: >-
+      What is the range of an $n$-bit two's complement number?
+    a: >-
+      $-2^{n-1}$ to $+2^{n-1}-1$. For eight bits that is $-128$ to $+127$.
+  - q: >-
+      Why is the negative range one larger than the positive?
+    a: >-
+      There is only one zero, so the $2^n$ patterns split into zero, $2^{n-1}-1$ positives and $2^{n-1}$ negatives.
+  - q: >-
+      How do you read a negative two's complement number back to denary?
+    a: >-
+      Either apply invert-and-add-one again and negate the result, or treat the leading column as negative: in eight bits it is worth $-128$ rather than $+128$.
+  - q: >-
+      Why does two's complement make subtraction free?
+    a: >-
+      Because $a - b$ is just $a + (-b)$, and negation is invert-and-add-one. One adder circuit handles both operations, so no subtractor is needed.
+  - q: >-
+      How do you detect overflow in two's complement addition?
+    a: >-
+      When two numbers of the **same** sign produce a result of the **opposite** sign. Adding a positive to a negative can never overflow.
+  - q: >-
+      What is an arithmetic shift left, and what does it do to the value?
+    a: >-
+      Shift every bit left one place and put a $0$ in at the right. It multiplies by two, provided the value does not overflow.
+  - q: >-
+      What is an arithmetic shift right?
+    a: >-
+      Shift right and copy the **sign bit** into the vacated position, so negatives stay negative. It divides by two, rounding towards negative infinity.
+practice:
+  - marks: 2
+    q: >-
+      Convert $-53$ to 8-bit two's complement, showing your working.
+    points:
+      - >-
+          $53 = 0011\,0101$, inverted to $1100\,1010$.
+      - >-
+          Adding one gives $1100\,1011_2$.
+  - marks: 2
+    q: >-
+      The 8-bit two's complement value $1001\,0110_2$ is stored. State its denary value.
+    points:
+      - >-
+          Recognises the leading $1$ as negative and applies a correct method.
+      - >-
+          Correct answer $-106$.
+  - marks: 3
+    q: >-
+      State the range of values that can be stored in a 16-bit two's complement integer, and explain how the range is derived.
+    points:
+      - >-
+          There are $2^{16} = 65{,}536$ patterns available.
+      - >-
+          Half represent negatives and half zero-or-positive, giving $-2^{15}$ to $+2^{15}-1$.
+      - >-
+          That is $-32{,}768$ to $+32{,}767$.
+  - marks: 4
+    q: >-
+      Explain why two's complement is used in preference to sign and magnitude.
+    points:
+      - >-
+          Sign and magnitude produces two representations of zero, wasting a pattern and complicating equality tests.
+      - >-
+          Two's complement has a single zero.
+      - >-
+          In two's complement, subtraction can be performed by negating and adding.
+      - >-
+          One adder circuit therefore performs both addition and subtraction, reducing hardware cost and complexity.
+  - marks: 4
+    q: >-
+      Add $0110\,1001_2$ and $0101\,0011_2$ as 8-bit two's complement values. State the result and explain whether overflow has occurred.
+    points:
+      - >-
+          Correct binary addition giving $1011\,1100_2$.
+      - >-
+          Both operands are positive, since both begin with $0$.
+      - >-
+          The result begins with $1$, so it is negative.
+      - >-
+          Two positives producing a negative means overflow has occurred and the result is invalid.
+  - marks: 3
+    q: >-
+      Explain why an arithmetic shift right copies the sign bit rather than inserting a zero.
+    points:
+      - >-
+          Inserting a zero would clear the sign bit and turn a negative number positive.
+      - >-
+          Copying the sign bit preserves the sign of the value.
+      - >-
+          This keeps the operation equivalent to division by two for negative numbers as well as positive ones.
+  - marks: 5
+    q: >-
+      A temperature sensor stores readings as 8-bit two's complement values in tenths of a degree. Explain the consequences of this choice and suggest an improvement.
+    points:
+      - >-
+          The representable range is $-128$ to $+127$ in tenths, that is $-12.8$ to $+12.7$ degrees.
+      - >-
+          Any temperature outside that range cannot be stored and would overflow.
+      - >-
+          Overflow wraps silently, so a high temperature could be recorded as a low or negative one.
+      - >-
+          Using 16 bits would extend the range to roughly $\pm 3276$ degrees, comfortably sufficient.
+      - >-
+          Alternatively, store whole degrees, or add range checking before storing, though each has its own cost in precision or complexity.
+---
+
+Everything so far assumed numbers are positive. Since a register holds only zeros
+and ones, and there is no bit that means "minus", the sign has to be encoded in the
+bits themselves. How you choose to do that turns out to matter a great deal.
+
+## The obvious method, and why it fails
+
+Take the leftmost bit and call it the sign: $0$ for positive, $1$ for negative.
+The rest holds the magnitude. So in eight bits, $+37$ is $0010\,0101$ and $-37$ is
+$1010\,0101$.
+
+This is **sign and magnitude**. It is easy for a human to read, and it has two
+faults that turn out to be fatal.
+
+**There are two zeros.** $0000\,0000$ is $+0$ and $1000\,0000$ is $-0$. They are
+the same quantity with different bit patterns, so a comparison for equality has to
+special-case them, and one of the 256 available patterns is wasted.
+
+**Addition stops working.** Add $0010\,0101$ ($+37$) and $1010\,0101$ ($-37$) with
+an ordinary adder and you get $1100\,1010$, which is $-74$ in this scheme. The
+right answer is zero. So the hardware needs a separate subtractor, plus logic to
+compare magnitudes and decide which operation to perform — a large amount of
+silicon to handle a minus sign.
+
+<Figure caption="The same eight bits read three ways. Two's complement is the only one where ordinary addition gives the right answer everywhere.">
+  <TwosComplement />
+</Figure>
+
+## Two's complement
+
+The rule for negating a number is: **invert every bit, then add one.**
+
+To find $-40$ in eight bits:
+
+$$40 = 0010\,1000 \;\xrightarrow{\text{invert}}\; 1101\,0111 \;\xrightarrow{+1}\; 1101\,1000$$
+
+That is it. Applying the same rule again gets you back: invert $1101\,1000$ to
+$0010\,0111$, add one, and you have $0010\,1000$, which is $40$ once more. The
+operation is its own inverse, which is a good sign that it is the natural one.
+
+There is a shortcut worth learning, because it is faster and less error-prone
+under exam pressure: **copy bits from the right up to and including the first
+$1$, then invert everything to the left.** For $0010\,1000$, copy `1000`, then
+invert `0010` to `1101`, giving `1101 1000`. Same answer, no carry to propagate.
+
+## Reading one back
+
+If the leading bit is $0$, read it as an ordinary binary number.
+
+If the leading bit is $1$, the value is negative and there are two ways to find it.
+Either apply invert-and-add-one and put a minus sign on the result, or — more
+useful once it clicks — treat the leading column as **negative**. In eight bits the
+place values become:
+
+| $-128$ | 64 | 32 | 16 | 8 | 4 | 2 | 1 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | 0 | 0 | 1 | 0 | 1 | 1 | 0 |
+
+$-128 + 16 + 4 + 2 = -106$.
+
+This second reading is not a trick; it is what two's complement *is*. The leading
+bit is worth $-2^{n-1}$ and every other bit is worth what it always was.
+
+<Aside kind="why" title="Why invert-and-add-one, of all things">
+It looks arbitrary until you ask what number, added to $x$, gives zero in $n$ bits.
+
+In eight bits, arithmetic happens modulo $256$: anything that carries past the
+eighth bit is discarded, so $256 \equiv 0$. The negative of $x$ is therefore
+whatever satisfies $x + y = 256$, that is $y = 256 - x$.
+
+Now, $255 - x$ is exactly "invert every bit of $x$", because each bit of $x$ is
+subtracted from a $1$. So $256 - x = (255 - x) + 1 = \text{invert}(x) + 1$.
+
+Invert-and-add-one is not a rule someone invented. It is $256 - x$, computed
+without a subtractor.
+</Aside>
+
+## Why hardware designers chose it
+
+Because subtraction disappears.
+
+$a - b$ is $a + (-b)$, and $-b$ is invert-and-add-one. So a processor needs only
+an adder, a row of inverters, and a way to force a carry into the bottom bit. The
+same circuit performs both operations, with one control line choosing between
+them. Compared with building a separate subtractor and the logic to decide which
+to use, this is an enormous saving — and it is why essentially every processor
+built since the 1960s uses two's complement.
+
+The single zero falls out for free: $-0$ would be invert($0000\,0000$) $+1 =
+1111\,1111 + 1 = 0000\,0000$, discarding the carry. Zero negates to itself.
+
+## The lopsided range
+
+Eight bits give 256 patterns. One is zero, 127 are positive, and that leaves 128
+for negatives. So the range is $-128$ to $+127$: one more negative than positive.
+
+$1000\,0000$ is $-128$, and it is the odd one out. Try to negate it — invert to
+$0111\,1111$, add one, get $1000\,0000$ — and it negates to itself. There is no
+$+128$ in eight bits for it to become. Every two's complement width has exactly
+one value like this, and it is a genuine source of bugs in real software.
+
+## Overflow
+
+Add two numbers and the result may not fit. The rule for spotting it is precise:
+
+> Overflow has occurred when two operands of the **same sign** produce a result of
+> the **opposite sign**.
+
+Adding a positive and a negative can never overflow, because the result is smaller
+in magnitude than the larger operand.
+
+<Py caption="Two's complement in eight bits, including the overflow rule. Step through the table and watch the sign bit.">{`
+def to_twos(value, bits=8):
+    return format(value & (2**bits - 1), f"0{bits}b")
+
+def from_twos(pattern, bits=8):
+    n = int(pattern, 2)
+    return n - 2**bits if pattern[0] == "1" else n
+
+for v in (40, -40, 127, -128, -1, 0):
+    print(f"{v:>5} -> {to_twos(v)} -> back to {from_twos(to_twos(v))}")
+
+print()
+print("addition, with the overflow test")
+for a, b in ((105, 83), (-100, -50), (100, -50), (60, 40)):
+    pa, pb = to_twos(a), to_twos(b)
+    total = (a + b) & 0xFF
+    got = from_twos(to_twos(total))
+    same_sign = pa[0] == pb[0]
+    overflow = same_sign and to_twos(total)[0] != pa[0]
+    print(f"{a:>5} + {b:>5} = {got:>5}   overflow: {overflow}")
+`}</Py>
+
+## Shifts
+
+Shifting the bits left one place multiplies by two; shifting right divides by two.
+Both are far cheaper than a real multiply or divide, so compilers use them
+whenever they can.
+
+The subtlety is what to feed into the vacated position. On a **left** shift a zero
+goes in at the right, and the danger is that a significant bit falls off the left,
+silently changing the sign. On a **right** shift, an *arithmetic* shift copies the
+sign bit into the top position so negatives stay negative, while a *logical* shift
+inserts a zero — correct for unsigned values, wrong for signed ones.
+
+<Aside kind="deeper" title="Arithmetic right shift does not round the way you expect">
+$-7 \div 2$ shifted arithmetically gives $-4$, not $-3$. The shift discards the
+bit that falls off the bottom, which rounds **towards negative infinity** rather
+than towards zero. For positive numbers the two agree, so the discrepancy hides
+until negatives appear.
+
+This is why compilers cannot simply replace every division by two with a shift:
+for signed values they must add a correction first. A small illustration of a
+recurring theme — an optimisation that is obviously valid turns out to be valid
+only over part of the range.
+</Aside>
+
+<Takeaway>
+Two's complement is not a clever encoding of a minus sign. It is arithmetic
+modulo $2^n$, in which "negative" simply means "the number that adds to zero" —
+and that is why the ordinary adder keeps working.
+</Takeaway>

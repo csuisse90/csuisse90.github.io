@@ -49,18 +49,46 @@ export function isLoaded(): boolean {
   return promise !== null;
 }
 
-/** Libraries offered in the editor. Each is a prebuilt wheel fetched on
- *  demand, so nothing is downloaded until it is imported. */
+/** Libraries offered in the editor. Every one of these is already compiled to
+ *  WebAssembly and served as a prebuilt wheel, so importing one is a download
+ *  rather than a build, and it runs at native-ish speed once loaded. Nothing
+ *  is fetched until the code actually imports it. */
 export const LIBRARIES = [
   { name: "numpy", about: "arrays and numerical work" },
   { name: "pandas", about: "data frames, CSV, grouping" },
-  { name: "matplotlib", about: "plots" },
-  { name: "scipy", about: "statistics, optimisation, signals" },
-  { name: "sympy", about: "symbolic algebra" },
+  { name: "matplotlib", about: "plots and charts" },
+  { name: "scipy", about: "statistics, optimisation, signals, linear algebra" },
+  { name: "sympy", about: "symbolic algebra and calculus" },
   { name: "scikit-learn", about: "machine learning" },
-  { name: "networkx", about: "graphs" },
+  { name: "statsmodels", about: "regression and statistical modelling" },
+  { name: "networkx", about: "graphs and network analysis" },
+  { name: "pillow", about: "image loading and manipulation" },
+  { name: "opencv-python", about: "computer vision" },
+  { name: "scikit-image", about: "image processing" },
+  { name: "bokeh", about: "interactive plots" },
+  { name: "altair", about: "declarative charts" },
+  { name: "beautifulsoup4", about: "parsing HTML" },
+  { name: "lxml", about: "fast XML and HTML" },
+  { name: "regex", about: "a fuller regular-expression engine" },
+  { name: "pyyaml", about: "reading and writing YAML" },
+  { name: "sqlalchemy", about: "SQL toolkit and ORM" },
   { name: "sqlite3", about: "SQL in memory" },
+  { name: "pytz", about: "time zones" },
+  { name: "python-dateutil", about: "date parsing and arithmetic" },
+  { name: "cryptography", about: "hashing, keys and ciphers" },
+  { name: "pycryptodome", about: "classical and modern ciphers" },
+  { name: "biopython", about: "sequence and bioinformatics work" },
+  { name: "astropy", about: "units, constants and astronomy" },
+  { name: "shapely", about: "geometry" },
+  { name: "xarray", about: "labelled multi-dimensional arrays" },
+  { name: "pyodide-http", about: "fetching URLs from Python" },
+  { name: "micropip", about: "installing anything else from PyPI" },
 ] as const;
+
+/** Pure-Python packages with no prebuilt wheel in the distribution. They come
+ *  from PyPI through micropip, which is slower but works for most libraries
+ *  that are not written in C. */
+export const MICROPIP_ONLY = ["rich", "tabulate", "more-itertools", "toolz", "attrs"];
 
 /** Renders any matplotlib figures the code left open, as data URLs, and
  *  clears them so the next run starts clean. Returns [] if matplotlib was

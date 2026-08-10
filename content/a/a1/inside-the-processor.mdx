@@ -1,0 +1,261 @@
+---
+code: A1.1.2
+title: Inside the processor
+lede: >-
+  The four parts every CPU has, what each one is physically for, and why the design has barely changed in eighty years.
+prereqs:
+  - A1.1.1
+cards:
+  - q: >-
+      What are the main components of a CPU?
+    a: >-
+      The **control unit**, the **arithmetic and logic unit**, a set of **registers**, and the **buses** connecting them to memory.
+  - q: >-
+      What does the control unit do?
+    a: >-
+      It decodes each instruction and sends the timing and control signals that make the rest of the hardware carry it out. It computes nothing itself — it is the conductor, not a player.
+  - q: >-
+      What does the ALU do?
+    a: >-
+      Arithmetic ($+$, $-$, and often $\times$) and logic (AND, OR, NOT, comparisons, shifts). It is where the actual work happens.
+  - q: >-
+      What is a register?
+    a: >-
+      A very small, very fast store inside the CPU itself — typically 32 or 64 bits. Reaching one costs a fraction of a nanosecond, against tens of nanoseconds for main memory.
+  - q: >-
+      What does the program counter (PC) hold?
+    a: >-
+      The **address of the next instruction** to fetch. Not the instruction — the address of it.
+  - q: >-
+      What does the memory address register (MAR) hold?
+    a: >-
+      The address currently being read from or written to. It is what drives the address bus.
+  - q: >-
+      What does the memory data register (MDR) hold?
+    a: >-
+      The data just read from memory, or about to be written to it. Everything travelling between the CPU and memory passes through it.
+  - q: >-
+      What does the accumulator hold?
+    a: >-
+      The result of the ALU's most recent operation, ready to be used by the next one or written back to memory.
+  - q: >-
+      What is the current instruction register (CIR)?
+    a: >-
+      The register holding the instruction currently being decoded and executed.
+  - q: >-
+      What are the three buses and what does each carry?
+    a: >-
+      **Address bus** — which location (one way, CPU to memory). **Data bus** — the value itself (two way). **Control bus** — signals such as read, write and clock (mixed).
+  - q: >-
+      Why is the address bus one-directional but the data bus two-directional?
+    a: >-
+      Only the CPU ever says which address it wants, so addresses travel one way. Data travels out on a write and in on a read, so it needs both.
+  - q: >-
+      How does the width of the address bus limit a computer?
+    a: >-
+      $n$ address lines can name $2^n$ locations. A 32-bit address bus can therefore reach only $2^{32}$ bytes, which is 4 GiB — the historical reason for the move to 64-bit.
+practice:
+  - marks: 4
+    q: >-
+      Describe the role of the control unit and the arithmetic and logic unit, making clear how they differ.
+    points:
+      - >-
+          The control unit decodes instructions and issues control signals to the other components.
+      - >-
+          It sequences and coordinates operations, including timing, but performs no calculation itself.
+      - >-
+          The ALU performs arithmetic operations such as addition and subtraction.
+      - >-
+          The ALU also performs logical operations and comparisons, producing the results and status flags.
+  - marks: 3
+    q: >-
+      Explain why registers are used at all, given that the computer already has main memory.
+    points:
+      - >-
+          Registers are inside the CPU, so access takes a fraction of the time main memory does.
+      - >-
+          Instructions need somewhere to hold operands and intermediate results while executing.
+      - >-
+          Using main memory for this would leave the CPU waiting on every step, wasting most of its speed.
+  - marks: 4
+    q: >-
+      State the purpose of the program counter, the memory address register, the memory data register and the current instruction register.
+    points:
+      - >-
+          PC — holds the address of the next instruction to be fetched.
+      - >-
+          MAR — holds the address of the memory location currently being accessed.
+      - >-
+          MDR — holds the data being transferred to or from memory.
+      - >-
+          CIR — holds the instruction currently being decoded and executed.
+  - marks: 3
+    q: >-
+      A processor has a 16-bit address bus and an 8-bit data bus. Calculate the maximum memory it can address, and state the units.
+    points:
+      - >-
+          $2^{16} = 65{,}536$ addressable locations.
+      - >-
+          Each location holds 8 bits, that is one byte, because the data bus is 8 bits wide.
+      - >-
+          Maximum addressable memory is therefore $65{,}536$ bytes, that is 64 KiB.
+  - marks: 4
+    q: >-
+      Explain why the address bus is unidirectional while the data bus is bidirectional.
+    points:
+      - >-
+          The CPU is always the component that specifies which address is wanted.
+      - >-
+          Memory never sends an address back, so a return path would be unused.
+      - >-
+          Data must travel from memory to the CPU when reading.
+      - >-
+          Data must travel from the CPU to memory when writing, so both directions are needed.
+  - marks: 3
+    q: >-
+      Explain what the control bus is for, giving two examples of signals it carries.
+    points:
+      - >-
+          It carries the signals that coordinate and time the actions of the components.
+      - >-
+          Example — a read or write signal telling memory which operation is wanted.
+      - >-
+          Example — the clock signal, or an interrupt request, which synchronises or redirects activity.
+  - marks: 5
+    q: >-
+      A manufacturer widens a processor's data bus from 32 bits to 64 bits, leaving the clock speed unchanged. Discuss the effect on performance.
+    points:
+      - >-
+          Twice as much data moves between CPU and memory per transfer.
+      - >-
+          Programs handling large values or large blocks of data need fewer transfers, so they run faster.
+      - >-
+          Programs limited by something else — dependent calculations, or waiting on input — see little or no gain.
+      - >-
+          The wider bus costs more in pins, tracks and power, so the benefit is not free.
+      - >-
+          A supported conclusion is reached, for example that the benefit depends on whether the workload is memory-bound.
+---
+
+A processor looks, from the outside, like a small square of silicon with a lot
+of legs. Inside it is not one thing but a handful of cooperating parts, and
+almost every exam question about "how a computer works" is really asking you to
+name one of them and say what it is for.
+
+## The four parts
+
+<Figure caption="The classic von Neumann layout. Everything the processor does is one of these four parts talking to another over one of the three buses.">
+  <CpuArchitecture />
+</Figure>
+
+**The control unit** decides what happens next. It takes the instruction that
+has been fetched, works out what kind of instruction it is, and then raises and
+lowers the control lines that make the rest of the hardware do it: telling the
+ALU which operation to perform, telling memory to read or write, telling
+registers when to load. It calculates nothing. Think of a conductor who plays no
+instrument but without whom the orchestra is noise.
+
+**The arithmetic and logic unit** is where the work happens. It adds, subtracts,
+compares, and performs bitwise AND, OR, NOT and shifts. Give it two values and
+an operation code and it produces a result — plus a set of **flags** recording
+things worth knowing about that result, such as whether it came out zero,
+whether it went negative, and whether it overflowed.
+
+**The registers** are a small number of extremely fast storage locations inside
+the CPU itself. Speed is the whole point: reaching a register takes a fraction of
+a nanosecond, where reaching main memory takes tens of nanoseconds. A processor
+that had to go to memory for every intermediate value would spend nearly all its
+time waiting.
+
+**The buses** are the wires between everything.
+
+<Aside kind="why" title="Why the ALU needs flags at all">
+It is not obvious why an adder should also report "that came out zero". The
+reason is branching. A conditional jump such as "if $x = y$, go to line 40" is
+implemented as a subtraction followed by a test: compute $x - y$, and if the zero
+flag is set, take the jump. The comparison operators in every programming
+language you will ever use are built on exactly this — subtract, then look at a
+flag. The ALU can only produce numbers, so the machine's ability to make a
+decision has to be smuggled in as a side effect of arithmetic.
+</Aside>
+
+## The registers worth naming
+
+Most registers are general-purpose scratch space. Five have specific jobs, and
+these are the ones examiners ask about.
+
+| Register | Holds | The mistake people make |
+| --- | --- | --- |
+| Program counter (PC) | The **address** of the next instruction | Saying it holds the instruction |
+| Memory address register (MAR) | The address being accessed right now | Confusing it with the PC |
+| Memory data register (MDR) | The data in transit to or from memory | Forgetting it carries instructions too |
+| Current instruction register (CIR) | The instruction being executed | Confusing it with the MDR |
+| Accumulator (ACC) | The ALU's most recent result | Thinking it is general-purpose storage |
+
+The PC and MAR distinction is worth a moment. The PC says *where we are up to in
+the program*. The MAR says *which address the memory hardware should put on its
+pins this instant*. During a fetch they briefly hold the same value, because the
+address we want is the address of the next instruction — which is exactly why
+they get confused. But during the execute stage of a `LOAD 200`, the MAR holds
+$200$ while the PC has already moved on to the following instruction.
+
+<Aside kind="trap" title="The PC holds an address, not an instruction">
+This single confusion accounts for a remarkable share of lost marks. If an answer
+says "the PC fetches the instruction" or "the PC stores the current instruction",
+it is wrong twice over: the PC does not fetch anything, and what it stores is a
+number saying *where* to look. Write "the PC holds the address of the next
+instruction to be fetched" and the mark is safe.
+</Aside>
+
+## The three buses
+
+A bus is a bundle of parallel wires shared by several components. There are
+three, and they are distinguished by what travels on them.
+
+The **address bus** carries the address the CPU wants. It is **unidirectional**:
+memory never needs to tell the CPU an address, so there is no return path. Its
+width sets a hard limit on how much memory the machine can name — $n$ lines give
+$2^n$ distinct addresses, so 32 lines reach $2^{32}$ bytes, or 4 GiB. That number
+is not a coincidence; it is why 32-bit machines could not use more memory however
+much you installed, and why the industry moved to 64-bit addresses.
+
+The **data bus** carries the value itself, and is **bidirectional**, because data
+goes out on a write and comes in on a read. Its width is usually what people mean
+by calling a processor "64-bit": how much it moves in one go.
+
+The **control bus** carries everything else — the read line, the write line, the
+clock, interrupt requests, bus-grant signals. Mixed direction, because some of
+these are the CPU telling the world and others are the world telling the CPU.
+
+<Aside kind="deeper" title="Why 4 GiB and not 4 GB, and why the difference matters here">
+$2^{32}$ is $4{,}294{,}967{,}296$, which is 4 GiB — gibibytes, powers of two. A
+disc manufacturer's "4 GB" means $4{,}000{,}000{,}000$, a genuinely smaller
+number. Address buses are counted in powers of two because addressing is
+inherently binary: each line doubles the range. Storage is sold in powers of ten
+because it is sold. Both conventions are defensible and the collision between
+them is why a "500 GB" drive shows up as 465 GB once formatted. In this topic,
+always work in powers of two.
+</Aside>
+
+## Why this design, and why it has lasted
+
+The layout above is the **von Neumann architecture**, and its defining feature is
+that instructions and data share one memory and one path to it. That single path
+is also its famous weakness: the CPU cannot fetch an instruction and read data in
+the same instant, so it spends much of its life waiting on memory. This is the
+**von Neumann bottleneck**, and every trick in modern processor design — caches,
+pipelines, multiple cores, prefetching — exists to work around it.
+
+The obvious alternative, **Harvard architecture**, gives instructions and data
+separate memories with separate buses, so both can be accessed at once. It is
+faster and it is genuinely used, mostly in microcontrollers and in the split
+instruction and data caches inside your laptop's CPU. What it costs is the very
+flexibility that made stored-program machines interesting: with the two memories
+physically separate, a program can no longer treat another program as data
+without special arrangements.
+
+<Takeaway>
+Von Neumann keeps one memory and pays for it in speed. Harvard keeps two and pays
+for it in flexibility. Real processors cheat by looking like von Neumann from
+outside and like Harvard in the cache.
+</Takeaway>

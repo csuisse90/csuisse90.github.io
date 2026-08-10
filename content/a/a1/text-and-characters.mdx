@@ -1,0 +1,274 @@
+---
+code: A1.2.3
+title: Representing text
+lede: >-
+  How letters became numbers, why that nearly broke the internet for most of the world, and how Unicode fixed it.
+prereqs:
+  - A1.2.1
+cards:
+  - q: >-
+      How is text stored in a computer?
+    a: >-
+      Each character is assigned a number by a **character set**, and that number is stored in binary. There is nothing letter-like in the bits at all.
+  - q: >-
+      What is ASCII?
+    a: >-
+      A 7-bit character set defining 128 characters — English letters, digits, punctuation and control codes. Usually stored in one byte with the top bit spare.
+  - q: >-
+      How many characters can ASCII represent, and why is that a problem?
+    a: >-
+      $2^7 = 128$. It covers English and almost nothing else — no accents, no Greek, no Arabic, no Chinese.
+  - q: >-
+      What is the ASCII code for "A" and for "a"?
+    a: >-
+      $65$ for `A` and $97$ for `a`. They differ by $32$, which is a single bit, so changing case is one bitwise operation.
+  - q: >-
+      Why are the digits $0$–$9$ at codes $48$–$57$?
+    a: >-
+      So that the character code minus $48$ gives the numeric value. The low four bits of the code are the digit in binary.
+  - q: >-
+      What is Unicode?
+    a: >-
+      A character set assigning a unique **code point** to every character in every writing system — over 150,000 of them, with room for more than a million.
+  - q: >-
+      What is the difference between a character set and an encoding?
+    a: >-
+      The **character set** says which number belongs to which character. The **encoding** says how that number is written as bytes. Unicode is the set; UTF-8 and UTF-16 are encodings of it.
+  - q: >-
+      What is UTF-8 and why is it dominant?
+    a: >-
+      A variable-length encoding using one to four bytes per character. ASCII characters take exactly one byte and are unchanged, so existing English text is already valid UTF-8.
+  - q: >-
+      What is the disadvantage of Unicode compared with ASCII?
+    a: >-
+      Text can take more space — up to four bytes a character — and characters are no longer a fixed width, so you cannot find the $n$th character by jumping to byte $n$.
+  - q: >-
+      Why does the same text file sometimes appear as gibberish?
+    a: >-
+      It is being read with a different encoding from the one it was written in, so the bytes are grouped and interpreted wrongly.
+practice:
+  - marks: 3
+    q: >-
+      Explain how the word "Cat" is stored in a computer using ASCII.
+    points:
+      - >-
+          Each character is looked up in the character set to give a numeric code.
+      - >-
+          `C` is $67$, `a` is $97$, `t` is $116$.
+      - >-
+          Each code is stored in binary in one byte, so three bytes are used in total.
+  - marks: 2
+    q: >-
+      State the number of distinct characters that can be represented in 7 bits and in 8 bits.
+    points:
+      - >-
+          7 bits gives $2^7 = 128$ characters.
+      - >-
+          8 bits gives $2^8 = 256$ characters.
+  - marks: 4
+    q: >-
+      Explain why ASCII was insufficient for worldwide use, and how Unicode addresses the problem.
+    points:
+      - >-
+          ASCII has only 128 codes, enough for English but not for accented, non-Latin or logographic scripts.
+      - >-
+          Different regions produced incompatible extensions, so the same byte meant different characters in different places.
+      - >-
+          Unicode assigns a unique code point to every character across all writing systems.
+      - >-
+          A document can therefore mix scripts and be read identically anywhere, with no ambiguity about which set is in use.
+  - marks: 3
+    q: >-
+      Explain the difference between a character set and a character encoding, using Unicode and UTF-8 as your example.
+    points:
+      - >-
+          A character set maps characters to numbers, called code points.
+      - >-
+          An encoding specifies how those numbers are represented as a sequence of bytes.
+      - >-
+          Unicode is the character set; UTF-8 is one way of encoding its code points into bytes.
+  - marks: 4
+    q: >-
+      Explain two advantages of UTF-8 over a fixed 4-byte encoding of Unicode.
+    points:
+      - >-
+          UTF-8 uses one byte for ASCII characters, so English text is a quarter of the size.
+      - >-
+          Existing ASCII files are already valid UTF-8, so old data and software continue to work.
+      - >-
+          Less storage and bandwidth are needed for the majority of web content.
+      - >-
+          A fixed 4-byte encoding wastes three bytes in four for plain English, with no benefit to most users.
+  - marks: 3
+    q: >-
+      A program converts a lowercase letter to uppercase by subtracting 32 from its ASCII code. Explain why this works and state one situation in which it fails.
+    points:
+      - >-
+          Uppercase and lowercase letters are 32 apart in ASCII, so subtracting 32 moves from one to the other.
+      - >-
+          $32$ is $2^5$, so the operation only clears a single bit.
+      - >-
+          It fails for any character that is not a lowercase letter, such as a digit or an accented character, where it produces a different character entirely.
+  - marks: 4
+    q: >-
+      A messaging app stores messages in UTF-8 and limits them to 280 bytes. Discuss the effect on users writing in different languages.
+    points:
+      - >-
+          English characters take one byte, so a user can send close to 280 characters.
+      - >-
+          Accented and Greek or Cyrillic characters take two bytes, halving the effective limit.
+      - >-
+          Chinese, Japanese and emoji take three or four bytes, reducing it to around 70–90 characters.
+      - >-
+          The limit is therefore unfair between languages, and counting characters rather than bytes would be more equitable.
+---
+
+A computer stores numbers. It has no notion of a letter. So text is stored by
+agreeing, in advance and universally, which number stands for which character —
+and then storing numbers.
+
+The agreement is the hard part, and the history of getting it wrong is more
+instructive than the final answer.
+
+## ASCII
+
+The **American Standard Code for Information Interchange**, settled in 1963, uses
+seven bits and therefore defines $2^7 = 128$ characters. Codes $0$–$31$ are
+**control characters**, which are instructions rather than marks: newline, tab,
+carriage return, and a set of teleprinter commands now mostly forgotten. Codes
+$32$–$126$ are the printable ones, and $127$ is delete.
+
+| Range | Contents |
+| --- | --- |
+| 0–31 | Control codes (newline is 10, tab is 9) |
+| 32–47 | Space and punctuation |
+| 48–57 | Digits `0`–`9` |
+| 65–90 | Uppercase `A`–`Z` |
+| 97–122 | Lowercase `a`–`z` |
+
+Those ranges are not arbitrary. Two choices in particular were deliberate and both
+still pay off.
+
+**Digits start at 48.** The low four bits of the code for `7` are $0111$, which is
+seven. So converting a digit character to its value is a subtraction of $48$, or
+equivalently masking off the top bits — no lookup table required.
+
+**Letters are 32 apart.** `A` is $65$ and `a` is $97$. Since $32 = 2^5$, upper and
+lower case differ in exactly one bit, so changing case is a single bitwise
+operation rather than a table lookup or a comparison chain.
+
+<Aside kind="history" title="Why the top bit was left spare">
+ASCII is seven bits, but memory is organised in eight-bit bytes, so one bit per
+character was going begging. It was originally used as a **parity bit** for error
+detection over noisy telegraph lines: set it so that each byte has an even number
+of ones, and any single-bit corruption becomes detectable.
+
+When lines became reliable, that spare bit looked like 128 free character codes,
+and everybody helped themselves. Western Europe put accented letters there.
+Russia put Cyrillic. Greece put Greek. Israel put Hebrew. All in the same byte
+values, all incompatible. A document was now unreadable unless you knew which of
+a dozen conventions its author had used, and there was no way to record which
+inside the file. Mixing two of them in one document was impossible.
+
+This mess — code pages — is the direct reason Unicode exists.
+</Aside>
+
+<Py caption="ASCII arithmetic, including the case-changing bit. Step through it and watch the binary column.">{`
+for ch in "Aa0 z":
+    code = ord(ch)
+    print(f"{ch!r:>4}  code {code:>3}  binary {code:08b}")
+
+print()
+print("case differs by exactly one bit:")
+print(f"  A = {ord('A'):08b}")
+print(f"  a = {ord('a'):08b}")
+print(f"  difference = {ord('a') - ord('A')} = 2^5")
+
+print()
+print("digit characters carry their value in the low four bits:")
+for ch in "0159":
+    print(f"  {ch}  code {ord(ch)}  low nibble {ord(ch) & 0b1111}  value {int(ch)}")
+`}</Py>
+
+## Unicode
+
+**Unicode** assigns every character in every writing system its own number,
+called a **code point**, written like `U+0041` for `A` or `U+4E2D` for 中. It
+currently defines over 150,000 characters and has room for $1{,}114{,}112$.
+
+The crucial distinction, and the one exam questions hinge on:
+
+- A **character set** says which number belongs to which character. Unicode is a
+  character set.
+- An **encoding** says how that number is turned into bytes. UTF-8 and UTF-16 are
+  encodings.
+
+Unicode alone does not tell you how to store `U+4E2D`. You need an encoding for
+that, and different encodings produce completely different bytes for the same
+character.
+
+## UTF-8
+
+The obvious encoding is to give every character four bytes, since the largest code
+point needs 21 bits. It is simple, every character is the same width, and it
+wastes three bytes out of four for English text — which, in 1993, was most text.
+
+**UTF-8** is variable length instead, using one to four bytes:
+
+| Code points | Bytes | Covers |
+| --- | --- | --- |
+| U+0000–U+007F | 1 | ASCII |
+| U+0080–U+07FF | 2 | Latin with accents, Greek, Cyrillic, Hebrew, Arabic |
+| U+0800–U+FFFF | 3 | Chinese, Japanese, Korean, most remaining scripts |
+| U+10000–U+10FFFF | 4 | Historic scripts, emoji, mathematical symbols |
+
+The design has a property that decided the argument: **the one-byte range is
+exactly ASCII, byte for byte.** Every ASCII file ever written is already a valid
+UTF-8 file. Every program that handled ASCII kept working. Migration cost nothing,
+which is why UTF-8 now accounts for around 98% of the web.
+
+<Aside kind="deeper" title="How a decoder knows where a character ends">
+A variable-length encoding has an obvious problem: reading byte by byte, how do
+you know whether this byte is a whole character or the first of three?
+
+UTF-8 answers it in the leading bits. A byte beginning `0` is a single-byte
+character. A byte beginning `110` starts a two-byte sequence, `1110` a three-byte
+one, `11110` a four-byte one. Every **continuation** byte begins `10`, and no
+starter byte does.
+
+This is self-synchronising: land in the middle of a file, and you can tell
+immediately whether you are mid-character, because continuation bytes are
+unmistakable. Skip forward until a byte does not begin `10` and you are at a
+character boundary. A fixed-width encoding cannot do this, and neither could most
+earlier variable-length schemes — losing one byte would garble everything after
+it.
+</Aside>
+
+## What it costs
+
+Unicode is not free, and two costs matter.
+
+**Size.** Text in a non-Latin script takes two to four times the space of English.
+A byte limit is therefore not a character limit, which is a real source of unfairness
+in systems that cap message lengths.
+
+**Indexing.** In ASCII, the tenth character starts at byte ten. In UTF-8 it does
+not, because you cannot know where it starts without reading everything before it.
+Anything that treats a string as an array of fixed-size cells — counting length,
+taking a substring, reversing — must be rewritten to walk the string properly.
+This is the origin of a great many bugs where an emoji breaks a text box.
+
+<Aside kind="trap" title="Length is not a well-defined idea">
+Ask how long the string "👨‍👩‍👧" is and there are four defensible answers: 18 bytes
+in UTF-8, 8 UTF-16 units, 5 code points (three people and two invisible joining
+characters), or 1 thing a reader would call a character.
+
+Exam answers should say **bytes** or **characters** explicitly rather than
+"length". The distinction is exactly what the question is testing.
+</Aside>
+
+<Takeaway>
+A character set is an agreement about numbers; an encoding is an agreement about
+bytes. ASCII conflated the two and got away with it for thirty years because it
+only had 128 characters and they all fitted in one byte.
+</Takeaway>
