@@ -47,23 +47,28 @@ export function CpuArchitecture() {
       <Box x={400} y={48} w={180} h={60} label="Main memory" sub="RAM + ROM" />
       <Box x={400} y={186} w={180} h={48} label="Input / output" sub="devices" />
 
-      {/* buses */}
-      <Arrow x1={286} y1={80} x2={400} y2={80} label="address bus" />
+      {/* The three buses run to a shared spine, which then serves both memory
+          and the devices — as they do in a real machine. */}
+      <line x1={372} y1={62} x2={372} y2={212} stroke={LINE} strokeWidth={2} />
+
+      <Arrow x1={292} y1={72} x2={370} y2={72} label="address bus" />
       <line
-        x1={286}
-        y1={118}
-        x2={400}
-        y2={118}
+        x1={292}
+        y1={112}
+        x2={370}
+        y2={112}
         stroke={LINE}
         strokeWidth={1.8}
         markerEnd="url(#arrowEnd)"
         markerStart="url(#arrowEnd)"
       />
-      <Caption x={343} y={112}>
+      <Caption x={331} y={106}>
         data bus
       </Caption>
-      <Arrow x1={286} y1={156} x2={400} y2={156} accent label="control bus" />
-      <Arrow x1={490} y1={108} x2={490} y2={186} />
+      <Arrow x1={292} y1={156} x2={370} y2={156} accent label="control bus" />
+
+      <Arrow x1={374} y1={78} x2={400} y2={78} />
+      <Arrow x1={374} y1={206} x2={400} y2={206} />
     </Figure>
   );
 }
@@ -283,15 +288,15 @@ export function ControlSystem() {
       height={252}
       caption="The feedback arrow is what makes it a control system rather than a one-off command: the effect of the actuator changes what the sensor next measures."
     >
-      <Box x={30} y={70} w={120} h={54} label="SENSOR" sub="measures" />
-      <Box x={200} y={70} w={140} h={54} label="PROCESSOR" sub="compares & decides" />
-      <Box x={390} y={70} w={120} h={54} label="ACTUATOR" sub="acts" />
+      <Box x={26} y={70} w={112} h={54} label="SENSOR" sub="measures" />
+      <Box x={196} y={70} w={140} h={54} label="PROCESSOR" sub="compares & decides" />
+      <Box x={394} y={70} w={112} h={54} label="ACTUATOR" sub="acts" />
 
-      <Arrow x1={150} y1={97} x2={200} y2={97} label="reading" />
-      <Arrow x1={340} y1={97} x2={390} y2={97} label="command" />
+      <Arrow x1={140} y1={97} x2={194} y2={97} label="reading" />
+      <Arrow x1={338} y1={97} x2={392} y2={97} label="command" />
 
       <Box x={520} y={70} w={80} h={54} label="WORLD" sub="changes" dashed />
-      <Arrow x1={510} y1={97} x2={520} y2={97} />
+      <Arrow x1={508} y1={97} x2={520} y2={97} />
 
       <path
         d="M560,124 L560,206 L90,206 L90,124"
@@ -310,19 +315,28 @@ export function ControlSystem() {
 
 /** Round-robin vs first come first served, as a Gantt chart. */
 export function SchedulingGantt() {
-  const unit = 26;
+  // The same three processes the scheduling page works through: bursts of
+  // 12, 3 and 5 ms, so the chart and the arithmetic agree.
+  const unit = 20;
   const fcfs = [
-    { name: "P1", len: 7, colour: ACCENT },
+    { name: "P1", len: 12, colour: ACCENT },
     { name: "P2", len: 3, colour: TEAL },
-    { name: "P3", len: 2, colour: LINE },
+    { name: "P3", len: 5, colour: LINE },
   ];
+  // Round robin with a quantum of 2, taken to completion. Consecutive slices
+  // of the same process are drawn separately so the quantum stays visible.
   const rr = [
     { name: "P1", len: 2, colour: ACCENT },
     { name: "P2", len: 2, colour: TEAL },
     { name: "P3", len: 2, colour: LINE },
     { name: "P1", len: 2, colour: ACCENT },
     { name: "P2", len: 1, colour: TEAL },
-    { name: "P1", len: 3, colour: ACCENT },
+    { name: "P3", len: 2, colour: LINE },
+    { name: "P1", len: 2, colour: ACCENT },
+    { name: "P3", len: 1, colour: LINE },
+    { name: "P1", len: 2, colour: ACCENT },
+    { name: "P1", len: 2, colour: ACCENT },
+    { name: "P1", len: 2, colour: ACCENT },
   ];
 
   const row = (items: typeof fcfs, y: number) => {
@@ -362,8 +376,8 @@ export function SchedulingGantt() {
       title="Two schedulers, same three processes"
       meta="A1.3.3"
       width={620}
-      height={190}
-      caption="P1 needs 7 units, P2 needs 3, P3 needs 2. Under first come first served, P3 waits 10 units for two units of work. Round robin gets it finished by unit 6 — the total time is the same, but short jobs stop being punished for arriving late."
+      height={200}
+      caption="P1 needs 12 units, P2 needs 3, P3 needs 5. Under first come first served, P2 waits 12 units for three units of work. Round robin has both short jobs finished by unit 11 — the total time is identical, but short jobs stop being punished for arriving behind a long one."
     >
       <Caption x={16} y={34} anchor="start" size={11}>
         First come first served

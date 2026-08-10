@@ -3,9 +3,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "bun run scripts/content.ts && next build",
     "start": "next start",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "content": "bun run scripts/content.ts",
+    "check": "bun run scripts/content.ts && bun run scripts/checkSnippets.ts && bun run scripts/renderDiagrams.tsx && bun run scripts/checkDiagrams.ts && tsc --noEmit",
+    "diagrams": "bun run scripts/renderDiagrams.tsx && bun run scripts/checkDiagrams.ts"
   },
   "dependencies": {
     "@codemirror/lang-python": "^6.2.1",

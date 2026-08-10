@@ -1,0 +1,320 @@
+---
+code: A1.2.8
+title: Karnaugh maps
+lede: >-
+  A way of simplifying Boolean expressions by looking rather than by algebra, and the reason its rows are numbered so strangely.
+prereqs:
+  - A1.2.7
+cards:
+  - q: >-
+      What is a Karnaugh map?
+    a: >-
+      A truth table redrawn as a grid, arranged so that adjacent cells differ in exactly one variable. Groups of adjacent $1$s can then be read off as simplified terms.
+  - q: >-
+      Why are the headings ordered $00, 01, 11, 10$ rather than $00, 01, 10, 11$?
+    a: >-
+      So that neighbouring cells differ in only one bit. That is **Gray code**, and it is what makes adjacency mean "one variable can be eliminated".
+  - q: >-
+      What sizes may a group be?
+    a: >-
+      A power of two — $1, 2, 4, 8, 16$ — and rectangular. A group of three or six is not allowed.
+  - q: >-
+      What does doubling the size of a group do to the term?
+    a: >-
+      It removes one more variable. A group of $2^k$ cells eliminates $k$ variables from the term.
+  - q: >-
+      May groups overlap?
+    a: >-
+      Yes, and they often should. Overlapping costs nothing and usually allows larger, therefore simpler, groups.
+  - q: >-
+      Does the map wrap around?
+    a: >-
+      Yes. Left and right edges are adjacent, as are top and bottom, because the Gray code ordering is cyclic. The four corners of a $4\times4$ map form a valid group.
+  - q: >-
+      How do you read a group as a term?
+    a: >-
+      Keep only the variables that stay constant across the whole group. A variable that is $1$ throughout appears plain; one that is $0$ throughout appears inverted.
+  - q: >-
+      What is a don't-care condition?
+    a: >-
+      An input combination that cannot occur, or whose output does not matter. It is marked $\times$ and may be treated as $0$ or $1$, whichever makes groups bigger.
+  - q: >-
+      What is a prime implicant?
+    a: >-
+      A group that cannot be made any larger. The simplification is built from these.
+  - q: >-
+      What is an essential prime implicant?
+    a: >-
+      A prime implicant covering at least one $1$ that no other prime implicant covers. It must appear in the final answer.
+  - q: >-
+      Why do Karnaugh maps stop being used above about five variables?
+    a: >-
+      The grid becomes impossible to read, since adjacency can no longer be shown in two dimensions. Software uses the Quine–McCluskey algorithm instead.
+practice:
+  - marks: 3
+    q: >-
+      Explain why the column headings of a Karnaugh map are written in the order $00, 01, 11, 10$.
+    points:
+      - >-
+          The ordering ensures adjacent columns differ in exactly one variable.
+      - >-
+          This is Gray code ordering rather than ordinary binary counting.
+      - >-
+          It means that two adjacent cells can be combined to eliminate the variable that changes between them.
+  - marks: 4
+    q: >-
+      A function of variables $A$ and $B$ gives output 1 for $\overline{A}B$, $A\overline{B}$ and $AB$. Use a Karnaugh map to simplify it.
+    points:
+      - >-
+          Map drawn correctly with 1s in three of the four cells.
+      - >-
+          A group of two covering $A\overline{B}$ and $AB$ gives $A$.
+      - >-
+          A group of two covering $\overline{A}B$ and $AB$ gives $B$, with the overlap permitted.
+      - >-
+          Simplified expression $A + B$.
+  - marks: 4
+    q: >-
+      State the rules governing the formation of groups on a Karnaugh map.
+    points:
+      - >-
+          Groups must contain only 1s (or 1s and don't-cares).
+      - >-
+          The number of cells in a group must be a power of two.
+      - >-
+          Groups must be rectangular and may wrap around the edges of the map.
+      - >-
+          Groups should be as large as possible and may overlap; every 1 must be in at least one group.
+  - marks: 4
+    q: >-
+      Explain what a don't-care condition is and why including one can improve a simplification.
+    points:
+      - >-
+          It is an input combination that cannot occur, or whose output is irrelevant to the system.
+      - >-
+          It may be treated as either 0 or 1 without affecting correctness.
+      - >-
+          Treating it as 1 can allow a larger group to be formed.
+      - >-
+          A larger group eliminates more variables, giving a simpler expression and fewer gates.
+  - marks: 5
+    q: >-
+      A three-input function outputs 1 for minterms 0, 1, 2, 5 and 6. Simplify it using a Karnaugh map.
+    points:
+      - >-
+          Map drawn with the correct five cells set to 1.
+      - >-
+          Group covering minterms 0 and 1 gives $\overline{A}\,\overline{B}$.
+      - >-
+          Group covering minterms 2 and 6 gives $B\overline{C}$.
+      - >-
+          Group covering minterms 1 and 5 gives $\overline{B}C$.
+      - >-
+          A correct simplified expression such as $\overline{A}\,\overline{B} + B\overline{C} + \overline{B}C$ is stated.
+  - marks: 3
+    q: >-
+      Explain the difference between a prime implicant and an essential prime implicant.
+    points:
+      - >-
+          A prime implicant is a group that cannot be enlarged further.
+      - >-
+          An essential prime implicant covers at least one 1 that no other prime implicant covers.
+      - >-
+          Essential prime implicants must be included in the final expression, while other prime implicants may sometimes be omitted.
+  - marks: 4
+    q: >-
+      Compare simplification by Boolean algebra with simplification by Karnaugh map.
+    points:
+      - >-
+          Algebra requires choosing which law to apply, so it depends on insight and can miss simplifications.
+      - >-
+          A Karnaugh map is systematic, and a correctly grouped map is guaranteed to give a minimal sum of products.
+      - >-
+          Maps are limited to about four or five variables before adjacency cannot be shown on a grid.
+      - >-
+          Algebra has no such limit, and is the only option for larger functions done by hand.
+---
+
+Boolean algebra works, but it requires you to spot which law applies. Miss a step
+and you get a correct answer that is not the simplest one, with no indication that
+anything is wrong.
+
+A **Karnaugh map** replaces insight with looking. Draw the truth table as a grid
+laid out in a particular way, and the simplifications become visible as
+rectangles.
+
+## The layout, and why it is odd
+
+A two-variable map is a $2\times2$ grid; three variables give $2\times4$; four give
+$4\times4$. Each cell holds the output for one input combination.
+
+The unusual part is the ordering of the headings: $00, 01, 11, 10$, not $00, 01,
+10, 11$.
+
+This is **Gray code**, and it is the whole idea. In Gray code, consecutive values
+differ in exactly one bit. So any two adjacent cells on the map differ in exactly
+one variable — which means combining them eliminates that variable, by
+$X\overline{Y} + XY = X$.
+
+If the columns were in ordinary binary order, cells 01 and 10 would sit next to
+each other while differing in *two* variables, and adjacency would mean nothing.
+
+<KMap vars={3} />
+
+## Grouping
+
+Circle rectangles of $1$s. The rules:
+
+1. Every group contains only $1$s (or $1$s and don't-cares).
+2. Every group has a size that is a **power of two**: 1, 2, 4, 8, 16. Never 3, 6
+   or 12.
+3. Groups are rectangular — no L-shapes.
+4. Groups may **overlap**, and often should.
+5. Groups **wrap around** the edges. The map is a torus: left touches right, top
+   touches bottom. On a $4\times4$ map the four corners are mutually adjacent and
+   form a valid group of four.
+6. Make every group as **large** as possible, then use as **few** groups as
+   possible while covering every $1$.
+
+Rule 6 is where marks are won and lost. A group of four eliminates two variables;
+two groups of two eliminate one each. Bigger is always better.
+
+<Aside kind="why" title="Why groups must be powers of two">
+Combining two adjacent cells works because of $X\overline{Y} + XY = X(\overline{Y}
++ Y) = X$ — one variable takes both values across the group, so it drops out.
+
+A group of four is two groups of two combined, so two variables drop out. A group
+of eight is two groups of four, so three drop out. Each doubling removes exactly
+one more variable, and $2^k$ cells eliminate $k$ variables.
+
+A group of three cannot be built this way. There is no arrangement of three cells
+in which some variable takes every value an equal number of times, so nothing
+cancels and there is no term to write. It is not a rule imposed for tidiness; a
+group of three does not correspond to any product term.
+</Aside>
+
+## Reading a group
+
+Look at which variables stay **constant** across the whole group. Those are the
+ones that appear in the term. Any variable that changes has been eliminated.
+
+- Constant at $1$ → appears plain: $A$.
+- Constant at $0$ → appears inverted: $\overline{A}$.
+- Changes → omitted.
+
+A group of four on a four-variable map leaves two constant variables, so the term
+has two literals. A group of eight leaves one. A group of sixteen — the whole map
+— leaves none, and the function is simply $1$.
+
+## Don't-care conditions
+
+Some input combinations cannot happen. A circuit reading a binary-coded decimal
+digit will never see $1010$ through $1111$, because those are not digits.
+
+Mark those cells $\times$. When grouping, you may treat each one as $0$ or $1$,
+independently, whichever produces larger groups. You are not obliged to cover
+them.
+
+This is genuinely free simplification, and it is often substantial: a BCD circuit
+has six don't-cares out of sixteen cells, which usually collapses the expression
+dramatically.
+
+<Aside kind="trap" title="A don't-care is a promise, not a guess">
+Marking a cell as don't-care asserts that the input combination **cannot occur**.
+If it does occur, the circuit will produce whatever the grouping happened to
+imply — which might be anything.
+
+In real hardware this is a genuine hazard. If a sensor can fail in a way that
+produces an "impossible" code, the circuit's response is unspecified and could be
+dangerous. Safety-critical designs therefore often refuse to use don't-cares at
+all, accepting a larger circuit for a defined response to every input.
+</Aside>
+
+## Prime implicants
+
+Two terms make the process precise.
+
+A **prime implicant** is a group that cannot be made larger. There is no point
+considering smaller groups — they are always worse.
+
+An **essential prime implicant** is a prime implicant that covers at least one $1$
+which no other prime implicant covers. That $1$ can only be dealt with by this
+group, so it must be in the answer.
+
+The method: find all prime implicants; take every essential one; then, if any $1$s
+remain uncovered, choose the fewest remaining prime implicants that cover them.
+
+<Py caption="Quine–McCluskey — what a Karnaugh map does, done algorithmically. This is the method software uses, because it keeps working past the point where a grid cannot be drawn.">{`
+from itertools import combinations
+
+def combine(a, b):
+    """Merge two terms differing in exactly one position, using - as a wildcard."""
+    diff = [i for i in range(len(a)) if a[i] != b[i]]
+    if len(diff) != 1:
+        return None
+    return a[:diff[0]] + "-" + a[diff[0] + 1:]
+
+def prime_implicants(minterms, bits):
+    terms = {format(m, f"0{bits}b") for m in minterms}
+    primes = set()
+    while terms:
+        used, nxt = set(), set()
+        for a, b in combinations(sorted(terms), 2):
+            merged = combine(a, b)
+            if merged:
+                nxt.add(merged)
+                used.add(a)
+                used.add(b)
+        primes |= terms - used
+        terms = nxt
+    return sorted(primes)
+
+def as_expression(term, names):
+    parts = []
+    for ch, name in zip(term, names):
+        if ch == "1":
+            parts.append(name)
+        elif ch == "0":
+            parts.append(name + "'")
+    return "".join(parts) if parts else "1"
+
+minterms = [0, 1, 2, 5, 6]
+names = "ABC"
+primes = prime_implicants(minterms, len(names))
+
+print(f"minterms {minterms} over {names}")
+for p in primes:
+    covers = [m for m in minterms if all(c == "-" or c == format(m, "03b")[i]
+                                          for i, c in enumerate(p))]
+    print(f"  {p}  ->  {as_expression(p, names):<6} covers {covers}")
+
+# A minterm covered by only one prime implicant makes that implicant essential.
+print()
+for m in minterms:
+    covering = [p for p in primes
+                if all(c == "-" or c == format(m, "03b")[i] for i, c in enumerate(p))]
+    if len(covering) == 1:
+        print(f"  minterm {m} is only covered by {as_expression(covering[0], names)} — essential")
+`}</Py>
+
+## Where maps run out
+
+Four variables fit comfortably. Five is possible with two stacked $4\times4$ maps,
+treating corresponding cells as adjacent, and it is already unpleasant. Six is
+beyond reasonable.
+
+The problem is dimensional: adjacency in $n$ variables is adjacency on an
+$n$-dimensional cube, and paper has two dimensions. Beyond five the eye cannot see
+which cells are neighbours.
+
+Software therefore uses **Quine–McCluskey**, above — the same idea expressed as an
+algorithm rather than a picture. It is exactly what a Karnaugh map does: find all
+prime implicants by repeatedly merging terms that differ in one bit, then select a
+minimal cover. It scales to as many variables as you like, at the cost of being
+unusable by hand.
+
+<Takeaway>
+A Karnaugh map is a truth table drawn so that "simplifiable" looks like
+"rectangular". The Gray code ordering is not decoration — it is the entire
+mechanism.
+</Takeaway>

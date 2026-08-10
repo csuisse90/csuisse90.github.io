@@ -1,0 +1,314 @@
+---
+code: A2.3.1
+title: Data transmission and security
+lede: >-
+  Chopping a message into pieces, sending them by different routes, checking they survived, and stopping anyone reading them on the way.
+prereqs:
+  - A2.1.1
+cards:
+  - q: >-
+      What is a packet?
+    a: >-
+      A small unit of data with a header — source and destination addresses, a sequence number, a checksum — and a payload of actual content.
+  - q: >-
+      What is packet switching?
+    a: >-
+      Splitting a message into packets that travel independently, possibly by different routes, and reassembling them at the destination.
+  - q: >-
+      Why is a message split into packets at all?
+    a: >-
+      So many conversations can share one link fairly, so a lost piece means resending a little rather than everything, and so traffic can route around congestion.
+  - q: >-
+      What is circuit switching?
+    a: >-
+      Reserving a dedicated path for the whole conversation. Delay is constant, but capacity is wasted whenever nobody is speaking.
+  - q: >-
+      Why might packets arrive out of order?
+    a: >-
+      Each is routed independently, so they may take different paths of different lengths. Sequence numbers let the receiver reassemble them correctly.
+  - q: >-
+      What is bandwidth?
+    a: >-
+      The maximum rate at which data can be transferred, in bits per second. It is capacity, not speed of travel.
+  - q: >-
+      What is latency?
+    a: >-
+      The delay before data begins to arrive. High bandwidth with high latency feels slow to interact with even though transfers finish quickly.
+  - q: >-
+      What is a checksum?
+    a: >-
+      A value computed from the data and sent with it. The receiver recomputes it; a mismatch means the data was corrupted.
+  - q: >-
+      What is a parity bit?
+    a: >-
+      An extra bit making the number of $1$s odd or even. It detects any single-bit error but cannot detect two errors, and cannot correct anything.
+  - q: >-
+      What is encryption?
+    a: >-
+      Transforming data so that only someone holding the key can recover it. Anyone intercepting it sees nothing useful.
+  - q: >-
+      What is symmetric encryption?
+    a: >-
+      The same key both encrypts and decrypts. Fast, but the key must somehow reach the other party securely first.
+  - q: >-
+      What is asymmetric encryption?
+    a: >-
+      A public key encrypts and a matching private key decrypts. The public key can be published, which solves key distribution, at the cost of being much slower.
+  - q: >-
+      How does HTTPS use both kinds of encryption?
+    a: >-
+      Asymmetric encryption is used once to agree a shared secret; symmetric encryption then protects the rest of the session, because it is far faster.
+practice:
+  - marks: 4
+    q: >-
+      Explain why data is divided into packets before transmission.
+    points:
+      - >-
+          Packets from many conversations can be interleaved on one link, so it is shared fairly rather than monopolised.
+      - >-
+          If a packet is lost or corrupted, only that packet needs to be resent rather than the whole message.
+      - >-
+          Packets can take different routes, so traffic can avoid congested or failed links.
+      - >-
+          Smaller units are easier to buffer and check, and a single large transfer cannot block the network.
+  - marks: 3
+    q: >-
+      State three items of information contained in a packet header and explain the purpose of each.
+    points:
+      - >-
+          Destination address — so routers know where to forward it.
+      - >-
+          Sequence number — so the receiver can reassemble packets in the right order.
+      - >-
+          Checksum, source address or time-to-live, with a correct purpose given.
+  - marks: 4
+    q: >-
+      Compare circuit switching and packet switching.
+    points:
+      - >-
+          Circuit switching reserves a dedicated path for the whole conversation before data is sent.
+      - >-
+          The capacity is guaranteed and delay is constant, but it is wasted whenever the line is idle.
+      - >-
+          Packet switching sends packets independently with no reservation, sharing capacity between users.
+      - >-
+          It uses the network far more efficiently but delay varies and delivery is not guaranteed.
+  - marks: 3
+    q: >-
+      A connection is advertised as having high bandwidth but also has high latency. Explain how this would feel to a user playing an online game and to a user downloading a large file.
+    points:
+      - >-
+          The download completes quickly, since total transfer time depends mainly on bandwidth.
+      - >-
+          The game feels unresponsive, since each action takes a long time to have a visible effect.
+      - >-
+          Latency is the delay before data arrives, and it is not improved by having more capacity.
+  - marks: 4
+    q: >-
+      Explain how a parity bit detects an error, and state one limitation.
+    points:
+      - >-
+          An extra bit is added so the total number of 1s is even, under even parity.
+      - >-
+          The receiver counts the 1s; an odd count means at least one bit changed in transit.
+      - >-
+          If two bits change, the parity is unchanged and the error goes undetected.
+      - >-
+          Parity can detect an error but cannot identify which bit is wrong, so it cannot correct it.
+  - marks: 4
+    q: >-
+      Compare symmetric and asymmetric encryption.
+    points:
+      - >-
+          Symmetric uses one shared key for both encryption and decryption.
+      - >-
+          It is computationally fast, but the key must be delivered securely to the other party beforehand.
+      - >-
+          Asymmetric uses a public key to encrypt and a private key to decrypt.
+      - >-
+          The public key can be distributed openly, solving key distribution, but it is far slower to compute.
+  - marks: 5
+    q: >-
+      Explain how a secure connection to a website is established, and why two kinds of encryption are used.
+    points:
+      - >-
+          The server sends a certificate containing its public key, vouched for by a certificate authority.
+      - >-
+          The client uses asymmetric encryption to agree a shared session key that only the two parties know.
+      - >-
+          The remainder of the session is encrypted symmetrically with that key.
+      - >-
+          Asymmetric encryption solves the problem of exchanging a key over an insecure channel.
+      - >-
+          Symmetric encryption is used thereafter because it is much faster for large volumes of data.
+---
+
+A message rarely travels as a message. It is chopped into pieces, each piece is
+labelled and sent off independently, and the pieces are reassembled at the far end
+— possibly having taken different routes and arrived out of order.
+
+## Packets
+
+<Figure caption="A packet is mostly envelope for small payloads. The header is what makes independent routing possible.">
+  <Segmentation />
+</Figure>
+
+Each **packet** carries a header and a payload. The header holds the source and
+destination addresses, a **sequence number** so the receiver can reassemble in
+order, a **checksum** for detecting corruption, and a time-to-live count that is
+decremented at each hop so a misrouted packet cannot circulate forever.
+
+Splitting has four distinct benefits, and questions usually want more than one:
+
+- **Sharing.** Packets from many conversations interleave on one link, so a large
+  transfer cannot monopolise it.
+- **Cheap recovery.** A corrupted packet costs one retransmission, not a whole
+  file.
+- **Routing around trouble.** Each packet is routed independently, so congestion
+  or a failed link diverts later packets without restarting anything.
+- **Manageable buffers.** Equipment can be built to handle a known maximum size.
+
+## Circuit versus packet switching
+
+<Figure caption="Circuit switching holds a path open whether or not anything is being said. Packet switching fills the gaps with other people's traffic.">
+  <PacketSwitching />
+</Figure>
+
+**Circuit switching** reserves a path end to end before any data moves — the old
+telephone network. The capacity is guaranteed and the delay is constant, which is
+excellent for a phone call and terrible for the pauses in it, during which the
+reserved capacity is simply wasted.
+
+**Packet switching** reserves nothing. Capacity is shared moment to moment, which
+uses the network far more efficiently, at the price of variable delay and no
+guarantee of delivery.
+
+The internet chose the second, which is why a video call sometimes stutters and why
+your connection is faster at three in the morning.
+
+## Bandwidth and latency
+
+These are routinely confused and they are entirely different quantities.
+
+**Bandwidth** is capacity: how much data per second. **Latency** is delay: how long
+before the first bit arrives.
+
+The classic illustration: a van full of hard drives driving across a country has
+enormous bandwidth — petabytes — and appalling latency, measured in hours. It would
+beat any internet connection for moving a data centre and is useless for a
+conversation.
+
+Which matters depends on the task. A large download is governed by bandwidth. A
+game, a video call or a remote terminal is governed by latency, and no amount of
+extra capacity will fix a slow round trip.
+
+<Aside kind="deeper" title="Latency has a floor you cannot buy your way past">
+Light in fibre travels at about $200{,}000\,\text{km/s}$. London to Sydney is
+roughly $17{,}000\,\text{km}$, so a one-way trip takes at least $85\,\text{ms}$ and
+a round trip $170\,\text{ms}$ — before any router, any queue, any processing.
+
+No upgrade removes this. It is why trading firms pay enormous sums for marginally
+straighter cable routes, why cloud providers put data centres near their users, and
+why a game server's location matters more than a player's connection speed.
+
+Bandwidth is an engineering problem. Latency, past a point, is a geography problem.
+</Aside>
+
+## Detecting errors
+
+Transmission corrupts bits. Something must notice.
+
+A **parity bit** is the simplest scheme: add one bit so that the number of $1$s is
+even. The receiver counts; an odd count means something changed. It detects any
+single-bit error and misses every double-bit error, since two flips restore the
+parity. It also cannot say *which* bit was wrong, so it cannot repair anything.
+
+A **checksum** computes a value from the whole block and sends it alongside. The
+receiver recomputes and compares. Stronger schemes such as **CRC** are built this
+way and catch essentially all realistic corruption patterns.
+
+<Py caption="Parity and checksums, including the case parity misses. Step through the double-error example to see why it slips past.">{`
+def parity_bit(bits):
+    return sum(bits) % 2
+
+def with_parity(bits):
+    return bits + [parity_bit(bits)]
+
+def parity_ok(received):
+    return sum(received) % 2 == 0
+
+original = [1, 0, 1, 1, 0, 0, 1]
+sent = with_parity(original)
+print("data       ", original)
+print("sent       ", sent, " (even parity)")
+
+# One bit flips in transit.
+one_error = sent.copy()
+one_error[2] ^= 1
+print()
+print("one flip   ", one_error, "-> detected:", not parity_ok(one_error))
+
+# Two bits flip. The parity is restored and the error is invisible.
+two_errors = sent.copy()
+two_errors[2] ^= 1
+two_errors[5] ^= 1
+print("two flips  ", two_errors, "-> detected:", not parity_ok(two_errors))
+
+# A checksum over the whole block catches far more.
+def checksum(values, modulus=256):
+    return sum(values) % modulus
+
+block = [72, 101, 108, 108, 111]
+print()
+print("block      ", block, "checksum", checksum(block))
+corrupted = block.copy()
+corrupted[1] += 1
+corrupted[2] -= 1
+print("corrupted  ", corrupted, "checksum", checksum(corrupted))
+print("note: this particular corruption keeps the sum, which is why real")
+print("protocols use CRC rather than a plain sum")
+`}</Py>
+
+## Encryption
+
+Detecting corruption is not the same as preventing reading. **Encryption**
+transforms data so that only a holder of the key can recover it.
+
+**Symmetric** encryption uses one key for both directions. It is fast — modern
+processors have instructions for it — but it has a chicken-and-egg problem: the key
+must reach the other party, and if you had a secure channel for that you would not
+need the encryption.
+
+**Asymmetric** encryption uses a pair. Anything encrypted with the **public** key
+can only be decrypted with the matching **private** key. The public key can
+therefore be published on a billboard, which solves key distribution outright. The
+cost is speed: it is orders of magnitude slower.
+
+So real systems use both. When you connect to a site over HTTPS:
+
+1. The server presents a certificate containing its public key, signed by an
+   authority your browser already trusts.
+2. Asymmetric cryptography is used to agree a **session key** that only the two
+   parties know.
+3. Everything afterwards is encrypted symmetrically with that session key.
+
+Asymmetric solves the introduction; symmetric does the work.
+
+<Aside kind="trap" title="Encryption is not the same as hashing, and questions test it">
+Encryption is **reversible** with the key — that is the entire point. Hashing is
+deliberately **one-way**: a hash of a password cannot be turned back into the
+password.
+
+That is why passwords should be hashed rather than encrypted. If a database of
+encrypted passwords is stolen along with the key, every password is exposed. If
+hashed passwords are stolen, there is nothing to reverse, and an attacker must
+guess candidates and hash each one.
+
+Answers that describe hashing as "encrypting the password" lose the mark.
+</Aside>
+
+<Takeaway>
+Packet switching trades guarantees for efficiency; error checking notices what
+that costs; encryption assumes the network is hostile and stops caring who is
+listening.
+</Takeaway>

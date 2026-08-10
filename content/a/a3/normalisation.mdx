@@ -1,0 +1,310 @@
+---
+code: A3.1.2
+title: Normalisation
+lede: >-
+  A procedure for splitting tables until every fact sits in exactly one place, and the reasons you might deliberately stop short.
+prereqs:
+  - A3.1.1
+cards:
+  - q: >-
+      What is normalisation?
+    a: >-
+      A systematic process of organising tables to remove redundancy and the update, insertion and deletion anomalies it causes.
+  - q: >-
+      What is first normal form?
+    a: >-
+      Every attribute holds a single, atomic value, and there are no repeating groups of columns. Each row is uniquely identifiable.
+  - q: >-
+      Give an example of a violation of 1NF.
+    a: >-
+      A `Phone` column holding "01234 567890, 07700 900123", or columns `Subject1`, `Subject2`, `Subject3`.
+  - q: >-
+      What is second normal form?
+    a: >-
+      In 1NF, and every non-key attribute depends on the **whole** primary key, not just part of it. It can only be violated when the key is composite.
+  - q: >-
+      What is a partial dependency?
+    a: >-
+      When an attribute depends on only part of a composite primary key — for example a product's name depending on ProductID alone, in a table keyed on OrderID and ProductID.
+  - q: >-
+      What is third normal form?
+    a: >-
+      In 2NF, and no non-key attribute depends on another non-key attribute.
+  - q: >-
+      What is a transitive dependency?
+    a: >-
+      When A determines B and B determines C, so C depends on A only through B. For example StudentID determines TutorID, which determines TutorRoom.
+  - q: >-
+      Summarise 1NF, 2NF and 3NF in one sentence.
+    a: >-
+      Every non-key attribute must depend on **the key, the whole key, and nothing but the key**.
+  - q: >-
+      What is a functional dependency?
+    a: >-
+      When one attribute's value determines another's. Written $A \rightarrow B$: knowing $A$ fixes $B$.
+  - q: >-
+      Give two benefits of normalisation.
+    a: >-
+      Each fact is stored once, so updates cannot leave inconsistent copies; and less space is used because nothing is duplicated.
+  - q: >-
+      Give one cost of normalisation.
+    a: >-
+      Data is spread across more tables, so queries need more joins, which take longer and are harder to write.
+  - q: >-
+      What is denormalisation, and when is it justified?
+    a: >-
+      Deliberately reintroducing redundancy for speed. It is justified when reads vastly outnumber writes and the join cost is the bottleneck — accepting that consistency must then be managed by hand.
+practice:
+  - marks: 3
+    q: >-
+      Explain what is meant by first normal form and give an example of data that violates it.
+    points:
+      - >-
+          Every attribute must contain a single atomic value.
+      - >-
+          There must be no repeating groups of columns holding the same kind of data.
+      - >-
+          An example is given, such as a column containing a comma-separated list, or columns named Subject1, Subject2 and Subject3.
+  - marks: 4
+    q: >-
+      A table has the composite primary key (OrderID, ProductID) and also stores ProductName. Explain why this breaks second normal form and how to fix it.
+    points:
+      - >-
+          ProductName depends only on ProductID, not on the whole key.
+      - >-
+          This is a partial dependency, which 2NF forbids.
+      - >-
+          The product name is therefore repeated on every order line containing that product.
+      - >-
+          ProductName should be moved to a Product table keyed on ProductID, leaving the original table with the foreign key only.
+  - marks: 4
+    q: >-
+      Explain what a transitive dependency is and why third normal form removes it.
+    points:
+      - >-
+          A non-key attribute depends on another non-key attribute rather than directly on the key.
+      - >-
+          An example is StudentID determining TutorID, and TutorID determining TutorRoom.
+      - >-
+          The tutor's room is then repeated for every student that tutor teaches.
+      - >-
+          Moving TutorRoom into a Tutor table keyed on TutorID stores it once and removes the redundancy.
+  - marks: 3
+    q: >-
+      State the informal summary of 1NF to 3NF and explain what each part refers to.
+    points:
+      - >-
+          Every non-key attribute depends on the key, the whole key, and nothing but the key.
+      - >-
+          "The key" refers to 1NF, requiring atomic values and identifiable rows.
+      - >-
+          "The whole key" refers to 2NF removing partial dependencies, and "nothing but the key" to 3NF removing transitive ones.
+  - marks: 4
+    q: >-
+      Explain two advantages and one disadvantage of normalising a database to third normal form.
+    points:
+      - >-
+          Each fact is stored in exactly one place, so an update cannot leave inconsistent copies behind.
+      - >-
+          Storage is reduced because data is not duplicated across rows.
+      - >-
+          Insertion and deletion anomalies are avoided, so records can exist independently.
+      - >-
+          However data is spread across more tables, so retrieving it requires joins, which cost time and complicate queries.
+  - marks: 4
+    q: >-
+      A reporting system runs the same complex query thousands of times an hour over rarely changing data. Discuss whether denormalisation would be appropriate.
+    points:
+      - >-
+          Denormalisation reintroduces redundancy to avoid expensive joins at query time.
+      - >-
+          Because reads greatly outnumber writes here, the saving is large and repeated.
+      - >-
+          The risk of inconsistency is small when the underlying data rarely changes.
+      - >-
+          It would therefore be defensible, provided the duplicated data is regenerated in a controlled way rather than edited directly.
+  - marks: 5
+    q: >-
+      A table stores StudentID, StudentName, TutorID, TutorName, TutorRoom, SubjectCode and SubjectName, keyed on (StudentID, SubjectCode). Normalise it to 3NF, explaining each step.
+    points:
+      - >-
+          Identifies that the table is already in 1NF, with atomic values.
+      - >-
+          StudentName, TutorID, TutorName and TutorRoom depend only on StudentID, and SubjectName only on SubjectCode — partial dependencies breaking 2NF.
+      - >-
+          Splits into Student(StudentID, StudentName, TutorID) and Subject(SubjectCode, SubjectName), with a link table (StudentID, SubjectCode).
+      - >-
+          TutorName and TutorRoom depend on TutorID, a non-key attribute — a transitive dependency breaking 3NF.
+      - >-
+          Creates Tutor(TutorID, TutorName, TutorRoom), leaving TutorID as a foreign key in Student.
+---
+
+Normalisation is a procedure. Given a badly organised table, following the steps
+produces a well-organised set of tables, without requiring insight about the
+particular data. That is what makes it examinable and what makes it useful.
+
+The whole thing rests on one idea.
+
+## Functional dependency
+
+$A \rightarrow B$ means: if you know $A$, then $B$ is determined. Knowing a
+StudentID tells you the student's name. Knowing an ISBN tells you the title.
+
+Normalisation asks, of every attribute: **what determines this?** If the answer is
+anything other than the primary key of the table it is sitting in, it is in the
+wrong table.
+
+<Figure caption="The same data before and after. Each split removes one kind of dependency and one kind of anomaly.">
+  <Normalisation />
+</Figure>
+
+## First normal form
+
+Every attribute holds one **atomic** value, and there are no repeating groups.
+
+Violations look like this:
+
+| StudentID | Name | Subjects |
+| --- | --- | --- |
+| S1 | Turing | Maths, CS, Physics |
+
+or this:
+
+| StudentID | Name | Subject1 | Subject2 | Subject3 |
+| --- | --- | --- | --- | --- |
+| S1 | Turing | Maths | CS | Physics |
+
+The first cannot be searched — finding everyone taking CS means picking apart
+strings. The second caps subjects at three, wastes columns on students taking one,
+and makes "how many students take CS?" require checking three columns.
+
+The fix is a separate row per value, in a table of its own:
+
+| StudentID | SubjectCode |
+| --- | --- |
+| S1 | MATH |
+| S1 | COMP |
+| S1 | PHYS |
+
+## Second normal form
+
+In 1NF, and **no partial dependencies** — every non-key attribute depends on the
+whole primary key.
+
+This can only be violated when the key is composite, so if your key is a single
+attribute, 2NF is automatic.
+
+Take an order line table keyed on (OrderID, ProductID):
+
+| OrderID | ProductID | Quantity | ProductName | ProductPrice |
+| --- | --- | --- | --- | --- |
+| 1001 | P7 | 2 | Stapler | 4.50 |
+| 1002 | P7 | 1 | Stapler | 4.50 |
+
+`Quantity` genuinely depends on both — this order, this product. But `ProductName`
+depends on ProductID alone. So the name is repeated on every order line containing
+that product, and renaming the product means updating all of them.
+
+Move it out to a Product table keyed on ProductID.
+
+## Third normal form
+
+In 2NF, and **no transitive dependencies** — no non-key attribute depends on
+another non-key attribute.
+
+| StudentID | Name | TutorID | TutorRoom |
+| --- | --- | --- | --- |
+| S1 | Turing | T3 | B12 |
+| S2 | Hopper | T3 | B12 |
+
+`TutorRoom` does not depend on StudentID except by going through TutorID:
+StudentID $\rightarrow$ TutorID $\rightarrow$ TutorRoom. So the room is repeated
+for every student that tutor teaches, and a room change means finding all of them.
+
+Move TutorID and TutorRoom into a Tutor table.
+
+<Aside kind="why" title="The one-line summary, and why it is genuinely sufficient">
+> Every non-key attribute must depend on **the key, the whole key, and nothing but
+> the key**.
+
+"The key" is 1NF: there must *be* a key, which means atomic values and
+distinguishable rows.
+"The whole key" is 2NF: no depending on part of a composite key.
+"Nothing but the key" is 3NF: no depending on some other non-key attribute.
+
+This is not a memory aid bolted on afterwards; it is a complete statement of the
+three forms. In an exam, writing it and then walking each attribute through it will
+get you to the right answer more reliably than trying to recall the definitions
+separately.
+</Aside>
+
+<Py caption="Detecting the dependencies mechanically. Step through it to see how a partial or transitive dependency shows up as a repeated pairing in the data.">{`
+rows = [
+    {"StudentID": "S1", "SubjectCode": "MATH", "Grade": 6,
+     "StudentName": "Turing", "TutorID": "T3", "TutorRoom": "B12"},
+    {"StudentID": "S1", "SubjectCode": "COMP", "Grade": 7,
+     "StudentName": "Turing", "TutorID": "T3", "TutorRoom": "B12"},
+    {"StudentID": "S2", "SubjectCode": "COMP", "Grade": 5,
+     "StudentName": "Hopper", "TutorID": "T3", "TutorRoom": "B12"},
+    {"StudentID": "S3", "SubjectCode": "MATH", "Grade": 7,
+     "StudentName": "Lovelace", "TutorID": "T8", "TutorRoom": "A04"},
+]
+
+def determines(rows, left, right):
+    """True if the values of the left attributes always fix the right one."""
+    seen = {}
+    for row in rows:
+        key = tuple(row[a] for a in left)
+        if key in seen and seen[key] != row[right]:
+            return False
+        seen[key] = row[right]
+    return True
+
+key = ["StudentID", "SubjectCode"]
+others = ["Grade", "StudentName", "TutorID", "TutorRoom"]
+
+print("what actually determines what:")
+for attr in others:
+    whole = determines(rows, key, attr)
+    partial = [k for k in key if determines(rows, [k], attr)]
+    verdict = "ok — needs the whole key" if not partial else f"PARTIAL — {partial[0]} alone fixes it"
+    print(f"  {attr:<12} {verdict}")
+
+print()
+print("transitive dependencies among non-key attributes:")
+for a in others:
+    for b in others:
+        if a != b and determines(rows, [a], b) and not determines(rows, [b], a):
+            print(f"  {a} -> {b}   (so {b} belongs in a table keyed on {a})")
+`}</Py>
+
+## When not to normalise
+
+Normalisation removes redundancy, and redundancy is what makes reads fast.
+
+A fully normalised database spreads one conceptual record across several tables, so
+answering a question requires **joins**, and joins cost time. In a reporting system
+running the same expensive query thousands of times an hour over data that barely
+changes, that cost is paid over and over for a consistency risk that is close to
+zero.
+
+**Denormalisation** deliberately reintroduces redundancy for speed. It is a
+legitimate engineering decision, and it is only legitimate when made deliberately:
+the duplicated data must be regenerated by a controlled process, never edited in
+two places by hand.
+
+<Aside kind="trap" title="“Normalise as far as possible” is not the expected answer">
+Questions about normalisation often invite a discussion, and the marks are for
+recognising the trade-off rather than for reciting the benefits.
+
+Normalise when the data changes often and correctness matters — a bank, a school
+record system, anything transactional. Denormalise when the data is read far more
+than written and speed is the constraint — reporting, analytics, caches.
+
+An answer that only lists the advantages of 3NF has answered half the question.
+</Aside>
+
+<Takeaway>
+Normalisation is one question asked of every attribute: what determines this? Put
+it in the table whose key answers that, and the anomalies disappear on their own.
+</Takeaway>

@@ -1,0 +1,352 @@
+---
+code: A3.1.3
+title: Querying with SQL
+lede: >-
+  Saying what you want rather than how to fetch it, and the handful of clauses that cover almost every question anyone asks of a database.
+prereqs:
+  - A3.1.1
+cards:
+  - q: >-
+      What is SQL?
+    a: >-
+      Structured Query Language — a **declarative** language for querying and modifying relational databases. You state what you want; the system decides how to get it.
+  - q: >-
+      What does SELECT ... FROM do?
+    a: >-
+      Chooses which columns to return and which table to take them from. `SELECT name FROM Student` returns one column.
+  - q: >-
+      What does WHERE do?
+    a: >-
+      Filters which **rows** are returned, keeping only those for which its condition is true.
+  - q: >-
+      What does ORDER BY do?
+    a: >-
+      Sorts the result. `ASC` is ascending and is the default; `DESC` is descending.
+  - q: >-
+      What is a JOIN?
+    a: >-
+      Combines rows from two tables by matching a foreign key against a primary key, so data split across tables can be reported together.
+  - q: >-
+      What is the difference between an inner join and a left join?
+    a: >-
+      An inner join returns only rows with a match on both sides. A left join returns every row from the left table, with nulls where the right has no match.
+  - q: >-
+      Name four aggregate functions.
+    a: >-
+      `COUNT`, `SUM`, `AVG`, `MIN` and `MAX` — each collapses many rows into one value.
+  - q: >-
+      What does GROUP BY do?
+    a: >-
+      Splits rows into groups sharing a value, so an aggregate is computed per group rather than over the whole table.
+  - q: >-
+      What is the difference between WHERE and HAVING?
+    a: >-
+      `WHERE` filters rows **before** grouping; `HAVING` filters groups **after** aggregation. You cannot use an aggregate in `WHERE`.
+  - q: >-
+      What does DISTINCT do?
+    a: >-
+      Removes duplicate rows from the result.
+  - q: >-
+      Which statements modify data rather than read it?
+    a: >-
+      `INSERT` adds rows, `UPDATE` changes existing ones, `DELETE` removes them. All three should normally carry a `WHERE` clause.
+  - q: >-
+      What is SQL injection?
+    a: >-
+      Building a query by pasting user input into it, so that crafted input changes the query's meaning. It is prevented with parameterised queries.
+practice:
+  - marks: 3
+    q: >-
+      Write an SQL statement to return the names and year groups of all students in year 12, sorted by name.
+    points:
+      - >-
+          Correct SELECT of the two columns from the Student table.
+      - >-
+          A WHERE clause restricting to year 12.
+      - >-
+          An ORDER BY clause on the name column.
+  - marks: 4
+    q: >-
+      Explain what a JOIN does and why it is needed in a normalised database.
+    points:
+      - >-
+          Normalisation splits related data across several tables to avoid redundancy.
+      - >-
+          A JOIN recombines rows from those tables for a query.
+      - >-
+          Rows are matched by comparing a foreign key with the primary key it refers to.
+      - >-
+          Without it, a query could only report data from one table, so most useful questions could not be answered.
+  - marks: 4
+    q: >-
+      Explain the difference between WHERE and HAVING, giving an example of each.
+    points:
+      - >-
+          WHERE filters individual rows before any grouping takes place.
+      - >-
+          An example is WHERE year = 12.
+      - >-
+          HAVING filters the groups produced by GROUP BY, after aggregation.
+      - >-
+          An example is HAVING COUNT(*) > 5, which cannot be expressed in WHERE because the count does not exist yet.
+  - marks: 3
+    q: >-
+      Write an SQL statement to count how many loans each member has, showing the member's name.
+    points:
+      - >-
+          Joins Member to Loan on the member's key.
+      - >-
+          Uses COUNT with GROUP BY on the member.
+      - >-
+          Selects the member's name alongside the count.
+  - marks: 4
+    q: >-
+      A query uses a LEFT JOIN from Member to Loan. Explain what appears in the result for a member who has never borrowed anything, and why this might be wanted.
+    points:
+      - >-
+          The member still appears in the result, because a left join returns all rows from the left table.
+      - >-
+          The columns taken from Loan are null for that row.
+      - >-
+          An inner join would omit the member entirely.
+      - >-
+          This is wanted when the question is about all members, for example listing members who have borrowed nothing.
+  - marks: 4
+    q: >-
+      Explain what SQL injection is and how it can be prevented.
+    points:
+      - >-
+          A query is built by concatenating user input directly into the SQL string.
+      - >-
+          Crafted input is then interpreted as SQL rather than as data, changing what the query does.
+      - >-
+          An attacker could bypass a login, read data they should not see, or destroy tables.
+      - >-
+          Parameterised queries prevent it by sending the query and the values separately, so input is never parsed as SQL.
+  - marks: 5
+    q: >-
+      A librarian wants a list of every book that has never been borrowed. Explain how you would write this query and why a simple inner join will not work.
+    points:
+      - >-
+          An inner join between Book and Loan only returns books that appear in Loan.
+      - >-
+          Books never borrowed have no matching Loan row, so they are excluded — the very rows wanted.
+      - >-
+          A LEFT JOIN from Book to Loan keeps every book, with nulls where there is no loan.
+      - >-
+          Adding WHERE Loan.LoanID IS NULL then keeps only the unborrowed ones.
+      - >-
+          An equivalent correct approach using NOT IN or NOT EXISTS is also credited.
+---
+
+SQL is **declarative**, and that is its defining feature. You describe the result
+you want; the database decides how to obtain it — which index to use, which table
+to scan first, whether to sort now or later. Two queries that ask for the same
+thing in different words may run identically, because the optimiser rewrites both
+into the same plan.
+
+## The shape of a query
+
+```sql
+SELECT   name, year
+FROM     Student
+WHERE    year = 12
+ORDER BY name ASC;
+```
+
+- **SELECT** — which columns.
+- **FROM** — which table.
+- **WHERE** — which rows.
+- **ORDER BY** — in what order.
+
+That covers a surprising proportion of everything ever asked of a database.
+
+<Aside kind="why" title="The clauses do not run in the order they are written">
+SQL is written `SELECT … FROM … WHERE …` but evaluated roughly
+`FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY`.
+
+This is not trivia. It explains two things that otherwise look arbitrary.
+
+First, why you cannot use a column alias defined in `SELECT` inside `WHERE`: the
+alias does not exist yet when `WHERE` runs.
+
+Second, why an aggregate cannot appear in `WHERE`. `COUNT(*)` is produced by
+`GROUP BY`, which has not happened when `WHERE` is filtering rows. That is exactly
+why `HAVING` exists — it is the filter that runs *after*.
+</Aside>
+
+## Joins
+
+Normalisation split the data up; joins put it back together for one query.
+
+```sql
+SELECT   Member.name, Book.title, Loan.dateOut
+FROM     Loan
+JOIN     Member ON Loan.memberID = Member.memberID
+JOIN     Book   ON Loan.bookID   = Book.bookID;
+```
+
+Each `ON` clause matches a foreign key against the primary key it refers to.
+
+<Figure caption="The same two tables, joined two ways. The difference is entirely about rows with no match on the right.">
+  <JoinShapes />
+</Figure>
+
+An **inner join** — the default — returns only rows that match on both sides. A
+member who has borrowed nothing does not appear at all.
+
+A **left join** returns every row from the left table, filling the right-hand
+columns with nulls where there is no match. This is how you find absences:
+
+```sql
+SELECT   Book.title
+FROM     Book
+LEFT JOIN Loan ON Book.bookID = Loan.bookID
+WHERE    Loan.loanID IS NULL;
+```
+
+Every book that has never been borrowed. An inner join cannot express this,
+because the rows you want are precisely the ones it discards.
+
+## Aggregates and grouping
+
+Aggregate functions collapse many rows into one value: `COUNT`, `SUM`, `AVG`,
+`MIN`, `MAX`.
+
+```sql
+SELECT   Member.name, COUNT(*) AS loans
+FROM     Member
+JOIN     Loan ON Member.memberID = Loan.memberID
+GROUP BY Member.memberID, Member.name
+HAVING   COUNT(*) > 3
+ORDER BY loans DESC;
+```
+
+`GROUP BY` splits the rows into one group per member; `COUNT(*)` counts within each
+group; `HAVING` throws away the small groups afterwards.
+
+<Py packages={["sqlite3"]} caption="A real database, built and queried in the browser. Change the queries and run it again.">{`
+import sqlite3
+
+db = sqlite3.connect(":memory:")
+db.executescript("""
+CREATE TABLE Member (memberID TEXT PRIMARY KEY, name TEXT, joined TEXT);
+CREATE TABLE Book   (bookID   TEXT PRIMARY KEY, title TEXT, author TEXT);
+CREATE TABLE Loan   (loanID   INTEGER PRIMARY KEY, memberID TEXT, bookID TEXT,
+                     dateOut TEXT,
+                     FOREIGN KEY (memberID) REFERENCES Member(memberID),
+                     FOREIGN KEY (bookID)   REFERENCES Book(bookID));
+
+INSERT INTO Member VALUES ('M1','A. Lovelace','2025-09-01'),
+                          ('M2','G. Hopper','2025-09-14'),
+                          ('M3','E. Dijkstra','2026-01-20');
+INSERT INTO Book VALUES ('B1','Godel Escher Bach','Hofstadter'),
+                        ('B2','The Mythical Man-Month','Brooks'),
+                        ('B3','Structure and Interpretation','Abelson'),
+                        ('B4','Never Borrowed','Nobody');
+INSERT INTO Loan (memberID, bookID, dateOut) VALUES
+    ('M1','B1','2026-03-01'), ('M1','B2','2026-03-04'),
+    ('M2','B1','2026-03-06'), ('M1','B3','2026-03-09'),
+    ('M2','B3','2026-03-11');
+""")
+
+def show(title, sql):
+    print(title)
+    rows = db.execute(sql).fetchall()
+    for row in rows:
+        print("   ", "  ".join(str(v) for v in row))
+    if not rows:
+        print("    (no rows)")
+    print()
+
+show("every loan, joined across three tables:", """
+    SELECT Member.name, Book.title, Loan.dateOut
+    FROM Loan
+    JOIN Member ON Loan.memberID = Member.memberID
+    JOIN Book   ON Loan.bookID   = Book.bookID
+    ORDER BY Loan.dateOut
+""")
+
+show("loans per member, busiest first:", """
+    SELECT Member.name, COUNT(*) AS loans
+    FROM Member JOIN Loan ON Member.memberID = Loan.memberID
+    GROUP BY Member.memberID
+    ORDER BY loans DESC
+""")
+
+show("members with more than two loans (HAVING, not WHERE):", """
+    SELECT Member.name, COUNT(*) AS loans
+    FROM Member JOIN Loan ON Member.memberID = Loan.memberID
+    GROUP BY Member.memberID
+    HAVING COUNT(*) > 2
+""")
+
+show("books never borrowed - only a LEFT JOIN can find these:", """
+    SELECT Book.title
+    FROM Book LEFT JOIN Loan ON Book.bookID = Loan.bookID
+    WHERE Loan.loanID IS NULL
+""")
+
+show("members who have never borrowed:", """
+    SELECT Member.name
+    FROM Member LEFT JOIN Loan ON Member.memberID = Loan.memberID
+    WHERE Loan.loanID IS NULL
+""")
+`}</Py>
+
+## Changing data
+
+```sql
+INSERT INTO Member (memberID, name) VALUES ('M4', 'K. Iverson');
+UPDATE Member SET name = 'A. King' WHERE memberID = 'M1';
+DELETE FROM Loan WHERE dateOut < '2026-01-01';
+```
+
+The `WHERE` clause on `UPDATE` and `DELETE` is not optional in practice. Omit it
+and the statement applies to **every row in the table**, silently and
+irreversibly.
+
+## SQL injection
+
+Building a query by pasting user input into a string is the most consequential
+mistake in this topic.
+
+```python
+# Never do this.
+query = "SELECT * FROM User WHERE name = '" + name + "' AND pass = '" + password + "'"
+```
+
+Enter `' OR '1'='1` as the password and the query becomes:
+
+```sql
+SELECT * FROM User WHERE name = 'admin' AND pass = '' OR '1'='1'
+```
+
+`'1'='1'` is always true, so the query returns every user and the login succeeds
+without a password. Worse inputs can read other tables or destroy them.
+
+The fix is a **parameterised query**, where the SQL and the values travel
+separately and the database never parses input as SQL:
+
+```python
+db.execute("SELECT * FROM User WHERE name = ? AND pass = ?", (name, password))
+```
+
+<Aside kind="trap" title="Escaping quotes is not the fix, and examiners know it">
+A common wrong answer is "check the input for apostrophes" or "remove dangerous
+characters".
+
+This fails because the list of dangerous input is longer than anyone's imagination,
+and because different databases and character encodings offer different ways to
+smuggle a quote through. Every blocklist ever written has eventually been got past.
+
+Parameterisation works for a structurally different reason: the query is parsed
+*before* the values are supplied, so there is no moment at which the input could
+be read as syntax. The mark is for saying that, not for saying "sanitise the
+input".
+</Aside>
+
+<Takeaway>
+`WHERE` filters rows, `HAVING` filters groups, joins reassemble what
+normalisation separated, and user input never becomes part of the query text.
+</Takeaway>

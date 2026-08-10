@@ -56,6 +56,26 @@ for (const file of walk(contentDir)) {
     }
   }
 
+  // A double quote inside a double-quoted JSX attribute closes it early, and
+  // MDX then reports a confusing error about attribute names. Catch it here,
+  // pointing at the actual line.
+  const body = raw.slice(raw.indexOf("---", 3) + 3);
+  for (const line of body.split("\n")) {
+    const attr = /\s\w+="([^"]*)"[^>]*>/.exec(line);
+    if (attr && /\s\w+="[^"]*"[^=>]*"/.test(line) && !line.includes("={")) {
+      fail(file, `nested double quote in a JSX attribute — use “ ” instead:\n  ${line.trim()}`);
+    }
+  }
+
+  // A Py snippet lives inside a JavaScript template literal, so a stray
+  // backtick in the Python ends the literal early and MDX fails with an
+  // unhelpful acorn error a long way from the cause.
+  for (const block of body.matchAll(/<Py[^>]*>\{`\n([\s\S]*?)\n`\}<\/Py>/g)) {
+    if (block[1].includes("`")) {
+      fail(file, "a Python snippet contains a backtick, which closes the template literal");
+    }
+  }
+
   const { data } = matter(raw);
   const fm = data as Frontmatter;
 

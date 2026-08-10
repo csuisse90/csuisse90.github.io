@@ -1,0 +1,260 @@
+---
+code: A2.2.1
+title: Topologies and architectures
+lede: >-
+  How machines are physically arranged, who is in charge once they are, and what breaks when one of them fails.
+prereqs:
+  - A2.1.1
+cards:
+  - q: >-
+      What is a network topology?
+    a: >-
+      The arrangement of the connections between devices — which is joined to which. It determines cost, performance and what happens when something fails.
+  - q: >-
+      Describe a star topology and its main weakness.
+    a: >-
+      Every device connects to a central switch. Fast and easy to extend, but the centre is a **single point of failure**: if it dies, the whole network stops.
+  - q: >-
+      Describe a bus topology.
+    a: >-
+      All devices share one backbone cable. Cheap and uses little cabling, but the devices contend for it and a break in the backbone splits the network.
+  - q: >-
+      Describe a mesh topology.
+    a: >-
+      Devices connect to many others, so traffic can route around a failure. Highly resilient and expensive — a full mesh needs $n(n-1)/2$ links.
+  - q: >-
+      Describe a ring topology.
+    a: >-
+      Each device connects to two neighbours, forming a loop. Predictable timing, but a single break can sever it unless the ring is doubled.
+  - q: >-
+      What is a client–server architecture?
+    a: >-
+      Clients request services from dedicated servers that hold the data. Central control makes backup, security and updates straightforward.
+  - q: >-
+      What is a peer-to-peer architecture?
+    a: >-
+      Every machine is both client and server. There is no central authority, so it costs less and scales with its users, but management and security are harder.
+  - q: >-
+      Give one advantage and one disadvantage of client–server.
+    a: >-
+      Data is centrally backed up and access is centrally controlled; but the server is a bottleneck and a single point of failure, and it costs money.
+  - q: >-
+      Why does peer-to-peer scale well for file distribution?
+    a: >-
+      Each new downloader also becomes an uploader, so capacity grows with demand rather than being consumed by it.
+  - q: >-
+      What is a switch, and how does it differ from a hub?
+    a: >-
+      A switch learns which MAC address is on which port and sends a frame only there. A hub repeats everything to every port, wasting bandwidth and leaking traffic.
+  - q: >-
+      What does a router do?
+    a: >-
+      Forwards packets between different networks, choosing the next hop from its routing table using the destination IP address.
+  - q: >-
+      What is cloud computing?
+    a: >-
+      Using computing resources owned and run by someone else, over a network, paid for as used rather than bought outright.
+practice:
+  - marks: 4
+    q: >-
+      Compare star and mesh topologies with reference to cost and resilience.
+    points:
+      - >-
+          A star needs one link per device, so cabling cost grows linearly and is low.
+      - >-
+          A full mesh needs up to $n(n-1)/2$ links, so cost grows roughly with the square of the number of devices.
+      - >-
+          In a star, failure of the central device disables the whole network.
+      - >-
+          In a mesh, traffic reroutes around a failed link or node, so there is no single point of failure.
+  - marks: 3
+    q: >-
+      A network of 8 devices is to be fully meshed. Calculate the number of links required, and state the number needed for a star.
+    points:
+      - >-
+          Full mesh requires $\frac{8 \times 7}{2}$ links.
+      - >-
+          That is 28 links.
+      - >-
+          A star requires 8 links, one per device, plus the central switch.
+  - marks: 4
+    q: >-
+      Explain the difference between a switch and a hub, and why switches replaced hubs.
+    points:
+      - >-
+          A hub retransmits every incoming frame to every port.
+      - >-
+          A switch records which MAC address is reachable on which port and forwards only to that port.
+      - >-
+          This reduces unnecessary traffic and collisions, so more devices can communicate at once.
+      - >-
+          It also improves security, since frames are not delivered to devices that were not addressed.
+  - marks: 4
+    q: >-
+      Compare client–server and peer-to-peer architectures.
+    points:
+      - >-
+          In client–server, dedicated servers hold data and provide services to requesting clients.
+      - >-
+          This allows centralised backup, security policy and updates, but the server is a bottleneck and a single point of failure.
+      - >-
+          In peer-to-peer, each machine acts as both client and server, with no central authority.
+      - >-
+          It is cheaper and scales with the number of users, but security, consistency and management are much harder.
+  - marks: 3
+    q: >-
+      Explain why peer-to-peer distribution copes better than client–server with a sudden surge in demand for one large file.
+    points:
+      - >-
+          In client–server, every additional downloader consumes more of the server's fixed bandwidth.
+      - >-
+          In peer-to-peer, each downloader also uploads pieces to others.
+      - >-
+          Total capacity therefore grows as demand grows, rather than being exhausted by it.
+  - marks: 4
+    q: >-
+      A school is deciding whether to move its file storage to a cloud provider. Explain two advantages and two disadvantages.
+    points:
+      - >-
+          No capital cost for servers, and capacity can be increased or reduced as needed.
+      - >-
+          Maintenance, backup and physical security become the provider's responsibility.
+      - >-
+          However access depends entirely on the internet connection, so an outage stops all work.
+      - >-
+          Data is held by a third party, raising questions of privacy, legal jurisdiction and long-term cost.
+  - marks: 5
+    q: >-
+      A hospital requires its internal network to keep working even if equipment fails. Recommend a topology and justify it against the alternatives.
+    points:
+      - >-
+          Availability is the dominant requirement, since failure could affect patient care.
+      - >-
+          A star has a single point of failure at the central switch, so it is unsuitable alone.
+      - >-
+          A mesh, or a partial mesh between critical nodes, allows traffic to reroute around failures.
+      - >-
+          The higher cabling and equipment cost is justified by the consequence of downtime.
+      - >-
+          A clear recommendation is made, possibly a star of switches interconnected in a partial mesh, with reasoning.
+---
+
+Once machines are connected, two separate questions arise. **Topology** asks how
+the wires are arranged. **Architecture** asks who is in charge of the conversation.
+They are independent: a client–server system can run over any topology.
+
+## Topologies
+
+<Figure caption="The same six devices, arranged four ways. Count the links, and ask what happens if you delete one.">
+  <Topology />
+</Figure>
+
+**Star.** Every device connects to a central switch. One link per device, so
+cabling is cheap and adding a device disturbs nothing. Traffic between any two
+devices takes two hops. This is what essentially every office and home network
+actually uses.
+
+Its weakness is stated in its shape. Everything depends on the centre, and if the
+switch fails the network does not degrade — it stops.
+
+**Bus.** All devices share one backbone. Minimal cable, and it was common when
+cable was the expensive part. Now largely historical, because the shared medium
+means devices contend for it, and a break anywhere splits the network in two.
+
+**Ring.** Each device connects to two neighbours. Traffic passes round, which makes
+timing predictable — useful in industrial control. A single break severs it, so
+serious rings are doubled and run in both directions.
+
+**Mesh.** Devices connect to many others. No single point of failure, because
+traffic routes around anything broken. The cost is links: a full mesh of $n$ nodes
+needs $\frac{n(n-1)}{2}$ of them, so 8 devices need 28 and 50 devices need 1225.
+
+<Aside kind="deeper" title="Why the internet is a mesh and your office is a star">
+The trade-off resolves differently depending on what failure costs.
+
+In an office, a failed switch means an hour of irritation and a replacement from
+the cupboard. Paying for a mesh to avoid it would be absurd.
+
+The internet's backbone carries the traffic of entire countries, and a severed
+cable must not disconnect anyone. So it is meshed, redundantly, with routing
+protocols that discover new paths within seconds of a failure.
+
+Both are the right answer to their own question. Exam answers that call one
+topology "better" without saying what is being optimised are answering a question
+nobody asked.
+</Aside>
+
+## The boxes in between
+
+A **hub** repeats every frame to every port. Simple, and wasteful: every device
+sees every other device's traffic, collisions are frequent, and privacy is
+non-existent. Obsolete.
+
+A **switch** learns. When a frame arrives it records the sender's MAC address
+against the port it came in on, building a table. Thereafter, frames for that
+address go out of that port alone. Traffic between two pairs of devices can then
+happen simultaneously without interfering.
+
+A **router** works one layer up. It forwards packets between *different* networks,
+choosing the next hop by looking up the destination IP address in a routing table.
+Your home router is really several devices in one box: a router, a switch, a
+wireless access point and a firewall.
+
+## Architectures
+
+<Figure caption="In client–server, capacity is what the server has. In peer-to-peer, capacity is the sum of everyone present.">
+  <ClientServerVsP2p />
+</Figure>
+
+**Client–server** puts data and services on dedicated machines. Clients ask; the
+server answers. Because everything is in one place, backup, access control and
+updates are all straightforward — you change the server, and every client sees the
+change.
+
+The cost is that the server is both a bottleneck and a single point of failure, and
+somebody must pay for it.
+
+**Peer-to-peer** has no centre. Every machine is both client and server, offering
+what it has and taking what it needs.
+
+The interesting property is how it scales. Under client–server, each additional
+user consumes a share of a fixed capacity, so performance degrades as popularity
+grows. Under peer-to-peer, each additional user *brings* capacity — a downloader
+is also an uploader — so a file becomes easier to obtain the more people want it.
+
+What is lost is control. There is no authority to enforce a security policy, no
+guarantee any particular peer is present, and no single place to look when
+something is wrong.
+
+## Cloud
+
+**Cloud computing** means using someone else's computers over a network, and paying
+for what you use rather than what you own.
+
+The genuine advantages are elasticity and transferred responsibility: capacity can
+grow for a busy week and shrink afterwards, and the provider handles hardware
+failure, power, cooling and physical security.
+
+The genuine costs are dependence and jurisdiction. The service is unreachable
+whenever the internet connection is, which turns a local outage into a total one.
+The data sits on hardware belonging to somebody else, possibly in another country
+with different laws about who may read it. And rented capacity, over years, is
+often dearer than bought capacity.
+
+<Aside kind="trap" title="“The cloud is just someone else's computer” is true but not an argument">
+The phrase is accurate and frequently deployed as though it settled the question.
+It does not.
+
+What matters is not who owns the hardware but who carries the consequences of it
+failing, who has the expertise to run it, and whether demand is steady or spiky. A
+school with one part-time technician and a seasonal load is a genuinely different
+case from a bank with a data centre and a compliance department.
+
+Marks in a "discuss" question come from weighing those factors for the scenario
+given, not from a general verdict on cloud computing.
+</Aside>
+
+<Takeaway>
+Topology decides what a single failure costs. Architecture decides who holds the
+data and therefore who holds the power to control, back up and lose it.
+</Takeaway>

@@ -1,0 +1,286 @@
+---
+code: A3.1.1
+title: The relational model
+lede: >-
+  Why data is split across many tables rather than kept in one big one, and what the keys are actually holding together.
+cards:
+  - q: >-
+      What is a database?
+    a: >-
+      An organised, persistent collection of related data, managed so that it can be queried, updated and shared without each program inventing its own storage.
+  - q: >-
+      What is a relational database?
+    a: >-
+      One that stores data in **tables** of rows and columns, with relationships between tables expressed by shared key values rather than by pointers.
+  - q: >-
+      What is an entity?
+    a: >-
+      A thing the database stores information about — a student, a book, a loan. It usually becomes one table.
+  - q: >-
+      What is an attribute?
+    a: >-
+      A property of an entity, stored as a column. A student has a name, a date of birth, a year group.
+  - q: >-
+      What is a primary key?
+    a: >-
+      An attribute, or combination of attributes, that uniquely identifies each row. It cannot be duplicated and cannot be empty.
+  - q: >-
+      What is a foreign key?
+    a: >-
+      An attribute in one table that refers to the primary key of another, which is how a relationship between the two is recorded.
+  - q: >-
+      What is a composite key?
+    a: >-
+      A primary key made of more than one attribute, used when no single attribute is unique on its own.
+  - q: >-
+      What is entity integrity?
+    a: >-
+      The rule that every primary key value must be present and unique, so every row can be told apart from every other.
+  - q: >-
+      What is referential integrity?
+    a: >-
+      The rule that a foreign key must either be empty or match an existing primary key, so nothing refers to a row that is not there.
+  - q: >-
+      What is data redundancy, and why is it a problem?
+    a: >-
+      The same fact stored in more than one place. It wastes space and, far worse, allows the copies to disagree after an update.
+  - q: >-
+      Name the three kinds of relationship between entities.
+    a: >-
+      One-to-one, one-to-many, and many-to-many.
+  - q: >-
+      How is a many-to-many relationship implemented?
+    a: >-
+      With a **link table** holding a foreign key to each side. A relational database cannot represent many-to-many directly.
+practice:
+  - marks: 3
+    q: >-
+      Define the terms entity, attribute and record, using a library database as your example.
+    points:
+      - >-
+          An entity is a thing about which data is stored, such as a Book.
+      - >-
+          An attribute is a property of that entity, such as title or ISBN, stored as a column.
+      - >-
+          A record is one instance of the entity, that is one row holding the values of all its attributes.
+  - marks: 4
+    q: >-
+      Explain the difference between a primary key and a foreign key.
+    points:
+      - >-
+          A primary key uniquely identifies each record within its own table.
+      - >-
+          It must be unique and cannot be null.
+      - >-
+          A foreign key is an attribute that refers to the primary key of another table.
+      - >-
+          It records a relationship, and may repeat or, where the relationship is optional, be null.
+  - marks: 3
+    q: >-
+      Explain what referential integrity means and give an example of a violation.
+    points:
+      - >-
+          Every foreign key value must match an existing primary key value, or be null.
+      - >-
+          It ensures no record refers to something that does not exist.
+      - >-
+          An example is a Loan record whose MemberID refers to a member who has been deleted from the Member table.
+  - marks: 4
+    q: >-
+      A school stores each student's class teacher's name and room in the Student table. Explain two problems this causes.
+    points:
+      - >-
+          The teacher's details are repeated for every student in the class, which is redundant.
+      - >-
+          If the teacher changes room, every affected row must be updated, and missing one leaves inconsistent data.
+      - >-
+          A teacher with no students currently assigned cannot be recorded at all.
+      - >-
+          Deleting the last student in a class would also delete the only record of that teacher.
+  - marks: 4
+    q: >-
+      A library allows a member to borrow many books, and a book to be borrowed by many members over time. Explain how this relationship should be implemented.
+    points:
+      - >-
+          This is a many-to-many relationship, which cannot be represented directly between two tables.
+      - >-
+          A third table, such as Loan, is introduced.
+      - >-
+          It holds a foreign key to Member and a foreign key to Book.
+      - >-
+          Each row of Loan represents one borrowing, and additional attributes such as the date borrowed can be stored there.
+  - marks: 3
+    q: >-
+      Explain why a composite key might be used, giving an example.
+    points:
+      - >-
+          It is used when no single attribute uniquely identifies a record.
+      - >-
+          Two or more attributes are combined so that the combination is unique.
+      - >-
+          For example, in a table of exam entries, StudentID and SubjectCode together identify one entry, though neither is unique alone.
+  - marks: 5
+    q: >-
+      Discuss the advantages of a relational database over storing the same data in a single spreadsheet.
+    points:
+      - >-
+          Splitting data across related tables removes redundancy, so each fact is stored once.
+      - >-
+          Integrity rules prevent invalid or orphaned data, which a spreadsheet cannot enforce.
+      - >-
+          Multiple users can work concurrently with controlled access, rather than contending for one file.
+      - >-
+          Queries can combine tables flexibly without restructuring the stored data.
+      - >-
+          A balanced judgement notes the cost — greater complexity and expertise required — with a supported conclusion.
+---
+
+Put everything in one big table and it works, briefly, for small amounts of data.
+The trouble starts on the first update.
+
+## Why one table fails
+
+Consider a library keeping loans in a single table:
+
+| LoanID | MemberName | MemberAddress | BookTitle | Author | DateOut |
+| --- | --- | --- | --- | --- | --- |
+| 1 | A. Lovelace | 12 Mill St | Gödel, Escher, Bach | Hofstadter | 2026-03-01 |
+| 2 | A. Lovelace | 12 Mill St | The Mythical Man-Month | Brooks | 2026-03-04 |
+| 3 | G. Hopper | 9 Bank Rd | Gödel, Escher, Bach | Hofstadter | 2026-03-06 |
+
+Three problems, each with a name.
+
+**Update anomaly.** Lovelace moves house. Her address appears in two rows here and
+possibly two hundred in a real system. Miss one and the database now holds two
+different addresses for the same person, with nothing to say which is right.
+
+**Insertion anomaly.** A new member joins but has borrowed nothing. There is
+nowhere to record them, because a row of this table requires a loan.
+
+**Deletion anomaly.** The last loan of a book is deleted, and with it the only
+record that the library owns that book, and who wrote it.
+
+All three come from the same cause: **facts about different things are stored
+together**. The fix is to store facts about members in a Member table, facts about
+books in a Book table, and facts about loans in a Loan table.
+
+<Figure caption="Three entities, with the Loan table between them turning a many-to-many relationship into two one-to-many relationships.">
+  <ErDiagram />
+</Figure>
+
+## Keys
+
+A **primary key** uniquely identifies a row. It must be unique and must never be
+empty — that rule is **entity integrity**, and without it you have rows you cannot
+tell apart or refer to.
+
+Sometimes no single attribute is unique, and a **composite key** of two or more
+attributes is used. In a table of exam entries, neither StudentID nor SubjectCode
+is unique alone, but the pair identifies exactly one entry.
+
+A **foreign key** is an attribute holding a primary key value from another table.
+`Loan.MemberID` holding `M104` says this loan belongs to that member. This is the
+entire mechanism by which relational databases represent relationships — there are
+no pointers, no nesting, just matching values.
+
+**Referential integrity** is the rule that a foreign key must match an existing
+primary key, or be null. It is what stops a loan referring to a member who has been
+deleted.
+
+<Aside kind="why" title="Why a natural key is usually a bad primary key">
+It is tempting to use something already unique — an email address, a national
+insurance number, an ISBN.
+
+It goes wrong for reasons that are obvious in hindsight. People change email
+addresses, and the change now has to propagate to every foreign key referring to
+it. Values thought to be unique turn out not to be: ISBNs have been reissued, and
+two people have shared a national insurance number through administrative error.
+And a real-world identifier is often sensitive, so it ends up copied into a dozen
+tables that had no business holding it.
+
+A **surrogate key** — an arbitrary integer with no meaning outside the database —
+avoids all of this. It never changes, because nothing in the real world can change
+it. Almost every production database uses one.
+</Aside>
+
+## Relationships
+
+**One-to-one.** Each row in A relates to at most one in B. Genuinely rare, and
+usually a sign the two tables should be merged. It is defensible when part of the
+data is sensitive or rarely used and worth separating.
+
+**One-to-many.** The common case. One member has many loans; each loan belongs to
+one member. Implemented by putting a foreign key on the **many** side — `MemberID`
+goes in Loan, not the other way round.
+
+**Many-to-many.** Each member borrows many books; each book is borrowed by many
+members. This **cannot** be implemented directly. There is no way to put a foreign
+key on either side without repeating rows.
+
+The solution is a **link table** holding a foreign key to each side. Loan is
+exactly that, and note what it enables: because the relationship now has a table of
+its own, it can carry attributes — the date borrowed, the date due, whether it was
+renewed. Those facts belong to the *relationship*, not to the member or the book.
+
+<Aside kind="trap" title="Putting the foreign key on the wrong side">
+For a one-to-many relationship, the foreign key goes on the **many** side. Always.
+
+Put `LoanID` in Member instead and a member can have exactly one loan, because
+there is one column to hold it. Trying to fix that with `Loan1`, `Loan2`, `Loan3`
+columns is the classic wrong answer: it caps the number arbitrarily, wastes space
+on members who have borrowed nothing, and makes "find all loans" impossible to
+write as a query.
+
+The test to apply: which side can there be many of? That side gets the foreign key.
+</Aside>
+
+<Py caption="The three anomalies, demonstrated. Run it to see the one-table design go inconsistent, then the normalised version refuse to.">{`
+# One table: the same fact in several places.
+flat = [
+    {"loan": 1, "member": "A. Lovelace", "address": "12 Mill St", "book": "GEB"},
+    {"loan": 2, "member": "A. Lovelace", "address": "12 Mill St", "book": "MMM"},
+    {"loan": 3, "member": "G. Hopper",   "address": "9 Bank Rd",  "book": "GEB"},
+]
+
+print("Lovelace moves house, and one row is missed:")
+for row in flat:
+    if row["member"] == "A. Lovelace" and row["loan"] == 1:
+        row["address"] = "44 Quay St"
+
+addresses = {r["address"] for r in flat if r["member"] == "A. Lovelace"}
+print("   addresses now on record for her:", addresses)
+print("   consistent:", len(addresses) == 1)
+
+# Split into tables: the address exists once, so it cannot disagree with itself.
+members = {"M1": {"name": "A. Lovelace", "address": "12 Mill St"},
+           "M2": {"name": "G. Hopper",   "address": "9 Bank Rd"}}
+books   = {"B1": {"title": "GEB"}, "B2": {"title": "MMM"}}
+loans   = [{"id": 1, "member": "M1", "book": "B1"},
+           {"id": 2, "member": "M1", "book": "B2"},
+           {"id": 3, "member": "M2", "book": "B1"}]
+
+members["M1"]["address"] = "44 Quay St"
+print()
+print("after the same move, normalised:")
+for loan in loans:
+    m = members[loan["member"]]
+    print(f"   loan {loan['id']}: {m['name']:<12} {m['address']:<12} {books[loan['book']]['title']}")
+
+# Referential integrity: a loan may not point at a member who is not there.
+def add_loan(loan):
+    if loan["member"] not in members:
+        raise ValueError(f"referential integrity: no member {loan['member']}")
+    loans.append(loan)
+
+print()
+try:
+    add_loan({"id": 4, "member": "M9", "book": "B1"})
+except ValueError as e:
+    print("  ", e)
+`}</Py>
+
+<Takeaway>
+Store each fact in exactly one place, and connect the places with keys. Every rule
+in the relational model — entity integrity, referential integrity, normalisation —
+exists to enforce that one sentence.
+</Takeaway>

@@ -1,0 +1,256 @@
+---
+code: A1.3.1
+title: What an operating system does
+lede: >-
+  The program whose job is to stop every other program from having to know how the machine works — and from wrecking each other.
+prereqs:
+  - A1.1.4
+cards:
+  - q: >-
+      What is an operating system?
+    a: >-
+      The software that manages the hardware and provides services to every other program. Nothing else has to know what disc or graphics card is fitted.
+  - q: >-
+      Name the main functions of an operating system.
+    a: >-
+      Process and processor management, memory management, file management, device and input/output management, security and user accounts, and providing a user interface.
+  - q: >-
+      What is a process?
+    a: >-
+      A program **in execution**, together with everything it needs to run: its memory, its registers, its open files and its current position in the code.
+  - q: >-
+      What is multitasking?
+    a: >-
+      Running several processes on one processor by switching between them so quickly that all appear to progress at once.
+  - q: >-
+      What is a context switch?
+    a: >-
+      Saving one process's registers and state, then loading another's, so execution can resume exactly where it left off. It is pure overhead — no useful work happens during it.
+  - q: >-
+      What is a device driver?
+    a: >-
+      Software that translates the operating system's general requests into the specific commands a particular piece of hardware understands.
+  - q: >-
+      Why is a driver needed at all?
+    a: >-
+      Every device is different. Without drivers, every application would need code for every model of printer, disc and graphics card in existence.
+  - q: >-
+      What is the kernel?
+    a: >-
+      The core of the operating system, always in memory, running with full hardware privileges and handling the most fundamental services.
+  - q: >-
+      What is the difference between kernel mode and user mode?
+    a: >-
+      Kernel mode allows any instruction and access to all memory. User mode forbids privileged instructions, so an ordinary program cannot touch hardware or other processes directly.
+  - q: >-
+      What is a system call?
+    a: >-
+      A controlled request from a user-mode program asking the kernel to do something privileged on its behalf, such as reading a file.
+  - q: >-
+      What does the file system do?
+    a: >-
+      Presents storage as named files in a hierarchy of folders, while tracking where the blocks actually are on the physical medium.
+practice:
+  - marks: 4
+    q: >-
+      Describe four functions of an operating system.
+    points:
+      - >-
+          Process management — creating, scheduling and terminating processes.
+      - >-
+          Memory management — allocating memory to processes and preventing them accessing each other's.
+      - >-
+          File management — organising storage into named files and directories and controlling access.
+      - >-
+          Device management, security, or providing a user interface, correctly described.
+  - marks: 3
+    q: >-
+      Explain the difference between a program and a process.
+    points:
+      - >-
+          A program is a passive file of instructions stored on disc.
+      - >-
+          A process is that program actually running, with memory allocated and a current execution position.
+      - >-
+          One program may have several processes running from it at once, each with its own state.
+  - marks: 4
+    q: >-
+      Explain what happens during a context switch and why it represents overhead.
+    points:
+      - >-
+          The current process's registers, program counter and state are saved.
+      - >-
+          The next process's saved state is loaded into the registers.
+      - >-
+          Execution resumes in the new process exactly where it previously stopped.
+      - >-
+          No useful work is done during the switch, so time spent switching is time not spent computing.
+  - marks: 4
+    q: >-
+      Explain why operating systems distinguish between kernel mode and user mode.
+    points:
+      - >-
+          Kernel mode permits privileged instructions and unrestricted access to memory and hardware.
+      - >-
+          User mode blocks those instructions, so an application cannot access hardware directly.
+      - >-
+          A faulty or malicious program is therefore unable to damage other processes or the system itself.
+      - >-
+          Programs must instead make system calls, which the kernel can check before acting.
+  - marks: 3
+    q: >-
+      Explain the purpose of a device driver.
+    points:
+      - >-
+          It translates general operating system requests into the specific commands a particular device understands.
+      - >-
+          It hides the differences between devices of the same type behind a common interface.
+      - >-
+          Applications and the operating system therefore need no knowledge of the specific hardware fitted.
+  - marks: 4
+    q: >-
+      A user reports that their computer has become unresponsive while a single application is running. Explain how the operating system is expected to prevent one program monopolising the machine.
+    points:
+      - >-
+          The scheduler allocates each process a limited slice of processor time.
+      - >-
+          A timer interrupt returns control to the operating system when the slice expires.
+      - >-
+          The scheduler can then pre-empt the running process and give the processor to another.
+      - >-
+          Without pre-emption, a process that never yields would run indefinitely, which is what the symptom suggests.
+  - marks: 5
+    q: >-
+      Discuss the advantages and disadvantages of an operating system providing a layer of abstraction over the hardware.
+    points:
+      - >-
+          Applications are written once against a common interface rather than for each device.
+      - >-
+          Hardware can be replaced or upgraded without rewriting applications.
+      - >-
+          The abstraction allows access control, so processes cannot interfere with one another.
+      - >-
+          However each layer adds overhead, so operations are slower than direct hardware access.
+      - >-
+          Some specialised software, such as real-time or high-performance systems, may need to bypass it, and a reasoned judgement is offered.
+---
+
+Without an operating system, every program would need its own code for the exact
+disc controller fitted, its own way of putting pixels on the exact screen
+attached, and a private agreement with every other program about who may use the
+memory. Nothing would be portable and nothing would be safe.
+
+The operating system exists so that no application has to know any of that.
+
+<Figure caption="Each layer talks only to the one below. An application asks for 'the next 512 bytes of this file' and never learns which disc it came from.">
+  <OsLayers />
+</Figure>
+
+## Program, process, thread
+
+A **program** is a file on disc: passive, just instructions.
+
+A **process** is that program running. It has memory allocated to it, a set of
+register values, a program counter saying where it has got to, and a list of open
+files. Two copies of the same editor are one program and two processes, each with
+its own state.
+
+A **thread** is a strand of execution within a process. Threads of the same process
+share its memory, which makes communication between them cheap and makes it very
+easy for them to corrupt each other's data.
+
+## Managing the processor
+
+One processor core runs one instruction stream. Yet dozens of processes appear to
+run at once.
+
+They do not. The operating system switches between them fast enough that a human
+cannot tell — tens or hundreds of times a second. This is **multitasking**, and
+the switch itself is a **context switch**:
+
+1. A timer interrupt fires, transferring control to the kernel.
+2. The running process's registers, program counter and flags are saved into its
+   process control block.
+3. The scheduler chooses which process runs next.
+4. That process's saved state is loaded back into the registers.
+5. Execution resumes, and the process is none the wiser.
+
+A context switch does no useful work. It is overhead, paid for the illusion of
+simultaneity, which is why switching too often makes a system slower rather than
+more responsive.
+
+<Aside kind="why" title="Why the timer interrupt is what makes this possible at all">
+There is a bootstrapping problem here worth noticing. If a process is running, the
+operating system is not. So how does the operating system ever get control back
+from a program that does not cooperate?
+
+The answer is hardware. A timer chip counts down and raises an **interrupt** on the
+control bus, which forces the processor to stop, save its state and jump to a fixed
+address where the kernel's handler lives. The running program has no say in it.
+
+Early systems lacked this and used **cooperative** multitasking, where each program
+was trusted to hand control back voluntarily. One program with an infinite loop
+froze the entire machine, which is exactly what happened routinely on machines of
+that era. Pre-emption is not an optimisation; it is what makes an operating system
+able to enforce anything at all.
+</Aside>
+
+## Managing memory
+
+Several processes are in memory at once, and none may read or write another's.
+
+The operating system allocates each process a region and, with help from hardware,
+enforces the boundary. An attempt to read outside it is caught by the memory
+management unit, which raises an exception rather than allowing the access — the
+segmentation fault familiar to anyone who has written C.
+
+Processes also see **virtual addresses**, translated to physical ones by the
+hardware. Two processes can both use address $0$ without conflict, because those
+map to different physical locations. This is also what allows virtual memory to
+move a page out to disc and back to a different physical address, invisibly.
+
+## Managing files
+
+Storage is physically a numbered sequence of blocks. Nobody wants to work in those
+terms, so the file system presents named files in a hierarchy of directories and
+keeps track of which blocks hold which file.
+
+It also handles permissions, free space, and — crucially — the metadata that makes
+recovery possible after a crash, which is what journalling file systems add.
+
+## Kernel mode and user mode
+
+The processor itself supports two privilege levels, and this hardware feature is
+what makes an operating system enforceable.
+
+In **kernel mode**, all instructions are permitted and all memory is reachable.
+The kernel runs here.
+
+In **user mode**, privileged instructions — those that touch hardware, alter the
+memory map, or disable interrupts — simply fail. Applications run here.
+
+So how does a program read a file, if it cannot touch the disc? It makes a
+**system call**: a deliberate, controlled transition into kernel mode at a fixed
+entry point, with the kernel deciding whether to comply.
+
+<Aside kind="deeper" title="The system call is the whole security model">
+Every restriction an operating system enforces rests on this one mechanism. A
+program cannot read another process's memory, cannot write to a file it lacks
+permission for, and cannot reprogram the network card, because all three require
+instructions it is not allowed to execute.
+
+The only way through is a system call, and a system call is a request the kernel
+may refuse. Notice the shape of the argument: security comes from the fact that
+the check happens on the *other* side of a boundary the untrusted code cannot
+cross.
+
+This is also why a bug in the kernel is so much more serious than a bug in an
+application. The application is inside the fence; the kernel is the fence.
+</Aside>
+
+<Takeaway>
+An operating system is a manager of scarce resources — processor time, memory,
+storage, devices — and an enforcer of boundaries between the programs competing
+for them. Both jobs depend on hardware support: the timer interrupt and the
+privilege levels.
+</Takeaway>

@@ -1,0 +1,310 @@
+---
+code: A3.2.1
+title: Transactions and other kinds of database
+lede: >-
+  Making several changes count as one, what happens when two people change the same row at once, and when the relational model is the wrong tool.
+hl: true
+prereqs:
+  - A3.1.1
+cards:
+  - q: >-
+      What is a transaction?
+    a: >-
+      A group of operations treated as a **single indivisible unit** — either all of them take effect, or none do.
+  - q: >-
+      What do the letters ACID stand for?
+    a: >-
+      **Atomicity**, **Consistency**, **Isolation**, **Durability**.
+  - q: >-
+      What is atomicity?
+    a: >-
+      A transaction happens completely or not at all. A failure part-way is rolled back, leaving no trace.
+  - q: >-
+      What is consistency, in ACID?
+    a: >-
+      A transaction moves the database from one valid state to another, never leaving integrity rules broken.
+  - q: >-
+      What is isolation?
+    a: >-
+      Concurrent transactions do not see each other's partial work; the result is as if they had run one after another.
+  - q: >-
+      What is durability?
+    a: >-
+      Once a transaction is committed, it survives a crash or power loss, because it has been written to non-volatile storage.
+  - q: >-
+      What is a rollback?
+    a: >-
+      Undoing every change made by a transaction that could not complete, returning the database to its state beforehand.
+  - q: >-
+      What is a deadlock?
+    a: >-
+      Two transactions each holding a lock the other needs, so neither can proceed. One must be aborted to break it.
+  - q: >-
+      What is the lost update problem?
+    a: >-
+      Two transactions read the same value, both modify it, and the second write overwrites the first — so one update vanishes.
+  - q: >-
+      What is a NoSQL database?
+    a: >-
+      One that does not use the relational table model — document, key-value, column-family or graph — usually trading strict consistency for scale and flexibility.
+  - q: >-
+      When is a document database a better fit than a relational one?
+    a: >-
+      When records vary in structure, when the schema changes often, or when data is always read as a whole rather than joined across tables.
+  - q: >-
+      What is a data warehouse?
+    a: >-
+      A large store of historical data assembled from several systems for analysis, usually denormalised and optimised for reading rather than updating.
+practice:
+  - marks: 4
+    q: >-
+      Explain what is meant by atomicity and durability, using a bank transfer as your example.
+    points:
+      - >-
+          Atomicity means the whole transaction takes effect or none of it does.
+      - >-
+          In a transfer, the debit and the credit must both happen, or neither, so money is never lost or created.
+      - >-
+          Durability means that once committed, the change survives a subsequent failure.
+      - >-
+          The completed transfer must still be there after a power cut, because it was written to non-volatile storage before the commit was confirmed.
+  - marks: 3
+    q: >-
+      Explain the lost update problem.
+    points:
+      - >-
+          Two transactions read the same value at about the same time.
+      - >-
+          Each calculates a new value from what it read and writes it back.
+      - >-
+          The second write overwrites the first, so one of the updates is lost even though both appeared to succeed.
+  - marks: 4
+    q: >-
+      Explain what a deadlock is and describe one way a database system can deal with it.
+    points:
+      - >-
+          Two transactions each hold a lock that the other is waiting for.
+      - >-
+          Neither can release its lock until it has acquired the other, so both wait indefinitely.
+      - >-
+          The system detects the cycle, for example with a wait-for graph or a timeout.
+      - >-
+          It then aborts and rolls back one transaction, allowing the other to continue; the aborted one can be retried.
+  - marks: 3
+    q: >-
+      Explain why isolation matters when many users access a database at once.
+    points:
+      - >-
+          Without isolation, one transaction can read another's partially completed work.
+      - >-
+          Decisions made on that intermediate data may be wrong if the other transaction is later rolled back.
+      - >-
+          Isolation makes the outcome equivalent to running the transactions one after another, so results are predictable.
+  - marks: 4
+    q: >-
+      Compare a relational database with a document database.
+    points:
+      - >-
+          A relational database stores data in tables with a fixed schema and enforced relationships.
+      - >-
+          It guarantees integrity and supports flexible querying across tables using joins.
+      - >-
+          A document database stores self-contained records that may differ in structure, with no fixed schema.
+      - >-
+          It scales more easily and suits varying or rapidly changing data, but consistency and cross-record querying are weaker.
+  - marks: 4
+    q: >-
+      An online shop's product catalogue has items with wildly differing attributes — books have authors, clothes have sizes, electronics have voltages. Discuss whether a document database would suit it.
+    points:
+      - >-
+          A relational schema would need either many sparse columns or a separate table per product type.
+      - >-
+          A document database lets each product carry only the attributes it has.
+      - >-
+          Products are usually retrieved whole, so the lack of joins costs little.
+      - >-
+          However reporting across product types, and enforcing rules such as valid prices, become the application's responsibility.
+  - marks: 5
+    q: >-
+      A hospital is choosing a database for patient records. Discuss whether ACID guarantees should be prioritised over scalability.
+    points:
+      - >-
+          Patient records are safety-critical, so an incorrect or partially applied update could cause harm.
+      - >-
+          Atomicity ensures related changes, such as a prescription and its dose, cannot be half applied.
+      - >-
+          Durability ensures a recorded treatment is not lost in a failure.
+      - >-
+          Hospital data volumes are large but not at the scale where relational systems fail, so the scalability argument is weak here.
+      - >-
+          A clear judgement in favour of ACID is reached and justified by consequence of error.
+---
+
+A single SQL statement either works or it does not. Real operations are rarely a
+single statement.
+
+Transferring money is two: subtract from one account, add to another. If the
+machine fails between them, the money has vanished. No amount of care in writing
+each statement prevents that, because the problem is the gap between them.
+
+## Transactions
+
+A **transaction** groups operations so they count as one indivisible action.
+
+```sql
+BEGIN TRANSACTION;
+  UPDATE Account SET balance = balance - 500 WHERE id = 'A';
+  UPDATE Account SET balance = balance + 500 WHERE id = 'B';
+COMMIT;
+```
+
+Either both updates take effect, or — if anything fails before the `COMMIT` — the
+system performs a **rollback** and neither does. There is no state in which the
+money is in flight.
+
+## ACID
+
+<Figure caption="Four guarantees, each answering a different way things go wrong: crashing mid-way, breaking a rule, colliding with someone else, and losing what was already agreed.">
+  <AcidDiagram />
+</Figure>
+
+**Atomicity** — all or nothing. The transaction is a single point of failure by
+design, so there is never a half-applied change.
+
+**Consistency** — every transaction takes the database from one valid state to
+another. Integrity rules such as referential integrity hold before and after; they
+may be momentarily suspended inside, but never at a point anyone can observe.
+
+**Isolation** — concurrent transactions behave as though they had run one after
+another. Nobody sees anybody else's unfinished work.
+
+**Durability** — once committed, it survives. The change is on non-volatile storage
+before the commit is acknowledged, so a power cut a millisecond later loses
+nothing.
+
+<Aside kind="deeper" title="How durability is actually achieved without waiting for the disc">
+Writing every change to its final place on disc before confirming a commit would be
+unbearably slow, because those places are scattered.
+
+Real systems use **write-ahead logging**. Before touching the data, the intended
+change is appended to a log file — a single sequential write, which is the fastest
+thing a disc does. Only once the log entry is safely stored is the commit
+confirmed. The actual data pages are updated later, at leisure.
+
+If the machine crashes, the log is replayed on restart: committed transactions
+found in the log are reapplied, uncommitted ones are undone. The database recovers
+to a consistent state without having waited for anything during normal operation.
+
+This is the same idea as a journalling file system, and for the same reason.
+</Aside>
+
+## What isolation protects you from
+
+Without it, two specific things go wrong.
+
+**Lost update.** Two transactions read a stock level of 10. Each subtracts one and
+writes 9. Two items were sold; the database says one was.
+
+**Dirty read.** One transaction reads a value another has written but not yet
+committed. If the second transaction is rolled back, the first has acted on data
+that never officially existed.
+
+The usual mechanism is **locking**: a transaction takes a lock on a row before
+changing it, and others wait. Which creates its own problem.
+
+**Deadlock.** Transaction 1 locks row A and wants row B. Transaction 2 locks row B
+and wants row A. Both wait forever. The system detects the cycle — usually by
+looking for a loop in a wait-for graph, or simply by timeout — and aborts one,
+rolling it back so the other can proceed.
+
+<Py caption="The lost update, then the same operation done safely. Step through the unsafe version and watch both transactions read the same starting value.">{`
+class Row:
+    def __init__(self, value):
+        self.value = value
+        self.locked_by = None
+
+stock = Row(10)
+
+# Unsafe: both read before either writes.
+read_by_1 = stock.value
+read_by_2 = stock.value
+stock.value = read_by_1 - 1     # transaction 1 sells one
+stock.value = read_by_2 - 1     # transaction 2 sells one, overwriting
+print("without locking")
+print(f"   both read {read_by_1}, both wrote {stock.value}")
+print(f"   two items sold, stock fell by {10 - stock.value} — one update lost")
+
+# Safe: a lock forces the second transaction to read after the first has written.
+stock = Row(10)
+log = []
+
+def sell(name):
+    if stock.locked_by is not None:
+        log.append(f"{name} waits for {stock.locked_by}")
+        return False
+    stock.locked_by = name
+    current = stock.value
+    stock.value = current - 1
+    log.append(f"{name} read {current}, wrote {stock.value}")
+    stock.locked_by = None
+    return True
+
+print()
+print("with locking")
+sell("T1")
+sell("T2")
+for line in log:
+    print("  ", line)
+print(f"   stock fell by {10 - stock.value} — both updates kept")
+
+# Deadlock: each holds what the other needs.
+print()
+a, b = Row(1), Row(2)
+a.locked_by, b.locked_by = "T1", "T2"
+print("deadlock")
+print(f"   T1 holds A and wants B (held by {b.locked_by})")
+print(f"   T2 holds B and wants A (held by {a.locked_by})")
+print("   neither can proceed; the system must abort one and roll it back")
+`}</Py>
+
+## When relational is the wrong model
+
+The relational model assumes data has a regular shape known in advance. Sometimes
+it does not.
+
+**Document databases** store self-contained records — typically JSON — that need
+not share a structure. A book has an author, a shirt has a size, and neither wastes
+a column on the other's attributes. Good when records vary, when the schema changes
+frequently, and when data is read whole rather than joined.
+
+**Key-value stores** are a dictionary at scale: give a key, get a value. Extremely
+fast, extremely limited, ideal for caches and sessions.
+
+**Graph databases** store nodes and the edges between them, and make "friends of
+friends of friends" cheap — a query that requires an unbounded chain of joins in
+SQL.
+
+**Data warehouses** are relational but deliberately denormalised, holding historical
+data gathered from several systems for analysis. They are optimised for reading
+enormous quantities, not for updating.
+
+<Aside kind="trap" title="NoSQL does not mean “no rules”, it means the rules move">
+The attractive framing is that NoSQL databases are simpler because they drop
+schemas and joins. What actually happens is that the work moves into the
+application.
+
+Without a schema, nothing stops two records disagreeing about whether the field is
+called `postcode` or `postCode`, and the code must cope with both. Without foreign
+keys, nothing stops an order referring to a deleted customer. Without transactions
+across records, keeping two documents in step becomes your problem.
+
+A defensible answer says what is gained (scale, flexibility, speed of change) and
+where the cost lands (integrity becomes the application's responsibility), rather
+than treating one model as modern and the other as obsolete.
+</Aside>
+
+<Takeaway>
+ACID exists because the interesting failures happen *between* statements, not
+inside them. NoSQL relaxes those guarantees to buy scale, and whether that is a
+bargain depends entirely on what a wrong answer costs you.
+</Takeaway>

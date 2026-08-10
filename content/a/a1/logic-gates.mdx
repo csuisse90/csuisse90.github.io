@@ -1,0 +1,263 @@
+---
+code: A1.2.6
+title: Logic gates
+lede: >-
+  The seven switches everything else is built from, what each one physically does, and why two of them could do the whole job alone.
+prereqs:
+  - A1.2.1
+cards:
+  - q: >-
+      What is a logic gate?
+    a: >-
+      A circuit with one or more binary inputs and one binary output, whose output is a fixed function of its inputs. It is built from transistors and holds no memory.
+  - q: >-
+      What does an AND gate output?
+    a: >-
+      $1$ only when **every** input is $1$. Written $A \cdot B$ or $AB$.
+  - q: >-
+      What does an OR gate output?
+    a: >-
+      $1$ when **at least one** input is $1$. Written $A + B$. This is inclusive or — $1+1=1$, not $0$.
+  - q: >-
+      What does a NOT gate do?
+    a: >-
+      Inverts its single input. Written $\overline{A}$ or $A'$. Also called an inverter.
+  - q: >-
+      What does a NAND gate output?
+    a: >-
+      The opposite of AND: $0$ only when every input is $1$. Written $\overline{A \cdot B}$.
+  - q: >-
+      What does a NOR gate output?
+    a: >-
+      The opposite of OR: $1$ only when every input is $0$. Written $\overline{A + B}$.
+  - q: >-
+      What does an XOR gate output?
+    a: >-
+      $1$ when the inputs **differ**. Written $A \oplus B$. This is exclusive or, so $1 \oplus 1 = 0$.
+  - q: >-
+      What does an XNOR gate output?
+    a: >-
+      $1$ when the inputs are the **same**. It is an equality test, written $\overline{A \oplus B}$.
+  - q: >-
+      What does the small circle on a gate symbol mean?
+    a: >-
+      Inversion. A bubble on the output turns AND into NAND; a bubble on an input inverts that input before the gate acts.
+  - q: >-
+      What is a universal gate?
+    a: >-
+      One from which every other gate can be built. **NAND** and **NOR** are each universal on their own.
+  - q: >-
+      How do you make a NOT gate from a NAND gate?
+    a: >-
+      Tie both inputs together. $\overline{A \cdot A} = \overline{A}$.
+  - q: >-
+      Why are real chips built mostly from NAND gates?
+    a: >-
+      NAND is universal, and in CMOS it needs fewer transistors than AND — four rather than six, since AND is a NAND with an inverter bolted on.
+practice:
+  - marks: 4
+    q: >-
+      Complete a truth table for a two-input XOR gate and state one practical use of it.
+    points:
+      - >-
+          Rows $00 \to 0$ and $01 \to 1$ correct.
+      - >-
+          Rows $10 \to 1$ and $11 \to 0$ correct.
+      - >-
+          Identifies that the output is 1 when the inputs differ.
+      - >-
+          A valid use is given, such as the sum bit of a half adder, a parity check, or detecting a change between two signals.
+  - marks: 3
+    q: >-
+      Explain the difference between OR and XOR, using a truth table row to illustrate it.
+    points:
+      - >-
+          OR gives 1 when at least one input is 1, including when both are.
+      - >-
+          XOR gives 1 only when exactly one input is 1.
+      - >-
+          They differ on the row $A=1, B=1$, where OR gives 1 and XOR gives 0.
+  - marks: 3
+    q: >-
+      Show how a NOT gate can be constructed from a single NAND gate.
+    points:
+      - >-
+          Both inputs of the NAND gate are connected to the same signal $A$.
+      - >-
+          The output is therefore $\overline{A \cdot A}$.
+      - >-
+          Since $A \cdot A = A$, the output is $\overline{A}$, which is NOT.
+  - marks: 4
+    q: >-
+      Show how an AND gate can be constructed using only NAND gates.
+    points:
+      - >-
+          A first NAND gate takes inputs $A$ and $B$, giving $\overline{A \cdot B}$.
+      - >-
+          A second NAND gate has both inputs tied to that output, acting as an inverter.
+      - >-
+          The result is $\overline{\overline{A \cdot B}}$.
+      - >-
+          Double negation gives $A \cdot B$, which is AND. Two NAND gates are required.
+  - marks: 3
+    q: >-
+      Explain what is meant by a universal gate and state which gates are universal.
+    points:
+      - >-
+          A universal gate is one from which any other logic gate, and therefore any logic circuit, can be built.
+      - >-
+          NAND is universal.
+      - >-
+          NOR is also universal.
+  - marks: 4
+    q: >-
+      Explain why manufacturers prefer to build circuits from NAND gates rather than from a mixture of AND, OR and NOT.
+    points:
+      - >-
+          Only one type of gate needs to be designed, tested and fabricated, simplifying manufacture.
+      - >-
+          NAND is universal, so no functionality is lost.
+      - >-
+          In CMOS, NAND requires fewer transistors than AND, which is a NAND followed by an inverter.
+      - >-
+          Fewer transistors means smaller area, lower cost and lower power consumption.
+  - marks: 4
+    q: >-
+      A security system sounds an alarm when the system is armed AND either the door sensor OR the window sensor is triggered. Write the Boolean expression and state the gates required.
+    points:
+      - >-
+          Defines variables, for example $S$ armed, $D$ door, $W$ window.
+      - >-
+          Expression $S \cdot (D + W)$.
+      - >-
+          An OR gate combines $D$ and $W$.
+      - >-
+          An AND gate combines that result with $S$.
+---
+
+Underneath every program, every file and every calculation is a very large number
+of switches, arranged so that the pattern of which are open and which are closed
+computes something. A **logic gate** is the smallest useful arrangement: a few
+transistors whose output is a fixed function of its inputs.
+
+There are seven worth knowing. Each is completely defined by its truth table —
+there is nothing else to know about what it does.
+
+## AND
+
+Output is $1$ only when **all** inputs are $1$. Written $A \cdot B$, or just $AB$.
+
+The everyday reading is "both". A nuclear launch requiring two keys turned
+simultaneously is an AND gate.
+
+<Circuit id="and2" table animate />
+
+## OR
+
+Output is $1$ when **at least one** input is $1$. Written $A + B$.
+
+The trap is that this is **inclusive** or, unlike the English word. "Tea or
+coffee" usually excludes having both; $A + B$ does not. $1 + 1 = 1$.
+
+<Circuit id="or2" table animate />
+
+## NOT
+
+One input, one output, inverted. Written $\overline{A}$ or $A'$.
+
+<Circuit id="not1" table animate />
+
+## NAND and NOR
+
+AND and OR with the output inverted. Notice the small circle on the output of the
+symbol: throughout this notation, **a bubble means inversion**, and it can appear
+on inputs as well as outputs.
+
+<Circuit id="nand2" table animate />
+
+<Circuit id="nor2" table animate />
+
+## XOR and XNOR
+
+**XOR** — exclusive or — outputs $1$ when its inputs **differ**. This is the
+English "or" that people usually mean: one or the other, not both. Written
+$A \oplus B$.
+
+<Circuit id="xor2" table animate />
+
+**XNOR** is its inverse: $1$ when the inputs are **the same**. It is an equality
+detector, and that is usually how it appears in real circuits.
+
+<Circuit id="xnor2" table animate />
+
+<Aside kind="why" title="Why XOR earns its own symbol when it is only three other gates">
+$A \oplus B$ expands to $A\overline{B} + \overline{A}B$ — two ANDs, two NOTs and
+an OR. So why give it a symbol of its own?
+
+Because it turns up everywhere. It is **addition without the carry**: $0+0=0$,
+$0+1=1$, $1+0=1$, $1+1=0$ (carry the one). Every adder in every processor has an
+XOR at its heart. It is also a **difference detector**, so it is used to compare
+values and to compute parity for error checking. And it is its own inverse —
+$(A \oplus K) \oplus K = A$ — which makes it the basis of the simplest encryption
+there is.
+
+One gate, four jobs. Worth a symbol.
+</Aside>
+
+## Universality
+
+Here is a genuinely surprising fact: **NAND alone is enough to build anything.**
+
+Not "NAND is convenient". Every logic circuit that can exist — every processor,
+every memory, every graphics chip — can be built from nothing but NAND gates.
+
+The proof is constructive, and short. If you can build NOT, AND and OR, you can
+build everything, since every truth table can be written as a sum of products.
+
+**NOT from NAND**: tie both inputs together. $\overline{A \cdot A} = \overline{A}$.
+
+<Circuit id="not-from-nand" table animate />
+
+**AND from NAND**: a NAND, then a NAND used as an inverter.
+
+<Circuit id="and-from-nand" table animate />
+
+**OR from NAND**: invert both inputs, then NAND them. By De Morgan's law,
+$\overline{\overline{A} \cdot \overline{B}} = A + B$.
+
+<Circuit id="or-from-nand" table animate />
+
+That is the whole proof. NOR is universal too, by the mirror-image argument.
+
+<Aside kind="deeper" title="Why this is not a curiosity but the reason chips are affordable">
+A silicon foundry would rather perfect one component than seven. Universality
+means it can: design the NAND cell once, characterise its timing and power
+exhaustively, tune the manufacturing process for it, and then compose everything
+from copies.
+
+There is a second reason, specific to CMOS, the technology essentially all chips
+use. In CMOS, the *inverting* gates are the cheap ones. NAND takes four
+transistors. AND takes six — because it is physically built as a NAND followed by
+an inverter. There is no direct AND.
+
+So the gate you were taught first is, in the hardware, a compound of two others.
+The natural vocabulary of silicon is NAND and NOR; AND and OR are conveniences for
+humans.
+</Aside>
+
+## Reading a circuit
+
+Given a diagram, work left to right, writing the expression at each gate's output
+before moving on. The output of the last gate is the expression for the circuit.
+
+Here is a worked one — the alarm from the practice questions.
+
+<Circuit id="worked-alarm" table animate showIndex />
+
+Try the reverse too: cover the diagram, read only the truth table, and see whether
+you can name the circuit before looking.
+
+<Takeaway>
+Seven gates, each defined entirely by a table of at most four rows. Everything
+else in digital electronics is composition.
+</Takeaway>

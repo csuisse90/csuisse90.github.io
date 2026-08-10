@@ -1,0 +1,340 @@
+---
+code: A1.4.1
+title: Translators
+lede: >-
+  Getting from something a person can read to something a processor can execute, and the two very different bargains available for doing it.
+prereqs:
+  - A1.1.3
+cards:
+  - q: >-
+      Why is a translator needed at all?
+    a: >-
+      A processor executes only machine code — binary patterns. Anything written in a higher-level language must be turned into those patterns before it can run.
+  - q: >-
+      What is machine code?
+    a: >-
+      The binary instructions a particular processor executes directly. It is specific to that processor family, so it is not portable.
+  - q: >-
+      What is assembly language?
+    a: >-
+      A human-readable form of machine code, with a mnemonic such as `ADD` for each instruction. One line of assembly is usually one machine instruction.
+  - q: >-
+      What does an assembler do?
+    a: >-
+      Translates assembly language into machine code, essentially one-to-one, resolving labels into addresses.
+  - q: >-
+      What does a compiler do?
+    a: >-
+      Translates an entire high-level program into machine code **once, before running**, producing an executable file.
+  - q: >-
+      What does an interpreter do?
+    a: >-
+      Translates and executes the program **statement by statement, each time it runs**. No executable file is produced.
+  - q: >-
+      Give two advantages of a compiler.
+    a: >-
+      The compiled program runs faster, since translation is already done, and the source code need not be given to the user.
+  - q: >-
+      Give two advantages of an interpreter.
+    a: >-
+      Execution starts immediately with no compile step, and errors are reported with the line that caused them, which makes debugging quicker.
+  - q: >-
+      How do compilers and interpreters differ in reporting errors?
+    a: >-
+      A compiler reports all syntax errors before anything runs. An interpreter reports one error at a time, only when execution reaches that line.
+  - q: >-
+      What are the stages of compilation?
+    a: >-
+      Lexical analysis, syntax analysis, semantic analysis, code generation, and optimisation.
+  - q: >-
+      What happens during lexical analysis?
+    a: >-
+      The source text is broken into **tokens** — keywords, identifiers, operators, literals — and whitespace and comments are discarded.
+  - q: >-
+      What happens during syntax analysis?
+    a: >-
+      The tokens are checked against the grammar of the language and assembled into a parse tree. Errors here are syntax errors.
+  - q: >-
+      What is bytecode?
+    a: >-
+      An intermediate representation, compiled once from source and then interpreted or just-in-time compiled by a virtual machine. It gives portability with much of the speed of compilation.
+practice:
+  - marks: 4
+    q: >-
+      Compare a compiler and an interpreter with reference to when translation occurs and what is produced.
+    points:
+      - >-
+          A compiler translates the whole program before execution begins.
+      - >-
+          It produces a separate executable file of machine code that can be run repeatedly without retranslation.
+      - >-
+          An interpreter translates and executes statement by statement while the program runs.
+      - >-
+          No executable is produced, so the source and the interpreter are needed every time it is run.
+  - marks: 3
+    q: >-
+      Explain why a compiled program generally runs faster than the same program interpreted.
+    points:
+      - >-
+          In a compiled program, translation has already been completed before execution starts.
+      - >-
+          An interpreter must analyse each statement every time it is reached, including on every pass of a loop.
+      - >-
+          The compiler can also apply optimisations across the whole program, which an interpreter has no opportunity to do.
+  - marks: 3
+    q: >-
+      A developer is testing a program that fails after several minutes of running. Explain why they might prefer an interpreter during development.
+    points:
+      - >-
+          An interpreter begins executing immediately, with no wait for a compilation step after each change.
+      - >-
+          The error is reported at the line that caused it, together with the state at that point.
+      - >-
+          The edit, run and observe cycle is therefore much shorter, which matters when changes are frequent.
+  - marks: 4
+    q: >-
+      Describe what happens during lexical analysis and syntax analysis.
+    points:
+      - >-
+          Lexical analysis breaks the source into tokens such as keywords, identifiers, operators and literals.
+      - >-
+          Whitespace and comments are removed, and a symbol table of identifiers is begun.
+      - >-
+          Syntax analysis checks that the sequence of tokens conforms to the grammar of the language.
+      - >-
+          A parse tree or abstract syntax tree is constructed, and any violation is reported as a syntax error.
+  - marks: 3
+    q: >-
+      State the difference between a syntax error and a semantic error, giving an example of each.
+    points:
+      - >-
+          A syntax error breaks the grammatical rules of the language, for example a missing closing bracket.
+      - >-
+          A semantic error is grammatically valid but meaningless, for example adding a number to a string, or using an undeclared variable.
+      - >-
+          Syntax errors are found during syntax analysis; semantic errors are found during semantic analysis.
+  - marks: 4
+    q: >-
+      Explain why languages such as Java and Python compile to bytecode rather than directly to machine code.
+    points:
+      - >-
+          Machine code is specific to one processor family, so a directly compiled program is not portable.
+      - >-
+          Bytecode is compiled once and can run on any machine with a suitable virtual machine.
+      - >-
+          Much of the analysis and optimisation is done at compile time, so it is faster than interpreting source directly.
+      - >-
+          The virtual machine can also compile hot bytecode to machine code at run time, recovering much of the remaining speed.
+  - marks: 5
+    q: >-
+      A company is choosing between a compiled and an interpreted language for software to be sold to customers. Discuss the factors they should weigh.
+    points:
+      - >-
+          A compiled program runs faster, which matters if performance is a selling point.
+      - >-
+          Distributing an executable does not reveal the source code, protecting intellectual property.
+      - >-
+          However a separate executable must be built for each target platform, increasing maintenance.
+      - >-
+          An interpreted language runs anywhere the interpreter exists, and shortens development time.
+      - >-
+          A reasoned judgement is reached, weighing performance and secrecy against portability and development cost.
+---
+
+A processor executes machine code and nothing else. Anything written in a language
+a person would willingly use has to be translated first, and there are two quite
+different ways to arrange that.
+
+## The layers
+
+| Level | Example | Who reads it |
+| --- | --- | --- |
+| High-level language | `total = price * quantity` | People |
+| Assembly language | `LDA price` / `MUL quantity` / `STA total` | People, just about |
+| Machine code | `0001 0000 0110 0100` | The processor |
+
+**Assembly language** is machine code with the bit patterns replaced by mnemonics.
+The correspondence is essentially one instruction to one line, so an **assembler**
+does very little: look up each mnemonic, work out what address each label refers
+to, emit the bytes.
+
+High-level languages are a much bigger jump. One line of Python may become dozens
+of machine instructions, and the translator has real work to do.
+
+## Compilers and interpreters
+
+A **compiler** translates the whole program once, in advance, producing an
+executable file. Translation and execution are separate events, possibly years
+apart.
+
+An **interpreter** translates and executes as it goes, statement by statement,
+every time the program runs. No executable is produced.
+
+<Compare />
+
+The consequences follow from that one difference:
+
+**Speed of running.** Compiled code wins, and not marginally. An interpreter
+re-analyses a statement every time it is reached — inside a loop running a million
+times, that is a million redundant analyses.
+
+**Speed of starting.** Interpreted code wins. There is no wait before the first
+line runs, which matters enormously when you are changing the code every thirty
+seconds.
+
+**Error reporting.** A compiler finds every syntax error before anything runs,
+which is thorough but means fixing a hundred errors before seeing any behaviour.
+An interpreter reports the first error when it reaches it — so a mistake on the
+last line of a long program is not discovered until the program has run all the way
+there.
+
+**Portability.** Machine code is specific to one processor family, so a compiled
+program must be rebuilt for each target. Source code plus an interpreter runs
+anywhere the interpreter has been ported.
+
+**Secrecy.** Distributing an executable does not hand over the source. Distributing
+a Python script does.
+
+<Aside kind="trap" title="Neither is “better” — and questions are testing whether you know that">
+Answers that say "compilers are better because they are faster" lose marks, and so
+do answers that say "interpreters are better because they are easier to debug".
+Both are one-sided.
+
+The examinable skill is matching the property to the scenario. Look for what the
+question emphasises: distribution to customers, execution speed, or protecting
+source code all point at a compiler. Rapid development, cross-platform use, or
+teaching beginners all point at an interpreter.
+</Aside>
+
+## Inside a compiler
+
+<Figure caption="Each stage consumes the previous stage's output. Errors are detected at the earliest stage that can possibly notice them.">
+  <CompilerPipeline />
+</Figure>
+
+**Lexical analysis** breaks the character stream into **tokens**. `total = price *
+2` becomes identifier, assignment, identifier, operator, literal. Whitespace and
+comments are discarded, and identifiers are recorded in a **symbol table**. An
+error here means a character sequence that is not a valid token at all.
+
+**Syntax analysis** checks the token sequence against the grammar and builds a
+**parse tree**. A missing bracket or a misplaced keyword is caught here — these are
+**syntax errors**.
+
+**Semantic analysis** asks whether the grammatically valid program actually means
+anything. Is that variable declared? Do the types match? Is a function being called
+with the right number of arguments? A program can be perfectly grammatical and
+still meaningless, in exactly the way "the number seven ate Tuesday" is.
+
+**Code generation** produces machine code, or an intermediate form.
+
+**Optimisation** improves it: removing calculations whose results are never used,
+computing constant expressions at compile time, moving invariant work out of loops,
+keeping hot variables in registers.
+
+<Py caption="A compiler's first two stages, on real input. Step through and watch the token list grow, then the tree assemble from it.">{`
+import re
+
+TOKENS = [
+    ("NUMBER",  r"\\d+(\\.\\d+)?"),
+    ("NAME",    r"[A-Za-z_]\\w*"),
+    ("OP",      r"[+\\-*/=()]"),
+    ("SKIP",    r"[ \\t]+"),
+]
+MASTER = "|".join(f"(?P<{name}>{pattern})" for name, pattern in TOKENS)
+
+def lex(source):
+    out = []
+    for match in re.finditer(MASTER, source):
+        kind = match.lastgroup
+        if kind != "SKIP":
+            out.append((kind, match.group()))
+    return out
+
+source = "total = price * quantity + 20"
+tokens = lex(source)
+print("source:", source)
+print("tokens:")
+for kind, text in tokens:
+    print(f"    {kind:<7} {text}")
+
+# Syntax analysis: a tiny precedence-climbing parser for arithmetic.
+def parse(tokens):
+    pos = 0
+    def peek():
+        return tokens[pos][1] if pos < len(tokens) else None
+    def take():
+        nonlocal pos
+        pos += 1
+        return tokens[pos - 1][1]
+    def atom():
+        if peek() == "(":
+            take()
+            inner = expression(0)
+            take()
+            return inner
+        return take()
+    def expression(min_power):
+        left = atom()
+        while peek() in ("+", "-", "*", "/"):
+            op = peek()
+            power = 2 if op in "*/" else 1
+            if power < min_power:
+                break
+            take()
+            right = expression(power + 1)
+            left = (op, left, right)
+        return left
+    return expression(0)
+
+tree = parse([t for t in tokens if t[1] != "="][1:])
+print()
+print("parse tree for the right-hand side:")
+
+def show(node, depth=0):
+    pad = "    " * depth
+    if isinstance(node, tuple):
+        print(f"{pad}{node[0]}")
+        show(node[1], depth + 1)
+        show(node[2], depth + 1)
+    else:
+        print(f"{pad}{node}")
+
+show(tree)
+print()
+print("note that * binds tighter than +, so it sits deeper in the tree")
+`}</Py>
+
+## Bytecode, and the middle way
+
+Java and Python do neither of the above exactly. They **compile to bytecode** — a
+compact instruction set for a machine that does not physically exist — and then a
+**virtual machine** interprets that.
+
+This buys most of both bargains. The expensive analysis happens once, at compile
+time, so it is far faster than interpreting source text. The bytecode is
+machine-independent, so it runs anywhere the virtual machine has been ported.
+
+<Aside kind="deeper" title="Just-in-time compilation, or how an interpreted language got fast">
+A virtual machine can watch its own execution. If a method has been called ten
+thousand times, it is worth spending real effort compiling *that* method to native
+machine code and using the compiled version thereafter. This is **JIT
+compilation**.
+
+The surprising part is that a JIT can sometimes beat an ahead-of-time compiler. It
+knows things a static compiler cannot: which branch is actually taken, which types
+actually turn up at a call site, what the input data actually looks like. It can
+compile a specialised version on that basis and fall back if the assumption stops
+holding.
+
+This is why "interpreted languages are slow" is now a considerable
+over-simplification, and why the compiler-versus-interpreter distinction is best
+understood as two ends of a spectrum that real systems sit between.
+</Aside>
+
+<Takeaway>
+A compiler pays the translation cost once and hands you a machine-specific
+artefact. An interpreter pays it every time and hands you portability and a fast
+edit-run loop. Bytecode splits the difference, which is why most modern languages
+use it.
+</Takeaway>

@@ -1,0 +1,299 @@
+---
+code: A1.2.5
+title: Compression
+lede: >-
+  Making a file smaller by writing the same thing more cleverly, or by deciding some of it was not worth keeping.
+prereqs:
+  - A1.2.4
+cards:
+  - q: >-
+      What is lossless compression?
+    a: >-
+      Compression from which the **original file can be reconstructed exactly**. Nothing is discarded, only re-described.
+  - q: >-
+      What is lossy compression?
+    a: >-
+      Compression that discards information judged unimportant. The original cannot be recovered, but the files are far smaller.
+  - q: >-
+      When must you use lossless compression?
+    a: >-
+      Whenever every byte matters — text, program code, spreadsheets, medical images, archives. A single changed bit can break a program or alter a diagnosis.
+  - q: >-
+      Give two examples each of lossless and lossy formats.
+    a: >-
+      Lossless: PNG, FLAC, ZIP, GIF. Lossy: JPEG, MP3, MP4.
+  - q: >-
+      What is run-length encoding?
+    a: >-
+      Replacing runs of the same value with the value and a count: `AAAAABBB` becomes `5A3B`. Very effective on flat areas, useless on noisy data.
+  - q: >-
+      When does run-length encoding make a file bigger?
+    a: >-
+      When there are few runs. `ABCDE` becomes `1A1B1C1D1E`, twice the size — every symbol now carries a count of one.
+  - q: >-
+      What is dictionary compression?
+    a: >-
+      Building a table of repeated sequences and replacing each occurrence with a short reference to the table. This is how ZIP and PNG work.
+  - q: >-
+      How does Huffman coding save space?
+    a: >-
+      By giving **frequent symbols short codes and rare symbols long ones**, rather than the fixed width every symbol has in ASCII.
+  - q: >-
+      What is a prefix code, and why does Huffman need one?
+    a: >-
+      A code where no codeword is the start of another. It means the decoder never needs separators or lookahead — as soon as a codeword is recognised, it must be the right one.
+  - q: >-
+      How does JPEG discard information?
+    a: >-
+      It exploits the eye's poor sensitivity to fine colour detail and to high-frequency change, storing those less precisely than brightness and broad shapes.
+  - q: >-
+      What is compression ratio?
+    a: >-
+      Original size divided by compressed size. A $10\,\text{MB}$ file reduced to $2\,\text{MB}$ has a ratio of $5{:}1$.
+  - q: >-
+      Why can a compressed file not be usefully compressed again?
+    a: >-
+      Good compression removes the redundancy that compression exploits. The result looks close to random, and there is no pattern left to exploit.
+practice:
+  - marks: 4
+    q: >-
+      Distinguish between lossless and lossy compression, giving an appropriate use for each.
+    points:
+      - >-
+          Lossless compression allows the original file to be reconstructed exactly.
+      - >-
+          Lossy compression permanently discards data judged to be less noticeable.
+      - >-
+          Lossless is required where exactness matters, such as text, program files or archives.
+      - >-
+          Lossy is appropriate where some quality loss is acceptable in exchange for much smaller files, such as streaming music or photographs.
+  - marks: 3
+    q: >-
+      Apply run-length encoding to the sequence `WWWWWWBBWWWW` and state the compression achieved.
+    points:
+      - >-
+          Encoded as `6W2B4W`.
+      - >-
+          Original is 12 characters, encoded is 6 characters.
+      - >-
+          A compression ratio of $2{:}1$, that is a 50% reduction.
+  - marks: 3
+    q: >-
+      Explain why run-length encoding is unsuitable for a photograph but well suited to a scanned line drawing.
+    points:
+      - >-
+          A photograph has continuously varying pixel values, so runs of identical values are very short or absent.
+      - >-
+          Encoding would add a count to nearly every pixel, potentially increasing the file size.
+      - >-
+          A line drawing has large uniform areas of white and black, producing long runs that encode very compactly.
+  - marks: 4
+    q: >-
+      Explain how Huffman coding reduces file size, referring to symbol frequency.
+    points:
+      - >-
+          Fixed-length encodings such as ASCII use the same number of bits for every character regardless of how often it occurs.
+      - >-
+          Huffman assigns shorter codes to more frequent symbols and longer codes to rarer ones.
+      - >-
+          The total number of bits is therefore reduced, since common symbols dominate the message.
+      - >-
+          The codes form a prefix code, so the result can still be decoded unambiguously without separators.
+  - marks: 3
+    q: >-
+      A file of 2000 characters uses only four distinct characters, with frequencies 1000, 600, 300 and 100. Calculate the saving from using 2-bit fixed codes rather than 8-bit ASCII, and comment on whether Huffman could do better.
+    points:
+      - >-
+          ASCII requires $2000 \times 8 = 16{,}000$ bits; fixed 2-bit codes require $2000 \times 2 = 4000$ bits.
+      - >-
+          A saving of $12{,}000$ bits, that is 75%.
+      - >-
+          Huffman would do better still, because the frequencies are uneven, so the commonest character could be given a 1-bit code.
+  - marks: 4
+    q: >-
+      Explain why compressing an already-compressed file rarely reduces its size, and may increase it.
+    points:
+      - >-
+          Compression works by removing redundancy such as repetition and predictable patterns.
+      - >-
+          An effectively compressed file has had that redundancy removed already.
+      - >-
+          Its contents therefore resemble random data, offering no pattern to exploit.
+      - >-
+          The second pass still adds its own headers and dictionary, so the file can grow slightly.
+  - marks: 5
+    q: >-
+      A hospital stores X-ray images and also publishes photographs on its website. Recommend a compression approach for each, justifying your choices.
+    points:
+      - >-
+          X-rays require lossless compression, since discarded detail could hide or create an apparent abnormality.
+      - >-
+          A lossless format such as PNG, or a medical format with lossless encoding, is therefore appropriate despite the larger files.
+      - >-
+          Website photographs can use lossy compression, since small quality losses are not noticeable at screen size.
+      - >-
+          JPEG gives a much smaller file, so pages load faster and less bandwidth is used.
+      - >-
+          The distinction is justified by consequence of error, which is severe in one case and negligible in the other.
+---
+
+A file is a sequence of bytes, and most files say the same things repeatedly. A
+page of English uses `e` far more than `q`. A photograph of a wall has thousands of
+almost identical pixels. Compression exploits that regularity.
+
+There are two fundamentally different bargains available, and choosing the wrong
+one is the mistake that matters.
+
+## Lossless
+
+**Lossless** compression re-describes the data more efficiently. Decompress it and
+you get back exactly what went in, bit for bit.
+
+This is not optional for most files. Compress a program with a lossy algorithm and
+it will not run. Compress a spreadsheet and the numbers change. Compress a legal
+document and a word becomes a different word.
+
+### Run-length encoding
+
+The simplest useful method. Replace runs of identical values with the value and a
+count.
+
+`WWWWWWWWWWWWBWWWWWWWWWWWWBBB` → `12W1B12W3B`
+
+Twenty-eight characters become ten. On a scanned fax, a line drawing, or a cartoon
+with flat colour, this is enormously effective.
+
+On a photograph it is a disaster. Adjacent pixels differ slightly, so runs have
+length one, and the output is `1A1B1C1D…` — **twice** the original size. This is
+worth internalising, because it generalises: **every compression method assumes
+something about the data, and produces bloat when the assumption is false.**
+
+<Figure caption="The same method on two kinds of data. Run-length encoding is not good or bad in itself — it is a bet about repetition.">
+  <RunLength />
+</Figure>
+
+### Dictionary methods
+
+Build a table of sequences that occur repeatedly and replace each occurrence with
+a short reference. "the" appearing 400 times in a document is stored once, plus
+400 short pointers.
+
+This is what ZIP, PNG and gzip actually use, and it works on almost anything with
+structure — text, code, and the row-by-row similarity in images.
+
+### Huffman coding
+
+ASCII gives every character eight bits, whether it is `e` or `~`. That is
+wasteful when the frequencies are so uneven.
+
+**Huffman coding** assigns each symbol a code whose length depends on how often it
+occurs: frequent symbols get short codes, rare ones long codes.
+
+The codes must form a **prefix code** — no codeword may be the beginning of
+another. Without that rule the decoder could not tell where one symbol ended and
+the next began; with it, the moment a codeword is recognised it can only be that
+symbol, so no separators are needed.
+
+<Figure caption="Frequent symbols sit near the root and get short codes. Every symbol is a leaf, which is what makes it a prefix code.">
+  <HuffmanTree />
+</Figure>
+
+<Py caption="Huffman coding end to end, on real text. Step through the tree-building loop to see the two rarest symbols merge each time.">{`
+import heapq
+from collections import Counter
+
+def huffman(text):
+    freq = Counter(text)
+    if len(freq) == 1:
+        return {next(iter(freq)): "0"}
+    heap = [[n, i, {ch: ""}] for i, (ch, n) in enumerate(freq.items())]
+    heapq.heapify(heap)
+    tie = len(heap)
+    while len(heap) > 1:
+        n1, _, left = heapq.heappop(heap)
+        n2, _, right = heapq.heappop(heap)
+        merged = {ch: "0" + c for ch, c in left.items()}
+        merged.update({ch: "1" + c for ch, c in right.items()})
+        heapq.heappush(heap, [n1 + n2, tie, merged])
+        tie += 1
+    return heap[0][2]
+
+text = "the theory that the theatre is there for everyone"
+codes = huffman(text)
+
+for ch, code in sorted(codes.items(), key=lambda kv: (len(kv[1]), kv[0])):
+    shown = "space" if ch == " " else ch
+    print(f"  {shown:>5}  seen {text.count(ch):>2} times  code {code}")
+
+fixed = len(text) * 8
+packed = sum(len(codes[ch]) for ch in text)
+print()
+print(f"ASCII:   {fixed} bits")
+print(f"Huffman: {packed} bits")
+print(f"ratio:   {fixed / packed:.2f} to 1")
+
+# No codeword is a prefix of another, so this decodes with no separators.
+stream = "".join(codes[ch] for ch in text)
+back, buffer = "", ""
+lookup = {v: k for k, v in codes.items()}
+for bit in stream:
+    buffer += bit
+    if buffer in lookup:
+        back += lookup[buffer]
+        buffer = ""
+print("decoded correctly:", back == text)
+`}</Py>
+
+## Lossy
+
+**Lossy** compression throws information away permanently. In exchange, it
+achieves reductions that lossless methods cannot approach — JPEG routinely reaches
+$10{:}1$ where PNG manages $2{:}1$ on the same photograph.
+
+The trick is discarding what a person will not notice. This makes lossy
+compression a statement about **human perception**, not about information:
+
+**JPEG** exploits two weaknesses of the eye. First, we resolve brightness far
+better than colour, so colour information is stored at reduced resolution. Second,
+we notice broad shapes more than fine texture, so the image is broken into blocks,
+converted into frequency components, and the high-frequency ones stored coarsely
+or dropped.
+
+**MP3** exploits masking in the ear: a loud tone makes a quieter tone at a nearby
+frequency inaudible. That quieter tone need not be stored at all, because nobody
+can hear it.
+
+<Aside kind="deeper" title="Generation loss, and why you should keep the original">
+Lossless compression is idempotent — compress, decompress, compress again, and you
+still have the same file. Lossy compression is not. Each save discards more, and
+the losses accumulate.
+
+Open a JPEG, crop it, save it, and the whole image has been re-encoded. Do that
+twenty times and the degradation is unmistakable: blocky edges, smeared colour,
+haloes around detail. This is **generation loss**, and it is why photographers keep
+a lossless master and export lossy copies from it rather than editing the copies.
+
+The same reasoning applies to a screenshot of a screenshot, and to audio re-encoded
+between formats.
+</Aside>
+
+<Aside kind="why" title="Why nothing can compress everything">
+It is tempting to imagine a perfect algorithm that shrinks any file. There cannot
+be one, and the proof is a counting argument short enough to give here.
+
+Consider all files of exactly $n$ bits. There are $2^n$ of them. Suppose an
+algorithm compresses every one to fewer than $n$ bits. The outputs are all of
+length $n-1$ or less, and there are only $2^n - 1$ such strings in total. So two
+different inputs must produce the same output — and the decompressor cannot
+possibly recover both.
+
+Therefore **every lossless compressor makes some files larger.** Real compressors
+are useful because the files people actually have are wildly non-random; they win
+on those and lose on the noise nobody stores.
+</Aside>
+
+<Takeaway>
+Lossless asks "can I say this more briefly?". Lossy asks "does anyone need this
+part?". The first is a question about the data; the second is a question about the
+person looking at it.
+</Takeaway>

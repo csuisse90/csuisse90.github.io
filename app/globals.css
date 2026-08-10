@@ -2109,9 +2109,12 @@ html[data-ai-open="true"]
 }
 
 .deckShow {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.5rem;
   margin-top: 1.5rem;
   width: 100%;
-  justify-content: center;
 }
 
 .deckGrades {
@@ -2128,7 +2131,12 @@ html[data-ai-open="true"]
   gap: 0.2rem;
 }
 
+.deckGrades .deckHint {
+  margin-left: 0;
+}
+
 .deckHint {
+  margin-left: 0.4rem;
   font-size: 0.55rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;

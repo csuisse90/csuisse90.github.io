@@ -1,0 +1,277 @@
+---
+code: A1.2.9
+title: Building real circuits
+lede: >-
+  Adders, multiplexers, decoders and the first circuit that can remember something — plus what happens in the nanoseconds before a circuit settles.
+prereqs:
+  - A1.2.7
+cards:
+  - q: >-
+      What does a half adder do?
+    a: >-
+      Adds two single bits, producing a **sum** and a **carry**. Sum is $A \oplus B$; carry is $A \cdot B$.
+  - q: >-
+      Why is a half adder not enough to add multi-bit numbers?
+    a: >-
+      It has no carry **in**, so it cannot accept the carry produced by the column to its right.
+  - q: >-
+      What does a full adder do?
+    a: >-
+      Adds three bits — $A$, $B$ and a carry in — producing a sum and a carry out. Chaining them adds numbers of any width.
+  - q: >-
+      Give the expressions for a full adder.
+    a: >-
+      $S = A \oplus B \oplus C_{in}$ and $C_{out} = A\cdot B + C_{in}\cdot(A \oplus B)$.
+  - q: >-
+      What is a ripple-carry adder, and what limits it?
+    a: >-
+      Full adders chained so each carry feeds the next. It is limited by delay: the top bit cannot settle until the carry has rippled through every stage.
+  - q: >-
+      What does a multiplexer do?
+    a: >-
+      Selects one of several inputs and passes it to the single output, according to a select signal. A $2{:}1$ mux is $F = \overline{S}\cdot A + S \cdot B$.
+  - q: >-
+      What does a decoder do?
+    a: >-
+      Takes an $n$-bit input and raises exactly one of its $2^n$ outputs — the one whose number matches the input. It is how an address selects a memory location.
+  - q: >-
+      What is a combinational circuit?
+    a: >-
+      One whose output depends only on its current inputs. It has no memory.
+  - q: >-
+      What is a sequential circuit?
+    a: >-
+      One whose output depends on its inputs **and** its previous state. It contains feedback, and therefore memory.
+  - q: >-
+      How does an SR latch store a bit?
+    a: >-
+      Two NOR (or NAND) gates cross-coupled, so each drives the other's input. The pair has two stable states and stays in whichever it was last put into.
+  - q: >-
+      What is propagation delay?
+    a: >-
+      The time a gate takes to change its output after its input changes. It is why a circuit's answer is not instantaneous.
+  - q: >-
+      What is a hazard or glitch?
+    a: >-
+      A brief incorrect output produced while a circuit settles, caused by two paths to the same gate having different delays.
+practice:
+  - marks: 4
+    q: >-
+      Draw a truth table for a half adder and state the Boolean expressions for both outputs.
+    points:
+      - >-
+          Table has four rows for inputs $A$ and $B$.
+      - >-
+          Sum column reads $0, 1, 1, 0$.
+      - >-
+          Carry column reads $0, 0, 0, 1$.
+      - >-
+          Expressions given as $S = A \oplus B$ and $C = A \cdot B$.
+  - marks: 3
+    q: >-
+      Explain why a full adder is needed to add binary numbers of more than one bit.
+    points:
+      - >-
+          Adding a column may produce a carry that must be added into the next column.
+      - >-
+          A half adder has no input for an incoming carry, so it cannot accept it.
+      - >-
+          A full adder takes three inputs, allowing carries to be chained from one column to the next.
+  - marks: 4
+    q: >-
+      A 32-bit ripple-carry adder is built from full adders each with a propagation delay of 2 ns. Calculate the worst-case time for the result to settle, and explain the cause.
+    points:
+      - >-
+          The carry must pass through all 32 stages in the worst case.
+      - >-
+          $32 \times 2 = 64\,\text{ns}$.
+      - >-
+          Each stage cannot compute its carry out until it has received its carry in.
+      - >-
+          The delay is therefore proportional to the number of bits, which is why faster carry schemes are used in practice.
+  - marks: 3
+    q: >-
+      Describe the function of a multiplexer and give one use for it.
+    points:
+      - >-
+          It selects one of several data inputs according to the value of a select input.
+      - >-
+          The selected input is passed to the single output.
+      - >-
+          A valid use is given, such as sharing one bus between several sources, or choosing which register feeds the ALU.
+  - marks: 4
+    q: >-
+      Distinguish between combinational and sequential circuits, giving an example of each.
+    points:
+      - >-
+          A combinational circuit's output depends only on its current inputs.
+      - >-
+          An example is an adder, a multiplexer or a decoder.
+      - >-
+          A sequential circuit's output depends on previous inputs as well, so it has memory.
+      - >-
+          An example is a latch, a flip-flop or a counter, and it contains feedback.
+  - marks: 4
+    q: >-
+      Explain how an SR latch is able to store a bit.
+    points:
+      - >-
+          Two gates are cross-coupled so that each one's output feeds the other's input.
+      - >-
+          This feedback means the circuit has two stable states.
+      - >-
+          Setting S drives the output to 1 and the feedback holds it there once S returns to 0.
+      - >-
+          Setting R drives it to 0 and the feedback holds that, so the last input is remembered.
+  - marks: 5
+    q: >-
+      Explain what causes a glitch in a combinational circuit and discuss whether it matters.
+    points:
+      - >-
+          Different paths from an input to the same gate may pass through different numbers of gates.
+      - >-
+          Signals therefore arrive at different times, and the gate briefly sees an inconsistent combination.
+      - >-
+          The output shows a short incorrect pulse before settling to the correct value.
+      - >-
+          In a synchronous design it usually does not matter, because the output is only sampled at the clock edge, after settling.
+      - >-
+          It does matter if the output feeds an asynchronous input such as a latch enable, where a transient pulse could be stored.
+---
+
+Everything so far has been single gates. Real circuits are assemblies, and a
+handful of assemblies turn up so often that they have names.
+
+## The half adder
+
+Add two bits. There are four cases, and the answer needs two bits because
+$1 + 1 = 10_2$.
+
+| $A$ | $B$ | Sum | Carry |
+| --- | --- | --- | --- |
+| 0 | 0 | 0 | 0 |
+| 0 | 1 | 1 | 0 |
+| 1 | 0 | 1 | 0 |
+| 1 | 1 | 0 | 1 |
+
+Read the columns: the sum column is exactly XOR, and the carry column is exactly
+AND. So $S = A \oplus B$ and $C = A \cdot B$ — two gates.
+
+<Circuit id="half-adder" table animate />
+
+## The full adder
+
+The half adder cannot be chained, because adding column $n$ may produce a carry
+that must enter column $n+1$, and there is nowhere to put it.
+
+A **full adder** takes three inputs — $A$, $B$ and $C_{in}$ — and produces a sum
+and a carry out:
+
+$$S = A \oplus B \oplus C_{in} \qquad C_{out} = A\cdot B + C_{in}\cdot(A \oplus B)$$
+
+The carry expression reads as: carry out if both bits are set, **or** if exactly
+one is set and a carry came in.
+
+<Circuit id="full-adder" table animate />
+
+Chain $n$ of these, each carry out feeding the next carry in, and you have an
+$n$-bit adder. That is genuinely how the arithmetic in your processor is built.
+
+<Aside kind="deeper" title="Why big adders are not built this way">
+A **ripple-carry** adder is correct and slow. Bit 31's carry in depends on bit
+30's carry out, which depends on bit 29's, all the way down. With a 2 ns delay per
+stage, a 32-bit addition takes 64 ns — and at 3 GHz a clock cycle is 0.33 ns. The
+adder would need two hundred cycles.
+
+Real processors use **carry-lookahead**. The observation is that a stage
+*generates* a carry when $A\cdot B$, and *propagates* one when $A \oplus B$. Both
+depend only on $A$ and $B$, not on the incoming carry — so every stage can compute
+them immediately, in parallel. The carries can then be derived from those signals
+in a few levels of logic rather than $n$.
+
+The cost is gates: lookahead logic grows quickly with width, so real designs
+combine it in blocks. This is a recurring pattern in hardware — trade area for
+time, because area is cheap and time is not.
+</Aside>
+
+## Multiplexers and decoders
+
+A **multiplexer** picks one of several inputs. A $2{:}1$ mux with select $S$:
+
+$$F = \overline{S}\cdot A + S\cdot B$$
+
+When $S=0$ the first term passes $A$ and the second is $0$; when $S=1$ the reverse.
+
+<Circuit id="mux21" table animate />
+
+Multiplexers are how a shared bus works — many sources, one wire, a select signal
+deciding who is speaking. Inside a CPU, the choice of which register feeds the ALU
+is a multiplexer.
+
+A **decoder** does the opposite: given an $n$-bit number, it raises exactly one of
+$2^n$ output lines.
+
+<Circuit id="decoder24" table animate />
+
+This is precisely how a memory address works. Put $1011$ on the address bus, and a
+decoder raises the single line belonging to location 11, enabling that cell and no
+other.
+
+## Memory: the SR latch
+
+Every circuit so far has been **combinational** — output determined entirely by
+the inputs present now. Such a circuit cannot remember anything.
+
+Add **feedback**, so a gate's output loops back to influence its own input, and
+something new appears.
+
+<Circuit id="sr-latch" animate />
+
+Two NOR gates, cross-coupled. Pulse $S$ and the output goes to $1$, and stays
+there after $S$ returns to $0$, because the feedback now holds it. Pulse $R$ and it
+goes to $0$ and stays. The circuit has two stable states, and it sits in whichever
+it was last pushed into.
+
+That is one bit of memory, made of two gates. Every register, every cache line and
+every byte of SRAM in the machine is an elaboration of this.
+
+<Aside kind="trap" title="The forbidden state">
+Setting $S = R = 1$ drives both outputs to $0$ — but $Q$ and $\overline{Q}$ are
+supposed to be opposites, so the latch is lying about its own state.
+
+Worse is what happens next. Release both at once and the two gates race: whichever
+happens to switch first wins, and which one that is depends on manufacturing
+variation and temperature. The result is genuinely unpredictable.
+
+This is why the input combination is called forbidden, and why practical designs
+use a **D latch**, which derives $S$ and $R$ from a single data input and so cannot
+produce the illegal combination.
+</Aside>
+
+## Delay and hazards
+
+Gates are not instantaneous. Each takes a **propagation delay** — a fraction of a
+nanosecond — to respond, and a circuit's output is only trustworthy once every
+path has settled.
+
+While it settles, the output can be briefly and genuinely wrong. If two paths to
+the same gate pass through different numbers of gates, one input arrives late, and
+for that moment the gate sees a combination that was never intended.
+
+<Circuit id="static-hazard" animate />
+
+This is a **static hazard**, and it is not a simulation artefact — it happens in
+real silicon, and you can see it on an oscilloscope. Drag the delay slider on the
+circuit above through the transition to watch the output dip to $0$ and come back.
+
+Whether it matters depends on who is looking. In a **synchronous** design the
+output is only sampled at a clock edge, long after settling, so the glitch is
+invisible. But if that output feeds a latch enable or an asynchronous input, the
+transient can be captured and stored — and the bug that results is intermittent,
+temperature-dependent and extremely unpleasant to find.
+
+<Takeaway>
+Combinational circuits compute; sequential circuits remember, and the difference
+is feedback. Neither is instantaneous, which is why clocks exist: a clock is an
+agreement to ignore the circuit until it has finished making up its mind.
+</Takeaway>
