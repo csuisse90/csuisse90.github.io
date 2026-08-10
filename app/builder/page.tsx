@@ -13,15 +13,6 @@ export default function BuilderPage() {
         lede="A blank canvas and the seven gates. Build anything, toggle the switches, and get the truth table back automatically."
       />
 
-      <div className="prose">
-        <p>
-          Everything here runs the same C++ simulation engine as the lesson
-          diagrams. Nothing is looked up: when you toggle a switch the circuit
-          is genuinely re-evaluated, one gate delay at a time, and the animation
-          shows the real order in which the gates settle.
-        </p>
-      </div>
-
       <Builder />
 
       <div className="prose">

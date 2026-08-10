@@ -12,13 +12,25 @@ export const NAV: Group[] = [
     items: [{ href: "/", label: "Overview", code: "00" }],
   },
   {
-    head: "The syllabus",
+    head: "A1 · Computer fundamentals",
     items: [
+      { href: "/hardware/", label: "Hardware & operation", code: "A1.1" },
+      { href: "/data-representation/", label: "Data representation", code: "A1.2" },
       { href: "/gates/", label: "Logic gates", code: "A1.2.3" },
       { href: "/truth-tables/", label: "Truth tables", code: "A1.2.4" },
       { href: "/boolean-algebra/", label: "Boolean algebra", code: "A1.2.4" },
       { href: "/karnaugh-maps/", label: "Karnaugh maps", code: "A1.2.4" },
       { href: "/logic-diagrams/", label: "Logic diagrams", code: "A1.2.5" },
+      { href: "/operating-systems/", label: "Operating systems", code: "A1.3" },
+      { href: "/translators/", label: "Translators", code: "A1.4" },
+    ],
+  },
+  {
+    head: "A2 · Networks",
+    items: [
+      { href: "/networks/", label: "Network fundamentals", code: "A2.1" },
+      { href: "/network-architecture/", label: "Network architecture", code: "A2.2" },
+      { href: "/data-transmission/", label: "Data transmission", code: "A2.3" },
     ],
   },
   {
@@ -57,7 +69,7 @@ export default function SiteChrome({ children }: { children: React.ReactNode }) 
             <br />
             teaches cs
           </span>
-          <span className="sub">Digital logic · IB CS HL</span>
+          <span className="sub">Theme A · IB CS HL · 2027</span>
         </Link>
 
         {NAV.map((group) => (

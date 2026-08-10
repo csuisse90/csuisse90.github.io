@@ -7,9 +7,9 @@ export default function Home() {
   return (
     <>
       <PageHead
-        code="IB Computer Science · First assessment 2027 · A1.2"
-        title="Digital logic, from one switch to a working adder"
-        lede="Everything the syllabus asks for on logic gates, written out properly, with a simulator you can slow down until you can see the electricity think."
+        code="IB Computer Science HL · First assessment 2027 · Theme A"
+        title="Computer fundamentals and networks, written out properly"
+        lede="The whole of A1 and A2, from one switch to a working adder to a packet crossing an ocean — with a simulator you can slow down until you can see the electricity think."
       />
 
       <div className="prose">
@@ -27,10 +27,16 @@ export default function Home() {
           something that can run a browser.
         </p>
         <p>
-          This site covers the logic content of{" "}
-          <strong>A1.2 Data representation and computer logic</strong>, and then
-          keeps going a little further, because the point where it gets
-          interesting is just past the edge of the syllabus.
+          This site covers <strong>Theme A</strong> in full —{" "}
+          <strong>A1 Computer fundamentals</strong> and{" "}
+          <strong>A2 Networks</strong> — and then keeps going a little further
+          in places, because the point where it gets interesting is often just
+          past the edge of the syllabus. Anything beyond the syllabus is
+          labelled as such, so you always know what you are accountable for.
+        </p>
+        <p>
+          The logic sections are the ones with the simulator attached. Start
+          anywhere, but the A1.2 pages build on each other in order.
         </p>
       </div>
 
@@ -50,9 +56,23 @@ export default function Home() {
         · regular exercise at the gym · three days a week
       </div>
 
-      <h2 className="display">What is here</h2>
+      <h2 className="display">A1 · Computer fundamentals</h2>
 
       <div className="cardGrid">
+        <Link href="/hardware/" className="card">
+          <div className="cardTitle">Hardware &amp; operation</div>
+          <div className="cardBody">
+            Inside the CPU, the fetch–decode–execute cycle, memory, storage,
+            compression and cloud. A1.1.
+          </div>
+        </Link>
+        <Link href="/data-representation/" className="card">
+          <div className="cardTitle">Data representation</div>
+          <div className="cardBody">
+            Binary, hexadecimal, two&apos;s complement, and how text, images and
+            sound become numbers. A1.2.1–A1.2.2.
+          </div>
+        </Link>
         <Link href="/gates/" className="card">
           <div className="cardTitle">Logic gates</div>
           <div className="cardBody">
@@ -87,6 +107,51 @@ export default function Home() {
             Drawing circuits the way an examiner expects to see them. A1.2.5.
           </div>
         </Link>
+        <Link href="/operating-systems/" className="card">
+          <div className="cardTitle">Operating systems</div>
+          <div className="cardBody">
+            Scheduling, interrupts, multitasking, and the control systems that
+            run lifts and greenhouses. A1.3.
+          </div>
+        </Link>
+        <Link href="/translators/" className="card">
+          <div className="cardTitle">Translators</div>
+          <div className="cardBody">
+            Compilers against interpreters, and what actually happens during
+            compilation. A1.4.
+          </div>
+        </Link>
+      </div>
+
+      <h2 className="display">A2 · Networks</h2>
+
+      <div className="cardGrid">
+        <Link href="/networks/" className="card">
+          <div className="cardTitle">Network fundamentals</div>
+          <div className="cardBody">
+            Network types, hardware, the OSI layers, protocols, addressing and
+            VPNs. A2.1.
+          </div>
+        </Link>
+        <Link href="/network-architecture/" className="card">
+          <div className="cardTitle">Network architecture</div>
+          <div className="cardBody">
+            Topologies, servers, client–server against peer-to-peer, and
+            segmentation. A2.2.
+          </div>
+        </Link>
+        <Link href="/data-transmission/" className="card">
+          <div className="cardTitle">Data transmission</div>
+          <div className="cardBody">
+            Wired and wireless media, packet switching, error checking and
+            encryption. A2.3.
+          </div>
+        </Link>
+      </div>
+
+      <h2 className="display">Tools, extras and revision</h2>
+
+      <div className="cardGrid">
         <Link href="/builder/" className="card">
           <div className="cardTitle">Circuit builder</div>
           <div className="cardBody">
@@ -136,19 +201,7 @@ export default function Home() {
           and Karnaugh maps give you the shortcut, and logic diagrams put it
           back together as something you can draw in an exam.
         </p>
-        <p>
-          Every diagram on the site is live. Clicking a switch does not look up
-          a stored answer — it runs a real simulation, gate by gate, and the
-          animation you see is the actual order in which the gates settle.
-        </p>
       </div>
-
-      <p className="annotation">
-        <b>Under the bonnet.</b> The simulator is written in C++ and compiled to
-        WebAssembly. Gate outlines are generated from the IEEE Std 91-1984
-        geometry rather than drawn by hand, so the curve on an OR gate is a real
-        arc of a circle, not an approximation.
-      </p>
     </>
   );
 }

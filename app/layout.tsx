@@ -28,11 +28,11 @@ export const metadata: Metadata = {
     template: "%s — eeshaan teaches cs",
   },
   description:
-    "Digital logic gates for IB Computer Science HL, first assessment 2027. Topic A1.2: gates, truth tables, Boolean expressions, Karnaugh maps and logic diagrams, with a simulator you can slow right down and watch signals propagate.",
+    "IB Computer Science HL Theme A, first assessment 2027: computer fundamentals (A1) and networks (A2), including an interactive logic gate simulator you can slow right down to watch signals propagate.",
   openGraph: {
     title: "eeshaan teaches cs",
     description:
-      "Interactive logic gate simulator and full written course for IB Computer Science A1.2.",
+      "Full written course for IB Computer Science HL Theme A, with an interactive logic gate simulator.",
     type: "website",
   },
 };
