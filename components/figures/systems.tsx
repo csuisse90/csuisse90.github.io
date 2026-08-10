@@ -461,6 +461,15 @@ export function OsLayers() {
 
 /** Interrupt handling, as a timeline. */
 export function InterruptTimeline() {
+  // Evenly spaced stops with every label on the same side, so nothing can
+  // collide with the arrow above or with its neighbour.
+  const stops = [
+    { x: 80, label: "program", hot: false },
+    { x: 190, label: "finish", hot: false },
+    { x: 300, label: "save state", hot: true },
+    { x: 410, label: "run ISR", hot: true },
+    { x: 520, label: "restore", hot: false },
+  ];
   return (
     <Figure
       title="Handling an interrupt"
@@ -469,46 +478,36 @@ export function InterruptTimeline() {
       height={200}
       caption="The processor never stops mid-instruction. It finishes the one it is on, saves everything it would otherwise lose, deals with the interruption, then restores its state so precisely that the interrupted program cannot tell."
     >
-      <line x1={30} y1={100} x2={590} y2={100} stroke={INK} strokeWidth={1.6} />
-      {[
-        [60, "program", false],
-        [170, "finish", false],
-        [280, "save state", true],
-        [390, "run ISR", true],
-        [500, "restore", false],
-      ].map(([x, label, hot], i) => (
-        <g key={i}>
+      <line x1={40} y1={110} x2={580} y2={110} stroke={INK} strokeWidth={1.6} />
+
+      {stops.map((stop) => (
+        <g key={stop.label}>
           <circle
-            cx={x as number}
-            cy={100}
+            cx={stop.x}
+            cy={110}
             r={6}
-            fill={hot ? ACCENT : FILL}
-            stroke={hot ? ACCENT : INK}
+            fill={stop.hot ? ACCENT : FILL}
+            stroke={stop.hot ? ACCENT : INK}
             strokeWidth={1.8}
           />
-          <text
-            x={x as number}
-            y={i % 2 ? 78 : 128}
-            textAnchor="middle"
-            fontFamily="var(--font-mono), monospace"
-            fontSize={10}
-            fill={hot ? ACCENT : INK}
-          >
-            {label as string}
-          </text>
+          <Caption x={stop.x} y={136} colour={stop.hot ? ACCENT : INK}>
+            {stop.label}
+          </Caption>
         </g>
       ))}
+
       <path
-        d="M170,40 L170,88"
+        d="M190,52 L190,98"
         stroke={ACCENT}
         strokeWidth={1.8}
         markerEnd="url(#arrowAccent)"
         fill="none"
       />
-      <Caption x={170} y={32} colour={ACCENT}>
+      <Caption x={190} y={42} colour={ACCENT}>
         interrupt raised
       </Caption>
-      <Caption x={560} y={128}>
+
+      <Caption x={520} y={156}>
         program resumes
       </Caption>
     </Figure>
