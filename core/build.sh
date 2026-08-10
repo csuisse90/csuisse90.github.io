@@ -12,7 +12,7 @@ set -euo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 root="$(dirname "$here")"
-sources=("$here/logic.cpp" "$here/qm.cpp" "$here/expr.cpp" "$here/layout.cpp")
+sources=("$here/logic.cpp" "$here/qm.cpp" "$here/expr.cpp" "$here/layout.cpp" "$here/shell.cpp")
 
 if [[ "${1:-}" == "--sprite" ]]; then
   out="$(mktemp -d)/sprite"

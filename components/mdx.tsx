@@ -4,15 +4,15 @@ import type { ComponentProps, ReactNode } from "react";
 import Link from "next/link";
 
 import Aside from "./Aside";
+import { LazyFaultFinder, LazyKMap } from "./LazyEngine";
 import CircuitFigure from "./CircuitFigure";
 import Compare from "./Compare";
-import FaultFinder from "./FaultFinder";
-import KMap from "./KMap";
 import PyRunner from "./PyRunner";
 import TruthTable from "./TruthTable";
 import Topology from "./Topology";
 import { M, MB } from "./Math";
 import { circuit } from "@/lib/circuits";
+
 import * as systems from "./figures/systems";
 import * as dataNet from "./figures/dataNet";
 import * as dbMl from "./figures/dbMl";
@@ -36,7 +36,9 @@ function Circuit({
 function Figure({ caption, children }: { caption?: ReactNode; children: ReactNode }) {
   return (
     <figure className="figure">
-      <div className="figureBody">{children}</div>
+      <div className="figureBody figureZoom" data-zoomable>
+        {children}
+      </div>
       {caption && <figcaption className="figureCaption">{caption}</figcaption>}
     </figure>
   );
@@ -73,10 +75,10 @@ export const MDX_COMPONENTS = {
   Circuit,
   /** `<Fault id="halfAdder" />` — the same circuit, with one gate quietly
    *  wrong, for the reader to track down. */
-  Fault: ({ id }: { id: string }) => <FaultFinder data={circuit(id)} />,
+  Fault: ({ id }: { id: string }) => <LazyFaultFinder data={circuit(id)} />,
   Compare,
   Figure,
-  KMap,
+  KMap: LazyKMap,
   M,
   MB,
   /** Takes its code as a child so a snippet can be written as a plain block

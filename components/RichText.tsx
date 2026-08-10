@@ -1,7 +1,7 @@
 "use client";
 
-import { Fragment, type ReactNode } from "react";
-import katex from "katex";
+import { Fragment, useEffect, useState, type ReactNode } from "react";
+import type katexNamespace from "katex";
 
 // Model replies are markdown that usually contains maths. Maths is pulled out
 // first and stood in for by a sentinel, so markdown parsing can never see the
@@ -9,7 +9,14 @@ import katex from "katex";
 const MATHS = /(\$\$[\s\S]+?\$\$|\$[^$\n]+?\$|\\\([\s\S]+?\\\)|\\\[[\s\S]+?\\\])/g;
 const SENTINEL = /^\uE000(\d+)\uE000$/;
 
+// KaTeX is a large library and every page's own maths is already rendered to
+// HTML at build time. Only text rendered in the browser — assistant replies,
+// mark schemes, revision cards — needs it, so it is fetched on first use.
+let katex: typeof katexNamespace | null = null;
+let loading: Promise<void> | null = null;
+
 function tex(src: string, display: boolean) {
+  if (!katex) return "";
   return katex.renderToString(src, { displayMode: display, throwOnError: false, output: "html" });
 }
 
@@ -135,7 +142,24 @@ function blocks(src: string, held: string[]): ReactNode[] {
 }
 
 export default function RichText({ text }: { text: string }) {
+  const [ready, setReady] = useState(katex !== null);
+
+  useEffect(() => {
+    if (katex) return;
+    loading ??= import("katex").then((m) => {
+      katex = m.default;
+    });
+    let alive = true;
+    void loading.then(() => alive && setReady(true));
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  // Before it arrives the text is shown with its delimiters intact, which is
+  // readable, rather than blank.
   const held: string[] = [];
+  if (!ready) return <p>{text}</p>;
   const masked = text.replace(MATHS, (m) => `\uE000${held.push(m) - 1}\uE000`);
   return <>{blocks(masked, held)}</>;
 }

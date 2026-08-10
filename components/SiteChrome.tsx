@@ -21,7 +21,7 @@ const TOOLS = [
   { href: "/labs/scheduling/", label: "Scheduling lab", code: "A1.3" },
   { href: "/labs/sampling/", label: "Sampling lab", code: "A1.2" },
   { href: "/labs/sql/", label: "SQL lab", code: "A3" },
-  { href: "/python/", label: "Python editor", code: "B2" },
+  { href: "/python/", label: "Terminal", code: "SH" },
   { href: "/compare/", label: "Compare two things", code: "REV" },
   { href: "/revise/", label: "Revision deck", code: "REV" },
   { href: "/reference/", label: "Reference sheet", code: "REF" },

@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import PythonEditor from "@/components/PythonEditor";
+import Terminal from "@/components/Terminal";
 
 export const metadata: Metadata = {
-  title: "Python editor",
+  title: "Terminal",
   description:
-    "A full Python environment with NumPy, Pandas, Matplotlib, SciPy, SymPy and scikit-learn, running in the browser.",
+    "A shell in the browser — a real filesystem, thirty commands, Python with the scientific libraries, and an editor with vim keys.",
 };
 
 export default function Python() {
@@ -12,13 +12,13 @@ export default function Python() {
     <>
       <header className="pageHead">
         <div className="kicker">Tools</div>
-        <h1 className="display">Python editor</h1>
+        <h1 className="display">Terminal</h1>
         <p className="lede" style={{ marginTop: "1rem" }}>
-          Real CPython with the scientific libraries. Write anything you like, run it, and see
-          the output and any plots underneath. Your buffer is kept between visits.
+          A shell with a real filesystem, thirty commands, Python with the scientific libraries,
+          and an editor with vim keys. Everything runs in this tab and is kept between visits.
         </p>
       </header>
-      <PythonEditor />
+      <Terminal />
     </>
   );
 }

@@ -18,8 +18,8 @@ export default function Splash() {
     }
     window.sessionStorage.setItem(SEEN, "1");
     setPhase("in");
-    const out = setTimeout(() => setPhase("out"), 1250);
-    const gone = setTimeout(() => setPhase("hidden"), 2000);
+    const out = setTimeout(() => setPhase("out"), 1900);
+    const gone = setTimeout(() => setPhase("hidden"), 3200);
     return () => {
       clearTimeout(out);
       clearTimeout(gone);

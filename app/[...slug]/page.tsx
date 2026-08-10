@@ -12,7 +12,7 @@ import manifest from "@/lib/generated/content.json";
 import type { Manifest, Page } from "@/lib/content";
 import { MDX_COMPONENTS } from "@/components/mdx";
 import Contents from "@/components/Contents";
-import PagePractice from "@/components/PagePractice";
+import { LazyPagePractice } from "@/components/LazyChrome";
 import CardCollector from "@/components/CardCollector";
 
 const { pages } = manifest as unknown as Manifest;
@@ -90,7 +90,7 @@ export default async function TopicPage({
         </div>
 
         {page.practice && page.practice.length > 0 && (
-          <PagePractice code={page.code} title={page.title} items={page.practice} />
+          <LazyPagePractice code={page.code} title={page.title} items={page.practice} />
         )}
 
         <nav className="paging">
