@@ -79,6 +79,11 @@ export default {
           role: m.role === "system" || m.role === "assistant" ? m.role : "user",
           content: String(m.content ?? "").slice(0, MAX_CHARS),
         })),
+        // Web search, if the caller asked for it. Rebuilt here rather than
+        // forwarded, so a caller cannot run up the bill with max_results.
+        ...(Array.isArray(body?.plugins) && body.plugins.some((p) => p?.id === "web")
+          ? { plugins: [{ id: "web", max_results: 3 }] }
+          : {}),
         max_tokens: MAX_TOKENS,
         temperature: 0.6,
         stream: Boolean(body?.stream),

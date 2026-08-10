@@ -1070,8 +1070,66 @@ pre.listing {
 .aiText {
   font-size: 0.87rem;
   line-height: 1.6;
-  white-space: pre-wrap;
   color: var(--ink);
+}
+
+.aiTurn[data-role="you"] .aiText {
+  white-space: pre-wrap;
+}
+
+.aiText p {
+  margin: 0 0 0.7rem;
+}
+
+.aiText > *:last-child {
+  margin-bottom: 0;
+}
+
+.aiHeading {
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.aiText ul,
+.aiText ol {
+  margin: 0 0 0.7rem;
+  padding-left: 1.1rem;
+}
+
+.aiText li {
+  margin-bottom: 0.2rem;
+}
+
+.aiText strong {
+  font-weight: 600;
+}
+
+.aiText code {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.82em;
+  background: rgba(214, 228, 234, 0.5);
+  padding: 0.08rem 0.26rem;
+}
+
+.aiText pre {
+  margin: 0 0 0.7rem;
+  padding: 0.6rem 0.7rem;
+  overflow-x: auto;
+  background: rgba(214, 228, 234, 0.4);
+  border-left: 2px solid var(--hairline);
+}
+
+.aiText pre code {
+  background: none;
+  padding: 0;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.aiText a {
+  color: var(--alarm);
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .aiActions {
