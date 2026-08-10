@@ -7,6 +7,7 @@
 #include "expr.hpp"
 #include "logic.hpp"
 #include "qm.hpp"
+#include "shell.hpp"
 
 namespace {
 
@@ -191,6 +192,147 @@ void testGeometry() {
   check(contains(iec, "\"iecLabel\":\"&\""), "IEC symbol set labels AND with &");
 }
 
+
+void testShellTokenise() {
+  auto t = sh::tokenise("ls -la  /home/student");
+  check(t.size() == 3 && t[0] == "ls" && t[2] == "/home/student", "tokenise splits on runs of space");
+  t = sh::tokenise("echo \"hello there\" world");
+  check(t.size() == 3 && t[1] == "hello there", "tokenise keeps a quoted phrase whole");
+  t = sh::tokenise("echo 'it\\'s'");
+  check(t.size() == 2, "tokenise survives an escaped quote");
+  t = sh::tokenise("touch a\\ b.txt");
+  check(t.size() == 2 && t[1] == "a b.txt", "tokenise honours a backslash-escaped space");
+  check(sh::tokenise("   ").empty(), "tokenise of whitespace yields nothing");
+}
+
+void testGlob() {
+  check(sh::globMatch("*.py", "main.py"), "glob * matches a stem");
+  check(!sh::globMatch("*.py", "main.txt"), "glob * respects the extension");
+  check(sh::globMatch("note?.md", "note1.md"), "glob ? matches one character");
+  check(!sh::globMatch("note?.md", "note12.md"), "glob ? matches exactly one");
+  check(sh::globMatch("[abc]at", "bat"), "glob character class matches");
+  check(!sh::globMatch("[abc]at", "hat"), "glob character class excludes");
+  check(sh::globMatch("[a-z]*", "zebra"), "glob range matches");
+  check(sh::globMatch("*", "anything"), "bare star matches everything");
+  check(sh::globMatch("a*b*c", "axxbyyc"), "glob backtracks across two stars");
+  check(!sh::globMatch("a*b*c", "axxbyy"), "glob backtracking still requires the tail");
+}
+
+void testFsPaths() {
+  sh::Fs fs;
+  check(fs.cwd() == "/home/student", "shell starts in the home directory");
+  check(fs.resolve("notes") == "/home/student/notes", "relative paths resolve against cwd");
+  check(fs.resolve("../..") == "/", "dot dot climbs to the root");
+  check(fs.resolve("/a/./b/../c") == "/a/c", "dot and dot dot collapse");
+  check(fs.resolve("~/code") == "/home/student/code", "tilde expands to home");
+  check(fs.resolve("//home///student//") == "/home/student", "repeated separators collapse");
+  check(fs.chdir("/nowhere").find("no such") != std::string::npos, "cd reports a missing directory");
+  check(fs.chdir("notes").empty() && fs.cwd() == "/home/student/notes", "cd moves the cwd");
+}
+
+void testFsFiles() {
+  sh::Fs fs;
+  check(fs.write("a.txt", "hello\n", 1).empty(), "write creates a file");
+  check(fs.read("a.txt") == "hello\n", "read returns what was written");
+  check(fs.append("a.txt", "again\n", 2).empty(), "append succeeds");
+  check(fs.read("a.txt") == "hello\nagain\n", "append adds to the end");
+  check(!fs.write("/nope/a.txt", "x", 3).empty(), "write refuses a missing parent");
+  check(!fs.makeDirectory("/home/student", 4).empty(), "mkdir refuses an existing path");
+  check(fs.makeDirectory("sub", 5).empty() && fs.isDirectory("sub"), "mkdir creates a directory");
+  check(fs.write("sub/b.txt", "x", 6).empty(), "write into a new directory");
+  check(!fs.remove("sub", false).empty(), "rm refuses a non-empty directory without -r");
+  check(fs.remove("sub", true).empty() && !fs.exists("sub/b.txt"), "rm -r removes the whole subtree");
+  check(!fs.remove("/home/student", true).empty(), "rm refuses to remove home");
+
+  // A prefix that is not a path boundary must not be swept up by rm -r.
+  fs.makeDirectory("/home/studentx", 7);
+  fs.write("/home/studentx/keep.txt", "safe", 8);
+  fs.makeDirectory("/home/stud", 9);
+  fs.remove("/home/stud", true);
+  check(fs.exists("/home/studentx/keep.txt"), "rm -r does not delete a sibling sharing a prefix");
+}
+
+void testFsCopyMove() {
+  sh::Fs fs;
+  fs.write("one.txt", "content", 1);
+  check(fs.copy("one.txt", "two.txt", 2).empty(), "cp duplicates a file");
+  check(fs.read("two.txt") == "content" && fs.exists("one.txt"), "cp leaves the original");
+  check(fs.copy("one.txt", "notes", 3).empty(), "cp into a directory");
+  check(fs.read("notes/one.txt") == "content", "cp into a directory keeps the name");
+  check(fs.move("two.txt", "three.txt", 4).empty(), "mv renames");
+  check(!fs.exists("two.txt") && fs.read("three.txt") == "content", "mv removes the original");
+  check(!fs.copy("missing.txt", "x", 5).empty(), "cp reports a missing source");
+}
+
+void testFsListing() {
+  sh::Fs fs;
+  fs.write("b.txt", "", 1);
+  fs.write("a.txt", "", 1);
+  fs.makeDirectory("zdir", 1);
+  // The home directory already holds code/ and notes/ from construction.
+  auto entries = fs.list(".");
+  check(entries.size() == 5, "list finds every immediate child");
+  check(entries[0] == "code" && entries[1] == "notes" && entries[2] == "zdir",
+        "list puts directories first, sorted");
+  check(entries[3] == "a.txt", "files follow the directories, sorted");
+  fs.write("zdir/deep.txt", "", 1);
+  check(fs.list(".").size() == 5, "list does not descend");
+  check(fs.walk("/home/student").size() == 7, "walk descends through the whole tree");
+}
+
+void testExpandAndComplete() {
+  sh::Fs fs;
+  fs.write("main.py", "", 1);
+  fs.write("helper.py", "", 1);
+  fs.write("notes.md", "", 1);
+  auto matched = fs.expand("*.py");
+  check(matched.size() == 2, "expand returns every glob match");
+  check(fs.expand("*.rs").size() == 1 && fs.expand("*.rs")[0] == "*.rs",
+        "expand passes an unmatched pattern through unchanged");
+  check(fs.expand("main.py").size() == 1, "expand leaves a literal path alone");
+
+  auto completions = fs.complete("ma");
+  check(completions.size() == 1 && completions[0] == "main.py", "complete finishes a filename");
+  check(fs.complete("no").size() == 2, "complete offers every candidate");
+  bool trailing = false;
+  for (const auto& c : fs.complete("not")) {
+    if (c == "notes/") trailing = true;
+  }
+  check(trailing, "complete marks a directory with a trailing slash");
+}
+
+void testGrepAndCount() {
+  sh::Fs fs;
+  fs.write("log.txt", "alpha\nBETA\ngamma\nbeta again\n", 1);
+  auto hits = sh::grep(fs, "beta", {"log.txt"}, false, false);
+  check(hits.size() == 1, "grep is case sensitive by default");
+  check(hits[0] == "log.txt:4:beta again", "grep reports path, line number and text");
+  check(sh::grep(fs, "beta", {"log.txt"}, true, false).size() == 2, "grep -i ignores case");
+  check(sh::grep(fs, "beta", {"log.txt"}, false, true).size() == 3, "grep -v inverts the match");
+  check(sh::grep(fs, "x", {"notes"}, false, false).empty(), "grep skips directories");
+
+  auto c = sh::count("one two\nthree\n");
+  check(c.lines == 2 && c.words == 3 && c.chars == 14, "wc counts lines, words and characters");
+  check(sh::count("no trailing newline").lines == 1, "wc counts a final line without a newline");
+  check(sh::count("").lines == 0, "wc of nothing is nothing");
+}
+
+void testPersistence() {
+  sh::Fs fs;
+  fs.write("keep.txt", "line one\nline \"two\"\n", 1);
+  fs.makeDirectory("deep", 1);
+  fs.chdir("deep");
+  std::string image = fs.dumpJson();
+
+  sh::Fs restored;
+  check(restored.loadJson(image).empty(), "an image loads without error");
+  check(restored.cwd() == "/home/student/deep", "the working directory survives a round trip");
+  check(restored.read("/home/student/keep.txt") == "line one\nline \"two\"\n",
+        "file contents survive, including quotes and newlines");
+  check(restored.isDirectory("/home/student/deep"), "directories survive as directories");
+  check(!restored.loadJson("not json").empty(), "a malformed image is rejected");
+}
+
 }  // namespace
 
 int main() {
@@ -201,6 +343,15 @@ int main() {
   testMinimise();
   testExpressions();
   testGeometry();
+  testShellTokenise();
+  testGlob();
+  testFsPaths();
+  testFsFiles();
+  testFsCopyMove();
+  testFsListing();
+  testExpandAndComplete();
+  testGrepAndCount();
+  testPersistence();
   std::printf("\n%s\n", failures ? "FAILURES" : "all checks passed");
   return failures ? 1 : 0;
 }

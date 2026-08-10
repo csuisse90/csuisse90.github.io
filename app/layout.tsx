@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { Archivo, JetBrains_Mono } from "next/font/google";
-import { Theme } from "@radix-ui/themes";
-import "@radix-ui/themes/styles.css";
 import "katex/dist/katex.min.css";
 import "./globals.css";
 import SiteChrome from "@/components/SiteChrome";
-import AiPanel from "@/components/AiPanel";
+import { LazyAiPanel } from "@/components/LazyChrome";
 import Splash from "@/components/Splash";
+import DiagramZoom from "@/components/DiagramZoom";
+import OfflineReady from "@/components/OfflineReady";
 
 // Archivo carries a width axis, which is how the Eurostile Bold Extended feel
 // of the reference is reached without licensing it.
@@ -47,11 +47,11 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${archivo.variable} ${mono.variable}`}>
       <body>
-        <Theme accentColor="teal" grayColor="sage" radius="none" scaling="100%">
-          <Splash />
-          <SiteChrome>{children}</SiteChrome>
-          <AiPanel />
-        </Theme>
+        <Splash />
+        <SiteChrome>{children}</SiteChrome>
+        <LazyAiPanel />
+        <DiagramZoom />
+        <OfflineReady />
       </body>
     </html>
   );

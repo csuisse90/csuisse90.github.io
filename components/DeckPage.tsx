@@ -3,7 +3,7 @@
 import { useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { all, due, forget, reset, snapshot, serverSnapshot, subscribe } from "@/lib/deck";
-import DeckSession from "./DeckSession";
+import { LazyDeckSession } from "./LazyChrome";
 import RichText from "./RichText";
 
 const DAY = 86_400_000;
@@ -102,7 +102,7 @@ export default function DeckPage() {
         </div>
       )}
 
-      {open && <DeckSession onClose={() => setOpen(false)} />}
+      {open && <LazyDeckSession onClose={() => setOpen(false)} />}
     </>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { due, snapshot, serverSnapshot, subscribe } from "@/lib/deck";
-import DeckSession from "./DeckSession";
+import { LazyDeckSession } from "./LazyChrome";
 
 /** Floating button showing how many cards are due. Hidden entirely when the
  *  deck is empty, so a first-time reader never sees a control for a feature
@@ -36,7 +36,7 @@ export default function DeckButton() {
         <span className="deckCount">{count}</span>
         <span className="deckWord">{count === 1 ? "card" : "cards"}</span>
       </button>
-      {open && <DeckSession onClose={() => setOpen(false)} />}
+      {open && <LazyDeckSession onClose={() => setOpen(false)} />}
     </>
   );
 }

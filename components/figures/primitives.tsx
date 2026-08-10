@@ -35,7 +35,7 @@ export function Figure({
         <span>{title}</span>
         {meta && <span>{meta}</span>}
       </div>
-      <div className="panelBody" style={{ padding: "0.75rem" }}>
+      <div className="panelBody figureZoom" style={{ padding: "0.75rem" }} data-zoomable>
         <svg
           viewBox={`0 0 ${CANVAS} ${height}`}
           style={{ width: "100%", height: "auto", display: "block" }}
