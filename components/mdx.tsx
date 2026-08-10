@@ -16,6 +16,7 @@ import { circuit } from "@/lib/circuits";
 import * as systems from "./figures/systems";
 import * as dataNet from "./figures/dataNet";
 import * as dbMl from "./figures/dbMl";
+import * as foundations from "./figures/foundations";
 
 /** `<Circuit id="halfAdder" table />` — the diagram is looked up at build time
  *  and only that one circuit is sent to the browser. */
@@ -100,4 +101,5 @@ export const MDX_COMPONENTS = {
   ...systems,
   ...dataNet,
   ...dbMl,
+  ...foundations,
 };

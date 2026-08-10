@@ -1,0 +1,269 @@
+---
+code: A2.1.1
+title: Networks and protocols
+lede: >-
+  What has to be agreed before two machines can say anything to each other, and why those agreements are stacked in layers.
+cards:
+  - q: >-
+      What is a computer network?
+    a: >-
+      Two or more devices connected so they can exchange data and share resources.
+  - q: >-
+      What is a protocol?
+    a: >-
+      An agreed set of rules governing how data is formatted, addressed, transmitted and acknowledged. Without one, two machines exchange noise.
+  - q: >-
+      What is a LAN?
+    a: >-
+      A local area network — devices in one building or site, usually owned and cabled by one organisation. Fast and cheap to run.
+  - q: >-
+      What is a WAN?
+    a: >-
+      A wide area network — geographically separate sites joined together, usually over infrastructure owned by somebody else. The internet is the largest.
+  - q: >-
+      Why are protocols arranged in layers?
+    a: >-
+      So each layer solves one problem and relies on the layer below without knowing how it works. A layer can then be replaced without disturbing the others.
+  - q: >-
+      Name the four layers of the TCP/IP model.
+    a: >-
+      Application, transport, internet (network), and link (network access).
+  - q: >-
+      What does the transport layer do?
+    a: >-
+      Splits data into segments, and delivers them to the right application on the destination machine — reliably in TCP, or not in UDP.
+  - q: >-
+      What does the network layer do?
+    a: >-
+      Addresses packets and routes them across networks, hop by hop, using IP addresses.
+  - q: >-
+      What is encapsulation?
+    a: >-
+      Each layer wraps the data from the layer above in its own header. The receiving machine unwraps them in reverse order.
+  - q: >-
+      What is an IP address?
+    a: >-
+      A numeric address identifying a device on a network, so packets can be routed to it. IPv4 uses 32 bits, IPv6 uses 128.
+  - q: >-
+      What is a MAC address?
+    a: >-
+      A 48-bit address burned into a network interface, identifying it on the local link. Unlike an IP address it does not change when the device moves network.
+  - q: >-
+      What does DNS do?
+    a: >-
+      Translates human-readable domain names into IP addresses, so people can use names while routers use numbers.
+practice:
+  - marks: 3
+    q: >-
+      Explain what is meant by a protocol and why one is necessary.
+    points:
+      - >-
+          A protocol is an agreed set of rules for how data is formatted, addressed and transmitted.
+      - >-
+          Both devices must interpret the same bits in the same way for communication to succeed.
+      - >-
+          Without an agreed protocol the receiving device cannot determine where a message starts, what it means, or whether it arrived intact.
+  - marks: 4
+    q: >-
+      Compare a LAN and a WAN.
+    points:
+      - >-
+          A LAN covers a small geographical area such as a single site or building.
+      - >-
+          A WAN connects sites across large distances, potentially worldwide.
+      - >-
+          A LAN's infrastructure is typically owned by the organisation using it, while a WAN usually uses third-party links.
+      - >-
+          LANs generally offer higher speeds and lower latency than WANs, and cost less to run per device.
+  - marks: 4
+    q: >-
+      Explain why network protocols are organised into layers.
+    points:
+      - >-
+          Each layer is responsible for one well-defined part of the problem.
+      - >-
+          A layer uses the services of the layer below without needing to know how they are implemented.
+      - >-
+          A layer can therefore be changed or replaced without altering the others, for example switching from cable to wireless.
+      - >-
+          This also makes the system easier to design, understand and fault-find, since problems can be isolated to a layer.
+  - marks: 4
+    q: >-
+      Describe what happens to a message as it passes down the layers of the sending device.
+    points:
+      - >-
+          The application layer produces the data to be sent.
+      - >-
+          The transport layer divides it into segments and adds a header with port numbers.
+      - >-
+          The network layer adds a header containing source and destination IP addresses, forming packets.
+      - >-
+          The link layer adds a header with MAC addresses, and the frame is transmitted; this wrapping is called encapsulation.
+  - marks: 3
+    q: >-
+      Explain the difference between an IP address and a MAC address.
+    points:
+      - >-
+          An IP address is a logical address identifying a device on a network, and it changes when the device joins a different network.
+      - >-
+          A MAC address is a physical address fixed in the network interface hardware and does not normally change.
+      - >-
+          IP addresses are used to route between networks; MAC addresses are used to deliver within a single link.
+  - marks: 3
+    q: >-
+      Explain the role of DNS and describe one consequence of a DNS server failing.
+    points:
+      - >-
+          DNS translates domain names such as example.com into the IP addresses routers need.
+      - >-
+          It allows people to use memorable names rather than numeric addresses.
+      - >-
+          If DNS fails, sites become unreachable by name even though the servers themselves are working normally.
+  - marks: 5
+    q: >-
+      A school connects its computers using a wired LAN and also provides wireless access. Discuss the factors it should consider.
+    points:
+      - >-
+          Wired connections offer higher and more consistent speeds and are not affected by interference.
+      - >-
+          Wired installation is expensive and inflexible, requiring cabling to every point.
+      - >-
+          Wireless supports mobile devices and is far cheaper to extend to new areas.
+      - >-
+          Wireless bandwidth is shared and degrades with distance, obstacles and the number of users.
+      - >-
+          Wireless also needs stronger security since the signal leaves the building, and a justified recommendation is given.
+---
+
+Two computers exchanging data have to agree on a great deal: how a message is
+divided, how the destination is named, what happens if a piece goes missing, how
+each side knows the other has finished. A **protocol** is the written form of that
+agreement.
+
+Without one, a transmission is just voltage changes. The receiver cannot tell where
+one message ends and the next begins, let alone what any of it means.
+
+## Networks by size
+
+| | LAN | WAN |
+| --- | --- | --- |
+| Area | One site or building | Cities, countries, the world |
+| Owner | The organisation using it | Usually a third-party carrier |
+| Speed | 1–10 Gbit/s typical | Lower, and variable |
+| Latency | Under a millisecond | Tens to hundreds of milliseconds |
+| Cost per device | Low | High |
+
+The distinction matters less for the technology than for the consequences.
+Anything crossing a WAN has unpredictable delay and passes through equipment you
+do not control, which is why encryption and error handling matter far more there.
+
+## Layers
+
+The problem of "send this file to that machine" decomposes into sub-problems that
+are almost independent:
+
+- Which application should receive this, and did it all arrive?
+- Which machine, out of every machine on Earth, and by what route?
+- How do we get one hop further along the wire in front of us?
+
+Each layer answers one of those and trusts the layer below with the rest.
+
+<Figure caption="The OSI model on the left, the four-layer TCP/IP model actually used on the right. Learn TCP/IP; recognise OSI.">
+  <OsiStack />
+</Figure>
+
+The **OSI model** has seven layers and is a teaching reference. Real networks use
+the four-layer **TCP/IP model**:
+
+**Application** — HTTP, SMTP, DNS. What the data means.
+**Transport** — TCP or UDP. Splitting into segments, delivering to the right
+program on the machine, and in TCP's case making sure it all arrived.
+**Internet** — IP. Addressing and routing across networks.
+**Link** — Ethernet, Wi-Fi. Getting a frame across one physical hop.
+
+<Aside kind="why" title="What layering actually buys you">
+The abstract answer is "separation of concerns". The concrete answer is more
+convincing.
+
+When your laptop moves from Ethernet to Wi-Fi, the link layer changes completely —
+different hardware, different encoding, different error handling. Nothing above it
+changes. The browser does not know, TCP does not know, IP does not know. A
+download can continue.
+
+When IPv6 was introduced, the internet layer changed and TCP did not have to be
+rewritten. When HTTP/2 replaced HTTP/1.1, nothing below the application layer
+noticed.
+
+Layering is what allows the internet to be upgraded in pieces while running. No
+committee could have coordinated replacing all of it at once.
+</Aside>
+
+## Encapsulation
+
+Each layer wraps what it receives from above in a header of its own.
+
+<Figure caption="The application's data ends up buried inside three envelopes. Each is opened by the matching layer at the far end and never looked at by the others.">
+  <Encapsulation />
+</Figure>
+
+Sending: the application hands down data; transport adds a header with port
+numbers, making a **segment**; internet adds source and destination IP addresses,
+making a **packet**; link adds MAC addresses and a checksum, making a **frame**.
+
+Receiving: each layer strips its own header and passes the rest up. A layer never
+inspects another layer's header — that is precisely the discipline that makes
+layering work.
+
+The overhead is real: a 20-byte TCP header plus a 20-byte IP header plus an
+18-byte Ethernet frame means about 58 bytes of packaging on every packet. Sending
+one byte of data costs 59 bytes on the wire.
+
+## Addresses
+
+Two kinds of address operate at once, and confusing them is a standard exam error.
+
+A **MAC address** is 48 bits burned into the network interface at manufacture. It
+identifies the interface on its local link and does not change when the device
+moves. Written as `4c:32:75:9a:1f:0b`.
+
+An **IP address** identifies a device's position on a network, and it *does* change
+when the device moves. Written as `192.168.1.14` in IPv4, which is 32 bits — about
+4.3 billion addresses, which the world ran out of. IPv6 uses 128 bits, which is
+$3.4 \times 10^{38}$.
+
+The analogy that holds: a MAC address is like a person's name, an IP address is
+like their current postal address. Routing across the world uses the address;
+delivery down the final corridor uses the name.
+
+**DNS** sits on top, translating `example.com` into an IP address, because nobody
+wants to memorise numbers. It is a distributed hierarchy of servers, and it is a
+notable single point of fragility — a DNS outage makes working servers unreachable.
+
+<Py caption="What is inside an IPv4 address. Step through the subnet calculation to see how the mask splits network from host.">{`
+def to_bits(address):
+    return ".".join(f"{int(part):08b}" for part in address.split("."))
+
+def network_of(address, prefix):
+    octets = [int(p) for p in address.split(".")]
+    value = (octets[0] << 24) | (octets[1] << 16) | (octets[2] << 8) | octets[3]
+    mask = (0xFFFFFFFF << (32 - prefix)) & 0xFFFFFFFF
+    net = value & mask
+    return ".".join(str((net >> shift) & 0xFF) for shift in (24, 16, 8, 0))
+
+for address, prefix in (("192.168.1.14", 24), ("10.3.200.7", 16), ("172.16.5.130", 25)):
+    hosts = 2 ** (32 - prefix) - 2
+    print(f"{address}/{prefix}")
+    print(f"   bits    {to_bits(address)}")
+    print(f"   network {network_of(address, prefix)}")
+    print(f"   usable hosts on it: {hosts:,}")
+    print()
+
+print(f"IPv4 total space: {2**32:,}")
+print(f"IPv6 total space: {2**128:,}")
+`}</Py>
+
+<Takeaway>
+A protocol is an agreement; a layer is one agreement that can be changed without
+renegotiating the others. Everything else in networking is detail hanging off
+those two ideas.
+</Takeaway>

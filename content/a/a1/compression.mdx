@@ -168,6 +168,10 @@ length one, and the output is `1A1B1C1D…` — **twice** the original size. Thi
 worth internalising, because it generalises: **every compression method assumes
 something about the data, and produces bloat when the assumption is false.**
 
+<Figure caption="The same method on two kinds of data. Run-length encoding is not good or bad in itself — it is a bet about repetition.">
+  <RunLength />
+</Figure>
+
 ### Dictionary methods
 
 Build a table of sequences that occur repeatedly and replace each occurrence with
@@ -189,6 +193,10 @@ The codes must form a **prefix code** — no codeword may be the beginning of
 another. Without that rule the decoder could not tell where one symbol ended and
 the next began; with it, the moment a codeword is recognised it can only be that
 symbol, so no separators are needed.
+
+<Figure caption="Frequent symbols sit near the root and get short codes. Every symbol is a leaf, which is what makes it a prefix code.">
+  <HuffmanTree />
+</Figure>
 
 <Py caption="Huffman coding end to end, on real text. Step through the tree-building loop to see the two rarest symbols merge each time.">{`
 import heapq
