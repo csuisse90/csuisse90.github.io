@@ -3084,6 +3084,18 @@ button.termDot {
 .termLine[data-kind="err"] { color: #ff7a6a; }
 .termLine[data-kind="note"] { color: #6d7a76; }
 
+/* The banner is the one place block-drawing characters are used, and the mono
+   webfont has no glyph for them. Ask for a system mono that does, so the whole
+   banner comes from one font and the columns line up. */
+.termLine[data-kind="banner"] {
+  font-family: ui-monospace, Menlo, Monaco, Consolas, "DejaVu Sans Mono", monospace;
+  color: #55635f;
+  letter-spacing: 0;
+  /* U+2588 fills its em box, so anything above 1 leaves a gap between rows and
+     the strokes read as dashes rather than bars. */
+  line-height: 1;
+}
+
 .termPrompt {
   display: flex;
   align-items: baseline;

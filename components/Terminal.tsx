@@ -21,15 +21,17 @@ const VimEditor = dynamic(() => import("./VimEditor"), { ssr: false });
 const DISK = "terminal.disk.v1";
 const HISTORY = "terminal.history.v1";
 
-// Plain ASCII on purpose. The block-drawing characters a figlet banner normally
-// uses are missing from the site's mono webfont, so each one fell back to a
-// different font with a different advance width and the letters came apart.
+// Solid blocks, drawn from U+2588 alone. A figlet banner normally mixes block
+// and box-drawing characters, and the site's mono webfont has neither — so each
+// one fell back to a different font with a different advance width and the
+// letters came apart. One character plus spaces, rendered in a system mono that
+// does have it (see .termBanner), keeps every column aligned.
 const BANNER = [
-  "  ##### ####      ####  ####    #   # #",
-  "    #   #   #    #     #        #   # #",
-  "    #   ####     #      ###     ##### #",
-  "    #   #   #    #         #    #   # #",
-  "  ##### ####      #### ####     #   # #####",
+  "  █████ ████      ████  ████    █   █ █",
+  "    █   █   █    █     █        █   █ █",
+  "    █   ████     █      ███     █████ █",
+  "    █   █   █    █         █    █   █ █",
+  "  █████ ████      ████ ████     █   █ █████",
 ];
 
 export default function Terminal() {
@@ -76,7 +78,7 @@ export default function Terminal() {
     setHistory(JSON.parse(window.localStorage.getItem(HISTORY) ?? "[]") as string[]);
 
     setLines([
-      ...BANNER.map((text) => ({ text, kind: "note" as const })),
+      ...BANNER.map((text) => ({ text, kind: "banner" as const })),
       { text: "", kind: "out" },
       { text: "  type `help` to begin, or `cat readme.txt`", kind: "note" },
       { text: "", kind: "out" },

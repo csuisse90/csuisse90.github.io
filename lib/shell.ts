@@ -6,7 +6,7 @@
 
 import type { LogicCore, WasmFs } from "./wasm/logicCore.js";
 
-export type Line = { text: string; kind?: "out" | "err" | "cmd" | "note" };
+export type Line = { text: string; kind?: "out" | "err" | "cmd" | "note" | "banner" };
 
 export type Context = {
   core: LogicCore;
