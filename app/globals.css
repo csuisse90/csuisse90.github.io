@@ -2954,6 +2954,30 @@ html[data-ai-open="true"]
    The terminal. Deliberately its own world: black, monospace, no hairlines.
    ========================================================================== */
 
+.lazyFailed {
+  border: 1px solid var(--alarm);
+  border-left-width: 3px;
+  background: var(--paper-lift);
+  padding: 1.1rem 1.2rem;
+  margin: 1.5rem 0;
+  max-width: 60ch;
+}
+
+.lazyFailed p {
+  margin: 0.5rem 0 0.9rem;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.lazyFailed code {
+  display: block;
+  margin-top: 0.9rem;
+  font-size: 0.7rem;
+  color: var(--ink-faint);
+  overflow-wrap: anywhere;
+}
+
 /* ---- btop ---------------------------------------------------------------- */
 
 .monitor {

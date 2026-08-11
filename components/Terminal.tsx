@@ -14,6 +14,7 @@ import {
 } from "@/lib/python";
 import type { WasmFs } from "@/lib/wasm/logicCore.js";
 
+import LazyBoundary from "./LazyBoundary";
 import type { Files } from "./VimEditor";
 
 const VimEditor = dynamic(() => import("./VimEditor"), { ssr: false });
@@ -348,27 +349,31 @@ export default function Terminal() {
       </div>
 
       {monitoring && (
-        <SystemMonitor
-          fs={fsRef.current}
-          pythonLoaded={py.current !== null}
-          onClose={() => {
-            closeMonitor.current();
-            requestAnimationFrame(() => field.current?.focus());
-          }}
-        />
+        <LazyBoundary what="The system monitor">
+          <SystemMonitor
+            fs={fsRef.current}
+            pythonLoaded={py.current !== null}
+            onClose={() => {
+              closeMonitor.current();
+              requestAnimationFrame(() => field.current?.focus());
+            }}
+          />
+        </LazyBoundary>
       )}
 
       {editing && fsRef.current && (
-        <VimEditor
-          path={editing}
-          initial={fsRef.current.read(editing)}
-          files={files}
-          onSave={save}
-          onClose={() => {
-            closeEditor.current();
-            requestAnimationFrame(() => field.current?.focus());
-          }}
-        />
+        <LazyBoundary what="The editor">
+          <VimEditor
+            path={editing}
+            initial={fsRef.current.read(editing)}
+            files={files}
+            onSave={save}
+            onClose={() => {
+              closeEditor.current();
+              requestAnimationFrame(() => field.current?.focus());
+            }}
+          />
+        </LazyBoundary>
       )}
     </>
   );

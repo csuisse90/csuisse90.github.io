@@ -30,9 +30,11 @@ export default function SystemMonitor({
   const [heap, setHeap] = useState<number[]>(() => Array(HISTORY).fill(0));
   const [uptime, setUptime] = useState(0);
   const [quota, setQuota] = useState<{ usage: number; quota: number } | null>(null);
+  const [disk, setDisk] = useState({ image: 0, files: 0, directories: 0 });
 
   const started = useRef(Date.now());
   const frameCount = useRef(0);
+  const ticks = useRef(0);
 
   useEffect(() => {
     void collect().then(setSpec);
@@ -75,9 +77,25 @@ export default function SystemMonitor({
       setFrames((h) => [...h.slice(1), Math.min(1, fps / 60)]);
       setHeap((h) => [...h.slice(1), used]);
       setUptime(Math.round((Date.now() - started.current) / 1000));
+
+      // Serialising the whole filesystem is not free, so it happens here rather
+      // than during render, and once a second rather than four times.
+      if (fs && ticks.current++ % 4 === 0) {
+        try {
+          const entries = JSON.parse(fs.treeJson("/")) as { directory: boolean }[];
+          setDisk({
+            image: fs.dumpJson().length,
+            files: entries.filter((e) => !e.directory).length,
+            directories: entries.filter((e) => e.directory).length,
+          });
+        } catch {
+          // A filesystem that cannot be read is worth a blank row, not a crash
+          // that takes the monitor down with it.
+        }
+      }
     }, TICK);
     return () => clearInterval(id);
-  }, []);
+  }, [fs]);
 
   const quit = useCallback(() => onClose(), [onClose]);
 
@@ -93,11 +111,6 @@ export default function SystemMonitor({
   }, [quit]);
 
   const memory = (performance as PerformanceWithMemory).memory;
-  const diskBytes = fs ? fs.dumpJson().length : 0;
-  // treeJson is a flat list of entries, each flagged as a directory or not.
-  const entries: { directory: boolean }[] = fs ? JSON.parse(fs.treeJson("/")) : [];
-  const fileCount = entries.filter((e) => !e.directory).length;
-  const directoryCount = entries.filter((e) => e.directory).length;
 
   const processes: { name: string; state: string; detail: string }[] = [
     { name: "logicCore.wasm", state: fs ? "running" : "loading", detail: "C++ shell, filesystem and logic engine" },
@@ -151,8 +164,8 @@ export default function SystemMonitor({
         </Panel>
 
         <Panel title="disk" meta="the shell's filesystem">
-          <Row label="image" value={bytes(diskBytes)} />
-          <Row label="files" value={`${fileCount} in ${directoryCount} directories`} />
+          <Row label="image" value={bytes(disk.image)} />
+          <Row label="files" value={`${disk.files} in ${disk.directories} directories`} />
           {quota && (
             <>
               <Bar value={quota.quota ? quota.usage / quota.quota : 0} />

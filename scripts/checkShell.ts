@@ -6,7 +6,7 @@ import { tmpdir } from "node:os";
 import { spawnSync } from "node:child_process";
 
 import createLogicCore from "../lib/wasm/logicCore.js";
-import { COMMANDS, STARTER_FILES, type Context } from "../lib/shell";
+import { COMMAND_NAMES, COMMANDS, STARTER_FILES, type Context } from "../lib/shell";
 
 const core = await createLogicCore();
 const fs = new core.Fs();
@@ -141,6 +141,30 @@ await check("uname -a", "uname -a describes the environment", (o) => o.includes(
 await check("ps", "ps lists the wasm core", (o) => o.includes("logicCore.wasm"));
 await check("man grep", "man explains one command", (o) => o.includes("grep [-iv]"));
 await check("man zzz", "man reports an unknown command", (o) => o.includes("no entry"));
+
+// Two names for one command is a bug that only shows up as a command silently
+// doing the wrong thing, so it is worth one line.
+const duplicates = COMMAND_NAMES.filter((n, i) => COMMAND_NAMES.indexOf(n) !== i);
+if (duplicates.length) {
+  failures++;
+  console.log(`FAIL  duplicate command names: ${duplicates.join(", ")}`);
+} else {
+  console.log(`ok    all ${COMMAND_NAMES.length} command names are distinct`);
+}
+
+// Every command has to survive being called with nothing at all — a student
+// pressing enter on a bare name must get a message, not an exception.
+for (const command of COMMANDS) {
+  if (["btop", "htop", "nvim", "neofetch", "reset", "clear"].includes(command.name)) continue;
+  try {
+    out = [];
+    await command.run([], ctx);
+    console.log(`ok    ${command.name} with no arguments does not throw`);
+  } catch (e) {
+    failures++;
+    console.log(`FAIL  ${command.name} with no arguments threw: ${e}`);
+  }
+}
 
 // The starter files are the first thing anybody runs, so a broken one is worse
 // than an empty disk. Same interpreter the snippet checker uses.

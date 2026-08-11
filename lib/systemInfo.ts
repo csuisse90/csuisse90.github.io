@@ -58,6 +58,9 @@ export function graphics(): { renderer: string; vendor: string } {
     const vendor = info
       ? String(gl.getParameter(info.UNMASKED_VENDOR_WEBGL))
       : String(gl.getParameter(gl.VENDOR));
+    // Browsers cap how many live WebGL contexts a page may hold, and this is
+    // called again on every neofetch, so hand it straight back.
+    gl.getExtension("WEBGL_lose_context")?.loseContext();
     // Some builds answer with an empty string rather than refusing outright.
     return { renderer: renderer.trim() || "withheld by this browser", vendor: vendor.trim() };
   } catch {

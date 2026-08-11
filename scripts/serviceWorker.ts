@@ -52,11 +52,19 @@ self.addEventListener("install", (event) => {
       for (let i = 0; i < FILES.length; i += 24) {
         await cache.addAll(FILES.slice(i, i + 24)).catch(() => {});
       }
-      await self.skipWaiting();
+      // Deliberately no skipWaiting. A page already open is running the
+      // previous build, and the chunks it loads lazily are named with that
+      // build's hashes. Taking over at once — and then deleting that build's
+      // cache on activate — leaves those chunks unreachable, because the deploy
+      // has removed them from the server as well. The next lazy import on that
+      // page then fails and React replaces the whole application with an error.
+      // The new worker waits for the old pages to close instead.
     })(),
   );
 });
 
+// Activation only happens once every page running the old build has gone, so by
+// this point no client can still need the old cache.
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     (async () => {
