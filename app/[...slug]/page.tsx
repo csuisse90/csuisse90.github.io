@@ -81,6 +81,11 @@ export default async function TopicPage({
             components={MDX_COMPONENTS}
             options={{
               parseFrontmatter: true,
+              // next-mdx-remote deletes every JS expression unless this is off,
+              // which silently emptied `<Py>{`...`}</Py>` and any `attr={...}`.
+              // The content is our own files, so there is nothing to sandbox.
+              blockJS: false,
+              blockDangerousJS: false,
               mdxOptions: {
                 remarkPlugins: [remarkGfm, remarkMath],
                 rehypePlugins: [[rehypeKatex, { output: "html" }]],

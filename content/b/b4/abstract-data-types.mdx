@@ -1,0 +1,333 @@
+---
+code: B4.1.1
+title: Abstract data types
+lede: >-
+  The difference between what a structure promises and how it is built, and why an array and a linked list are good at opposite things.
+hl: true
+prereqs:
+  - B3.1.2
+cards:
+  - q: >-
+      What is an abstract data type?
+    a: >-
+      A description of the values a structure holds and the operations it supports, with nothing said about how it is stored.
+  - q: >-
+      What is the difference between an ADT and a data structure?
+    a: >-
+      The ADT is the promise — push, pop, isEmpty. The data structure is the implementation that keeps it, such as an array or linked nodes.
+  - q: >-
+      Why is separating the two useful?
+    a: >-
+      Code written against the operations keeps working when the storage is replaced, so the implementation can be changed for performance without rewriting callers.
+  - q: >-
+      What is a static data structure?
+    a: >-
+      One whose size is fixed when it is created, such as an array. Memory is allocated once and cannot grow.
+  - q: >-
+      What is a dynamic data structure?
+    a: >-
+      One that grows and shrinks while the program runs, allocating memory for each element as it is needed.
+  - q: >-
+      Give one advantage and one disadvantage of a static structure.
+    a: >-
+      Access by index is immediate because the address can be calculated. But the size must be guessed in advance, wasting memory or running out.
+  - q: >-
+      Why can an array be indexed in constant time?
+    a: >-
+      Elements are the same size and stored consecutively, so the address is $\text{base} + \text{index} \times \text{size}$ — one calculation regardless of length.
+  - q: >-
+      What does it cost to insert at the front of an array?
+    a: >-
+      Every existing element must be shifted up one place, so the work is proportional to the length of the array.
+  - q: >-
+      What is a record, or struct?
+    a: >-
+      A group of named fields of possibly different types, treated as one value. It is the building block for the node of a dynamic structure.
+  - q: >-
+      What is a pointer or reference?
+    a: >-
+      A value holding the address of something else. It is what allows a node to link to another node held anywhere in memory.
+  - q: >-
+      Name four common abstract data types.
+    a: >-
+      Stack, queue, list, and tree. A set, a map and a graph are also ADTs.
+  - q: >-
+      How do you choose a data structure?
+    a: >-
+      By which operations the program performs most: indexing, inserting in the middle, searching, or taking from the ends.
+practice:
+  - marks: 4
+    q: >-
+      Explain what is meant by an abstract data type, and distinguish it from a data structure.
+    points:
+      - >-
+          An ADT specifies the data it holds and the operations that may be performed on it.
+      - >-
+          It says nothing about how the data is physically stored.
+      - >-
+          A data structure is a concrete implementation, such as an array or a set of linked nodes.
+      - >-
+          The same ADT can therefore be implemented by more than one data structure.
+  - marks: 4
+    q: >-
+      Explain why separating an ADT from its implementation is useful when a program must be maintained.
+    points:
+      - >-
+          Code that uses the ADT depends only on its operations.
+      - >-
+          The implementation can be replaced without changing any calling code.
+      - >-
+          A structure can therefore be swapped for a faster one if performance becomes a problem.
+      - >-
+          Faults in the implementation are confined to one place rather than spread through the program.
+  - marks: 4
+    q: >-
+      Compare static and dynamic data structures.
+    points:
+      - >-
+          A static structure has a size fixed when it is created; a dynamic one grows and shrinks at run time.
+      - >-
+          A static structure allocates one block of memory, allowing an element's address to be calculated directly.
+      - >-
+          A dynamic structure allocates memory per element, so it uses only what is needed but stores a pointer with each element.
+      - >-
+          A static structure may waste memory or overflow if the size is guessed wrongly, which a dynamic one avoids.
+  - marks: 3
+    q: >-
+      Explain why an element of an array can be accessed in constant time.
+    points:
+      - >-
+          Every element occupies the same number of bytes.
+      - >-
+          Elements are stored consecutively, so the address is the base address plus the index times the element size.
+      - >-
+          The calculation takes the same time regardless of the index or the length of the array.
+  - marks: 4
+    q: >-
+      A program repeatedly inserts new values at the front of a collection of 10,000 items. Explain why an array performs poorly and what should be used instead.
+    points:
+      - >-
+          Inserting at the front of an array requires every existing element to be moved up one position.
+      - >-
+          Each insertion therefore costs work proportional to the number of items, around 10,000 moves.
+      - >-
+          A linked list inserts at the front by creating a node and changing one pointer.
+      - >-
+          This takes the same short time regardless of how many items are already stored.
+  - marks: 4
+    q: >-
+      Explain what a pointer is and why dynamic data structures depend on them.
+    points:
+      - >-
+          A pointer holds the memory address of another item of data.
+      - >-
+          Nodes in a dynamic structure are allocated separately and are not adjacent in memory.
+      - >-
+          Each node therefore stores a pointer to the next, which is what connects them into a structure.
+      - >-
+          Following pointers is how the structure is traversed, and rearranging them is how it is modified.
+  - marks: 5
+    q: >-
+      A team must store a school's 1,200 student records. Discuss which data structure they should choose, given that records are looked up by ID far more often than they are added or removed.
+    points:
+      - >-
+          The dominant operation is lookup by a key, not insertion or traversal in order.
+      - >-
+          Searching a list or array of 1,200 records examines up to 1,200 entries per lookup.
+      - >-
+          A hash table or dictionary keyed by student ID finds a record in roughly constant time.
+      - >-
+          A sorted array with binary search is an alternative, costing about eleven comparisons, but insertions then require shifting.
+      - >-
+          A justified conclusion is reached, noting the extra memory a hash table uses is a reasonable price given the access pattern.
+---
+
+Everything in this unit rests on one distinction, so it is worth being pedantic
+about it.
+
+An **abstract data type** is a promise: these are the values, these are the
+operations. A **data structure** is a way of keeping that promise.
+
+"Stack" is an ADT. It promises `push`, `pop` and `isEmpty`, and it promises that
+what comes out is what went in most recently. It says nothing about arrays,
+nodes, or memory.
+
+<Figure caption="One promise, two ways of keeping it. Code written against the top box does not change when the bottom one does.">
+  <AdtInterface />
+</Figure>
+
+The point of naming the abstract type separately is that everything written
+against it survives a change of implementation. Start with an array because it is
+simple; discover it overflows; swap in linked nodes; and not one line of calling
+code changes.
+
+## Static and dynamic
+
+A **static** structure is sized once. An array of 100 integers is 100 integers'
+worth of memory, whether you use two or a hundred, and there is no hundred and
+first.
+
+A **dynamic** structure allocates as it goes. Each element is a separate
+allocation, linked to the others by pointers, and there is no fixed limit beyond
+the memory available.
+
+| | Static (array) | Dynamic (linked) |
+| --- | --- | --- |
+| Size | Fixed at creation | Grows and shrinks |
+| Memory per element | Just the data | Data **plus** a pointer |
+| Access by index | Immediate | Walk from the start |
+| Insert at the front | Shift everything | Change one pointer |
+| Memory layout | One consecutive block | Scattered |
+
+Neither wins. They are good at the opposite things, and that is the whole basis
+for choosing between them.
+
+<Aside kind="why" title="Why indexing an array is a single calculation">
+An array is one consecutive block, and every element is the same size. So the
+address of element $i$ is
+
+$$
+\text{address} = \text{base} + i \times \text{size}
+$$
+
+That is a multiply and an add. It takes the same time for element 0 and element
+999,999, which is what "constant time" means.
+
+A linked list cannot do this. Its nodes are wherever the allocator put them, so
+the only way to find the tenth is to read the first, follow its pointer to the
+second, and so on. Ten steps for the tenth, a million for the millionth.
+
+The compensation is that an array's virtue is also its constraint: because
+everything is consecutive, making room in the middle means physically moving
+everything after it.
+</Aside>
+
+## The cost table worth memorising
+
+For $n$ elements:
+
+| Operation | Array | Linked list |
+| --- | --- | --- |
+| Read element $i$ | $O(1)$ | $O(n)$ |
+| Insert at the front | $O(n)$ | $O(1)$ |
+| Insert at the end | $O(1)$ if room | $O(1)$ with a tail pointer |
+| Insert in the middle | $O(n)$ | $O(1)$ **once you are there** |
+| Delete a known element | $O(n)$ | $O(1)$ |
+| Search for a value | $O(n)$ | $O(n)$ |
+
+The row that catches people is the middle insertion. A linked list inserts in
+constant time *given a pointer to the position*; finding that position is $O(n)$.
+Quoting $O(1)$ without the caveat loses the mark.
+
+<Aside kind="deeper" title="The cache, and why arrays beat the theory">
+The table says a linked list wins for insertion. Real machines complicate this.
+
+Memory is not read one byte at a time. The processor fetches a **cache line** —
+typically 64 bytes — so reading element 0 of an array drags the next fifteen
+integers into fast memory for nothing. Walking an array is therefore close to
+free per element after the first.
+
+Linked-list nodes are scattered. Each hop is potentially a fresh cache miss
+costing a hundred times what a cached read costs. So an array can beat a linked
+list at insertion, despite doing more work, until $n$ becomes large — because
+memmove on consecutive memory is one of the fastest things a computer does, and
+pointer chasing is one of the slowest.
+
+This does not change the exam answer, which is about orders of growth. It is why
+professional code uses arrays far more often than the table suggests.
+</Aside>
+
+<Py caption="An array and a linked list built by hand, and the cost of the same two operations measured on each. The numbers show the table above rather than assert it.">{`
+import time
+
+# --- a linked list, built out of nodes so the pointers are visible -----------
+class Node:
+    def __init__(self, value):
+        self.value = value
+        self.next = None
+
+class LinkedList:
+    def __init__(self):
+        self.head = None
+        self.count = 0
+
+    def push_front(self, value):
+        node = Node(value)
+        node.next = self.head        # one pointer write
+        self.head = node             # and one more
+        self.count += 1
+
+    def get(self, index):
+        node = self.head
+        for _ in range(index):       # no shortcut exists
+            node = node.next
+        return node.value
+
+    def to_list(self):
+        out, node = [], self.head
+        while node:
+            out.append(node.value)
+            node = node.next
+        return out
+
+small = LinkedList()
+for v in (9, 7, 12):
+    small.push_front(v)
+print("linked list:", small.to_list(), " head is the last one pushed")
+print("element 2  :", small.get(2), " reached by walking two links")
+
+# --- the same two operations, timed, on both structures ----------------------
+N = 20_000
+
+start = time.perf_counter()
+array = []
+for i in range(N):
+    array.insert(0, i)               # shifts everything, every time
+array_front = time.perf_counter() - start
+
+start = time.perf_counter()
+linked = LinkedList()
+for i in range(N):
+    linked.push_front(i)             # two pointer writes, every time
+linked_front = time.perf_counter() - start
+
+start = time.perf_counter()
+for i in range(0, N, 1000):
+    _ = array[i]
+array_index = time.perf_counter() - start
+
+start = time.perf_counter()
+for i in range(0, N, 1000):
+    _ = linked.get(i)
+linked_index = time.perf_counter() - start
+
+print()
+print(f"{N:,} insertions at the front")
+print(f"   array      {array_front * 1000:8.1f} ms   O(n) each — shifts every element")
+print(f"   linked     {linked_front * 1000:8.1f} ms   O(1) each — two pointer writes")
+print()
+print("20 reads by index")
+print(f"   array      {array_index * 1e6:8.1f} us   O(1) each — one calculation")
+print(f"   linked     {linked_index * 1e6:8.1f} us   O(n) each — walks from the head")
+print()
+print("Each structure is fast at exactly what the other is slow at.")
+`}</Py>
+
+## Choosing
+
+The question is never "which structure is best". It is **which operations does
+this program do most?**
+
+- Reading by position, rarely changing the size → **array**.
+- Constant insertion and deletion, order matters, position does not → **linked
+  list**.
+- Only ever touching one end → **stack**.
+- Adding at one end, removing from the other → **queue**.
+- Looking things up by a key → **hash table**.
+- Keeping things sorted while still inserting → **tree**.
+
+<Takeaway>
+Name the operations first and the storage second. The ADT is what your program
+depends on; the data structure is a decision you should be able to reverse
+without anybody noticing.
+</Takeaway>

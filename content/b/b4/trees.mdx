@@ -1,0 +1,374 @@
+---
+code: B4.1.4
+title: Trees and binary search trees
+lede: >-
+  A structure with more than one next, the one rule that makes searching fast, and the three traversals you have to be able to write out.
+hl: true
+prereqs:
+  - B4.1.3
+cards:
+  - q: >-
+      What is a tree?
+    a: >-
+      A structure of nodes in which each node has one parent and any number of children, with a single root and no cycles.
+  - q: >-
+      Define root, leaf, parent and child.
+    a: >-
+      The **root** is the only node with no parent. A **leaf** has no children. A **parent** points to its **children**, which are the nodes directly below it.
+  - q: >-
+      What is the height of a tree?
+    a: >-
+      The number of levels, or the length of the longest path from the root to a leaf.
+  - q: >-
+      What is a binary tree?
+    a: >-
+      A tree in which every node has at most two children, called the left and right child.
+  - q: >-
+      What rule defines a binary search tree?
+    a: >-
+      For every node, all values in its left subtree are smaller and all values in its right subtree are larger.
+  - q: >-
+      How is a value searched for in a binary search tree?
+    a: >-
+      Compare with the current node; go left if smaller, right if larger, stop when equal or when the pointer is null.
+  - q: >-
+      What is the cost of searching a balanced binary search tree?
+    a: >-
+      $O(\log n)$, because each comparison discards one of the two subtrees.
+  - q: >-
+      What happens if values are inserted into a binary search tree in sorted order?
+    a: >-
+      Every node has only a right child, so the tree degenerates into a linked list and searching becomes $O(n)$.
+  - q: >-
+      What is an in-order traversal, and what is it used for?
+    a: >-
+      Left subtree, node, right subtree. On a binary search tree it visits the values in ascending order.
+  - q: >-
+      What is a pre-order traversal used for?
+    a: >-
+      Node, left, right. It outputs a tree in an order that rebuilds the same shape, so it is used for copying and serialising.
+  - q: >-
+      What is a post-order traversal used for?
+    a: >-
+      Left, right, node. Children are always finished before the parent, so it is used for deleting a tree and for evaluating expression trees.
+  - q: >-
+      What is a balanced tree?
+    a: >-
+      One in which the subtrees of every node differ in height by at most a small fixed amount, keeping the height around $\log_2 n$.
+practice:
+  - marks: 4
+    q: >-
+      Define the terms root, leaf, subtree and height as they apply to a tree.
+    points:
+      - >-
+          The root is the single node at the top, which has no parent.
+      - >-
+          A leaf is a node with no children.
+      - >-
+          A subtree is a node together with all of its descendants.
+      - >-
+          The height is the number of levels, or the longest path from the root to a leaf.
+  - marks: 3
+    q: >-
+      State the property that defines a binary search tree and explain why it makes searching efficient.
+    points:
+      - >-
+          For every node, all values in the left subtree are less than it and all values in the right subtree are greater.
+      - >-
+          Comparing the target with a node determines which subtree it must be in, if it is present at all.
+      - >-
+          The other subtree can therefore be discarded entirely, halving the remaining search in a balanced tree.
+  - marks: 4
+    q: >-
+      The values 50, 30, 70, 20 and 40 are inserted into an empty binary search tree in that order. Describe the resulting tree and explain how 40 reached its position.
+    points:
+      - >-
+          50 becomes the root, with 30 as its left child and 70 as its right child.
+      - >-
+          20 is less than 50 and less than 30, so it becomes the left child of 30.
+      - >-
+          40 is less than 50 so it goes left, then greater than 30 so it goes right.
+      - >-
+          The position under 30 is empty, so 40 becomes the right child of 30.
+  - marks: 4
+    q: >-
+      State the order in which nodes are visited by in-order, pre-order and post-order traversals, and give a use for each.
+    points:
+      - >-
+          In-order visits the left subtree, the node, then the right subtree, and outputs a binary search tree in sorted order.
+      - >-
+          Pre-order visits the node, then the left subtree, then the right subtree, and can be used to copy or serialise a tree.
+      - >-
+          Post-order visits the left subtree, the right subtree, then the node, and is used to delete a tree or evaluate an expression tree.
+      - >-
+          In each case the traversal of a subtree follows the same rule recursively.
+  - marks: 4
+    q: >-
+      Explain what happens if data is inserted into a binary search tree in ascending order, and state the effect on search performance.
+    points:
+      - >-
+          Each new value is larger than every existing one, so it is placed as the right child of the previous node.
+      - >-
+          The tree becomes a single chain with no left children.
+      - >-
+          Its height equals the number of nodes rather than about log n.
+      - >-
+          Searching must follow the whole chain, so performance degrades from O(log n) to O(n).
+  - marks: 5
+    q: >-
+      Compare storing 1,000,000 sorted values in a balanced binary search tree with storing them in a sorted array, considering both searching and insertion.
+    points:
+      - >-
+          Both allow searching in about twenty comparisons, as both halve the range at each step.
+      - >-
+          Inserting into a sorted array requires shifting elements, costing up to 1,000,000 moves.
+      - >-
+          Inserting into a balanced tree requires following one path and changing a pointer, costing about twenty steps.
+      - >-
+          The array uses less memory, as the tree stores two pointers with every value.
+      - >-
+          A justified conclusion is reached, for example that the tree is preferable when the data changes and the array when it is fixed.
+  - marks: 4
+    q: >-
+      Explain why an in-order traversal of a binary search tree produces the values in ascending order.
+    points:
+      - >-
+          Every value in a node's left subtree is smaller than the node.
+      - >-
+          Every value in its right subtree is larger.
+      - >-
+          Visiting the left subtree first, then the node, then the right subtree therefore emits smaller values before larger ones.
+      - >-
+          The same holds recursively at every node, so the whole sequence is ordered.
+---
+
+A linked list has one `next`. Give a node two, and it stops being a line and
+becomes a **tree**.
+
+## The vocabulary
+
+Trees are drawn upside down: the **root** at the top, **leaves** at the bottom.
+
+- **Root** — the one node with no parent.
+- **Parent** and **child** — the node above, and the nodes directly below.
+- **Leaf** — a node with no children.
+- **Subtree** — any node together with everything below it. This is the important
+  one: every subtree is itself a tree, which is why nearly every tree algorithm
+  is recursive.
+- **Height** — the number of levels, or the longest root-to-leaf path.
+- **Binary tree** — every node has at most two children.
+
+## The binary search tree rule
+
+> For every node, everything in its left subtree is smaller and everything in its
+> right subtree is larger.
+
+Note **every node**, not just the root. That is what makes the structure work.
+
+<Figure caption="One rule, applied at every node, gives sorted output for free and a search that discards half the tree per comparison.">
+  <BinaryTreeDiagram />
+</Figure>
+
+### Searching
+
+```
+current ← root
+WHILE current ≠ null
+    IF target = current.value THEN found
+    ELSE IF target < current.value THEN current ← current.left
+    ELSE current ← current.right
+END WHILE
+```
+
+Each comparison eliminates an entire subtree. In a tree of height $h$, a search
+takes at most $h$ comparisons — and a balanced tree of $n$ nodes has
+$h \approx \log_2 n$. A million values, twenty comparisons.
+
+### Inserting
+
+Search for the value. When you fall off the bottom, that empty place is where it
+belongs. A new value is therefore always inserted as a leaf.
+
+<Aside kind="trap" title="Sorted input destroys a binary search tree">
+Insert 10, 20, 30, 40, 50 into an empty tree.
+
+10 is the root. 20 is larger, so right. 30 is larger than both, so right again.
+Every value goes right.
+
+The result is a chain — a linked list wearing a tree's clothes. Its height is $n$
+instead of $\log_2 n$, and searching it costs $n$ comparisons.
+
+This is not a rare accident. Data very often arrives sorted: records exported by
+ID, timestamps, alphabetical names. It is exactly the case a naive binary search
+tree handles worst, and it is why **self-balancing** trees exist — AVL and
+red–black trees rotate nodes on insertion to keep the height near $\log_2 n$
+regardless of the input order.
+
+The exam-level version: a binary search tree is $O(\log n)$ **when balanced** and
+$O(n)$ in the worst case. Quoting the first without the condition loses a mark.
+</Aside>
+
+## The three traversals
+
+Every traversal does the same three things — visit the node, go left, go right —
+in a different order. The name tells you where the *node* comes.
+
+| Traversal | Order | Produces |
+| --- | --- | --- |
+| **Pre**-order | **Node**, left, right | A sequence that rebuilds the tree |
+| **In**-order | Left, **node**, right | The values in ascending order |
+| **Post**-order | Left, right, **node** | Children before parents |
+
+Each has a job.
+
+**In-order** on a binary search tree gives sorted output. That is not a
+coincidence — it is the tree rule read out loud.
+
+**Pre-order** writes the root first, so replaying it into an empty tree rebuilds
+the same shape. It is how a tree is copied or saved to a file.
+
+**Post-order** finishes both children before the parent. That is what you need
+when the parent's work depends on its children's: deleting a tree (you cannot
+free a node while its children still hang off it), or evaluating an expression
+tree (you cannot apply an operator before both operands are known).
+
+<Aside kind="why" title="Expression trees, and why post-order is reverse Polish">
+The expression $(3 + 4) \times 5$ as a tree has $\times$ at the root, the $+$
+subtree on the left and $5$ on the right.
+
+- **In-order** gives `3 + 4 × 5` — the way we write it, and ambiguous without the
+  brackets the tree already encoded.
+- **Post-order** gives `3 4 + 5 ×` — reverse Polish notation, which needs no
+  brackets at all.
+- **Pre-order** gives `× + 3 4 5` — Polish notation, the same idea the other way
+  round.
+
+Reverse Polish evaluates with a stack and no precedence rules: push numbers, and
+on an operator pop two, apply, push the result. That is why calculators and
+virtual machines use it, and why post-order traversal is the natural way to
+evaluate an expression.
+
+Two structures from this unit fit together here: the tree records the structure
+of the expression, and the stack evaluates it.
+</Aside>
+
+<Py step caption="A binary search tree with insert, search, the three traversals, and a demonstration of what sorted input does to it. Step through insert to watch the path down the tree.">{`
+class TreeNode:
+    def __init__(self, value):
+        self.value = value
+        self.left = None
+        self.right = None
+
+class Bst:
+    def __init__(self):
+        self.root = None
+
+    def insert(self, value):
+        if self.root is None:
+            self.root = TreeNode(value)
+            return
+        node = self.root
+        while True:
+            if value < node.value:
+                if node.left is None:
+                    node.left = TreeNode(value)
+                    return
+                node = node.left
+            elif value > node.value:
+                if node.right is None:
+                    node.right = TreeNode(value)
+                    return
+                node = node.right
+            else:
+                return                      # already present
+
+    def find(self, value):
+        node, steps = self.root, 0
+        while node is not None:
+            steps += 1
+            if value == node.value:
+                return steps
+            node = node.left if value < node.value else node.right
+        return None
+
+    def height(self, node="start"):
+        if node == "start":
+            node = self.root
+        if node is None:
+            return 0
+        return 1 + max(self.height(node.left), self.height(node.right))
+
+    def in_order(self, node="start", out=None):
+        if node == "start":
+            node, out = self.root, []
+        if node is not None:
+            self.in_order(node.left, out)   # everything smaller
+            out.append(node.value)          # then this
+            self.in_order(node.right, out)  # then everything larger
+        return out
+
+    def pre_order(self, node="start", out=None):
+        if node == "start":
+            node, out = self.root, []
+        if node is not None:
+            out.append(node.value)
+            self.pre_order(node.left, out)
+            self.pre_order(node.right, out)
+        return out
+
+    def post_order(self, node="start", out=None):
+        if node == "start":
+            node, out = self.root, []
+        if node is not None:
+            self.post_order(node.left, out)
+            self.post_order(node.right, out)
+            out.append(node.value)
+        return out
+
+tree = Bst()
+for v in (50, 30, 70, 20, 40, 60, 85):
+    tree.insert(v)
+
+print("in-order   ", tree.in_order(), " <- sorted, for free")
+print("pre-order  ", tree.pre_order(), " <- rebuilds this exact shape")
+print("post-order ", tree.post_order(), " <- children before parents")
+print()
+print("height", tree.height(), "for", len(tree.in_order()), "nodes")
+print("find 40 ->", tree.find(40), "comparisons")
+print("find 85 ->", tree.find(85), "comparisons")
+print("find 41 ->", tree.find(41), "(not present)")
+
+# What sorted input does to it.
+sorted_tree = Bst()
+for v in range(1, 16):
+    sorted_tree.insert(v)
+
+balanced = Bst()
+for v in (8, 4, 12, 2, 6, 10, 14, 1, 3, 5, 7, 9, 11, 13, 15):
+    balanced.insert(v)
+
+print()
+print("15 values inserted in ascending order:")
+print("   height", sorted_tree.height(), "  find 15 takes", sorted_tree.find(15), "comparisons")
+print("the same 15 values inserted in a balanced order:")
+print("   height", balanced.height(), "   find 15 takes", balanced.find(15), "comparisons")
+print()
+print("Same data, same structure, same code. Only the insertion order differed.")
+`}</Py>
+
+## Balance
+
+Height is everything. A tree of $n$ nodes can have height as small as
+$\log_2 n$ or as large as $n$, and every operation costs the height.
+
+A **balanced** tree keeps the two subtrees of every node within one level of each
+other. Self-balancing trees do it automatically by rotating nodes during
+insertion. You are not required to implement one, but you are expected to know
+why they exist: because the unbalanced case is not a rare misfortune, it is what
+sorted input produces.
+
+<Takeaway>
+The binary search tree rule holds at every node, and that is what buys ordered
+traversal and halving searches. Both benefits are only as good as the tree's
+balance — a tree built from sorted data is a linked list with extra pointers.
+</Takeaway>

@@ -214,8 +214,9 @@ them. Compared with building a separate subtractor and the logic to decide which
 to use, this is an enormous saving — and it is why essentially every processor
 built since the 1960s uses two's complement.
 
-The single zero falls out for free: $-0$ would be invert($0000\,0000$) $+1 =
-1111\,1111 + 1 = 0000\,0000$, discarding the carry. Zero negates to itself.
+The single zero falls out for free: $-0$ would be invert($0000\,0000$) then
+$+1 = 1111\,1111 + 1 = 0000\,0000$, discarding the carry. Zero negates to
+itself.
 
 ## The lopsided range
 

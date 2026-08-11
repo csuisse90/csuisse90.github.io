@@ -14,18 +14,22 @@ import {
 } from "@/lib/python";
 import type { WasmFs } from "@/lib/wasm/logicCore.js";
 
+import type { Files } from "./VimEditor";
+
 const VimEditor = dynamic(() => import("./VimEditor"), { ssr: false });
 
 const DISK = "terminal.disk.v1";
 const HISTORY = "terminal.history.v1";
 
+// Plain ASCII on purpose. The block-drawing characters a figlet banner normally
+// uses are missing from the site's mono webfont, so each one fell back to a
+// different font with a different advance width and the letters came apart.
 const BANNER = [
-  "  ██╗██████╗      ██████╗███████╗    ██╗  ██╗██╗     ",
-  "  ██║██╔══██╗    ██╔════╝██╔════╝    ██║  ██║██║     ",
-  "  ██║██████╔╝    ██║     ███████╗    ███████║██║     ",
-  "  ██║██╔══██╗    ██║     ╚════██║    ██╔══██║██║     ",
-  "  ██║██████╔╝    ╚██████╗███████║    ██║  ██║███████╗",
-  "  ╚═╝╚═════╝      ╚═════╝╚══════╝    ╚═╝  ╚═╝╚══════╝",
+  "  ##### ####      ####  ####    #   # #",
+  "    #   #   #    #     #        #   # #",
+  "    #   ####     #      ###     ##### #",
+  "    #   #   #    #         #    #   # #",
+  "  ##### ####      #### ####     #   # #####",
 ];
 
 export default function Terminal() {
@@ -40,6 +44,7 @@ export default function Terminal() {
   const [editing, setEditing] = useState<string | null>(null);
   const [history, setHistory] = useState<string[]>([]);
   const [at, setAt] = useState(-1);
+  const [full, setFull] = useState(false);
 
   const view = useRef<HTMLDivElement | null>(null);
   const field = useRef<HTMLInputElement | null>(null);
@@ -73,12 +78,6 @@ export default function Terminal() {
     setLines([
       ...BANNER.map((text) => ({ text, kind: "note" as const })),
       { text: "", kind: "out" },
-      {
-        text: `  a real shell — ${COMMAND_NAMES.length} commands, python, and an editor with vim keys`,
-        kind: "note",
-      },
-      { text: "  path handling, globbing and search run in compiled C++", kind: "note" },
-      { text: "", kind: "out" },
       { text: "  type `help` to begin, or `cat readme.txt`", kind: "note" },
       { text: "", kind: "out" },
     ]);
@@ -88,6 +87,14 @@ export default function Terminal() {
     const fs = fsRef.current;
     if (fs) window.localStorage.setItem(DISK, fs.dumpJson());
   }, []);
+
+  // What :w, :e and :saveas reach the disk through.
+  const files = useRef<Files>({
+    resolve: (p) => fsRef.current?.resolve(p) ?? p,
+    exists: (p) => fsRef.current?.exists(p) ?? false,
+    read: (p) => fsRef.current?.read(p) ?? "",
+    write: (p, text) => fsRef.current?.write(p, text, Math.floor(Date.now() / 1000)),
+  }).current;
 
   useEffect(() => {
     view.current?.scrollTo({ top: view.current.scrollHeight });
@@ -245,6 +252,11 @@ export default function Terminal() {
       }
       return;
     }
+    if (e.key === "Escape" && full) {
+      e.preventDefault();
+      setFull(false);
+      return;
+    }
     if (e.ctrlKey && e.key === "l") {
       e.preventDefault();
       setLines([]);
@@ -263,12 +275,24 @@ export default function Terminal() {
 
   return (
     <>
-      <div className="term" onClick={() => field.current?.focus()}>
+      <div className="term" data-full={full} onClick={() => field.current?.focus()}>
         <div className="termBar">
           <span className="termDot" data-colour="red" />
           <span className="termDot" data-colour="amber" />
-          <span className="termDot" data-colour="green" />
+          <button
+            className="termDot"
+            data-colour="green"
+            onClick={(e) => {
+              e.stopPropagation();
+              setFull((f) => !f);
+            }}
+            title={full ? "Leave full screen (esc)" : "Full screen"}
+            aria-label={full ? "Leave full screen" : "Full screen"}
+          />
           <span className="termTitle">student@ibcshl — {cwd}</span>
+          <button className="termFull" onClick={(e) => { e.stopPropagation(); setFull((f) => !f); }}>
+            {full ? "exit full screen · esc" : "full screen"}
+          </button>
         </div>
 
         <div className="termView" ref={view}>
@@ -303,10 +327,8 @@ export default function Terminal() {
         <VimEditor
           path={editing}
           initial={fsRef.current.read(editing)}
-          onSave={(text) => {
-            fsRef.current?.write(editing, text, Math.floor(Date.now() / 1000));
-            save();
-          }}
+          files={files}
+          onSave={save}
           onClose={() => {
             closeEditor.current();
             requestAnimationFrame(() => field.current?.focus());

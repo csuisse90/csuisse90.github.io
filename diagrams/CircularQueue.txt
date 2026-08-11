@@ -1,0 +1,1 @@
+front and rear move round the array with (index + 1) mod size rather than shuffling every element down. The queue is full when advancing rear would land on front, which is why one slot is usually left spare.

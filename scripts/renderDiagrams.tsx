@@ -8,9 +8,13 @@ import * as systems from "../components/figures/systems";
 import * as dataNet from "../components/figures/dataNet";
 import * as dbMl from "../components/figures/dbMl";
 import * as foundations from "../components/figures/foundations";
+import * as programming from "../components/figures/programming";
 
 const SKIP = new Set(["Figure", "Box", "Arrow", "Caption", "Stack"]);
-const all = { ...systems, ...dataNet, ...dbMl, ...foundations } as Record<string, unknown>;
+const all = { ...systems, ...dataNet, ...dbMl, ...foundations, ...programming } as Record<
+  string,
+  unknown
+>;
 
 mkdirSync("diagrams", { recursive: true });
 

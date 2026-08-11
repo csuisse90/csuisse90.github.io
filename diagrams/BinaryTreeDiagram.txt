@@ -1,0 +1,1 @@
+Everything smaller than a node sits to its left, everything larger to its right — at every node, not just the root. That single rule is what lets a search throw away half the tree at each step, and what makes an in-order traversal come out sorted.

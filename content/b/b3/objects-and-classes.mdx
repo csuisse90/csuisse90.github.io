@@ -1,0 +1,341 @@
+---
+code: B3.1.1
+title: Objects and classes
+lede: >-
+  What an object actually is in memory, why a class is a blueprint rather than a thing, and where every beginner's confusion about self comes from.
+prereqs:
+  - B2.1.3
+cards:
+  - q: >-
+      What is an object?
+    a: >-
+      A single thing in a program that bundles **state** — the data it holds — with **behaviour** — the operations it can perform on that data.
+  - q: >-
+      What is a class?
+    a: >-
+      A blueprint describing what every object of that kind has and can do. The class is written once; objects are made from it at run time.
+  - q: >-
+      What is instantiation?
+    a: >-
+      Creating an object from a class, which allocates memory for that object's own attributes and runs the constructor.
+  - q: >-
+      What is an attribute?
+    a: >-
+      A variable belonging to an object, holding part of its state. Two objects of the same class have the same attribute names and their own separate values.
+  - q: >-
+      What is a method?
+    a: >-
+      A function that belongs to a class and operates on an object's own data. It is stored once with the class, not copied into every object.
+  - q: >-
+      What is a constructor?
+    a: >-
+      The method that runs when an object is created. It sets the starting values of the attributes, so no object ever exists in a half-built state.
+  - q: >-
+      What does `self` mean?
+    a: >-
+      The object the method was called on. It is how a method reaches its own object's data, and it is why `self.name` and a plain local `name` are different things.
+  - q: >-
+      What is the difference between a class variable and an instance variable?
+    a: >-
+      An instance variable belongs to one object and each object has its own. A class variable is shared by every object of that class, so changing it changes it for all of them.
+  - q: >-
+      What is a static method?
+    a: >-
+      A method that belongs to the class but does not use any object's data. It is called on the class itself and takes no `self`.
+  - q: >-
+      Why is an object more than a dictionary of values?
+    a: >-
+      Because the operations travel with the data. Anything holding the object also holds the only code allowed to change it, so the rules cannot be bypassed.
+  - q: >-
+      What does it mean to say two variables reference the same object?
+    a: >-
+      Both names hold the same address, so there is only one object. A change made through either name is visible through both.
+  - q: >-
+      What is the difference between identity and equality?
+    a: >-
+      Identity asks whether two names point at the *same* object. Equality asks whether two objects hold the same values. Two different objects can be equal.
+practice:
+  - marks: 4
+    q: >-
+      Explain the relationship between a class and an object, using an example.
+    points:
+      - >-
+          A class is a definition or blueprint stating what attributes and methods objects of that kind have.
+      - >-
+          An object is a specific instance created from that class at run time.
+      - >-
+          Each object has its own values for the attributes, so two objects of the same class can differ.
+      - >-
+          A valid example is given, such as a Student class with objects for individual students.
+  - marks: 3
+    q: >-
+      State what a constructor is and explain why it is useful.
+    points:
+      - >-
+          A constructor is a method that runs automatically when an object is created.
+      - >-
+          It assigns initial values to the object's attributes.
+      - >-
+          This guarantees the object is in a valid state before any other code can use it.
+  - marks: 4
+    q: >-
+      Distinguish between an instance variable and a class variable, giving a use for each.
+    points:
+      - >-
+          An instance variable belongs to a single object, and each object has its own copy.
+      - >-
+          A class variable is shared by every object of the class.
+      - >-
+          An instance variable suits data that differs per object, such as a student's name.
+      - >-
+          A class variable suits data common to all objects, such as a count of how many have been created.
+  - marks: 4
+    q: >-
+      Explain what is meant by `self` in a method definition and why it is needed.
+    points:
+      - >-
+          `self` refers to the particular object on which the method was called.
+      - >-
+          Methods are stored once with the class rather than copied into each object.
+      - >-
+          The parameter therefore tells the method which object's data to work on.
+      - >-
+          Without it, an assignment inside the method would create a local variable rather than change the object.
+  - marks: 4
+    q: >-
+      A program creates two objects of the same class and changes an attribute of one. Explain why the other is unaffected, and state one case in which it would be affected.
+    points:
+      - >-
+          Each object has its own memory holding its own instance variables.
+      - >-
+          Assigning to one object's attribute writes only to that object's storage.
+      - >-
+          If the attribute were a class variable, it would be shared and both would change.
+      - >-
+          The same happens if both names reference the same single object rather than two objects.
+  - marks: 5
+    q: >-
+      A student writes a program using two parallel lists, one of names and one of marks, and is told to rewrite it using objects. Discuss the advantages of doing so.
+    points:
+      - >-
+          Related data is held together in one object rather than spread across separate lists.
+      - >-
+          It becomes impossible for the lists to fall out of step, which is a common source of bugs.
+      - >-
+          Operations on a student, such as calculating a grade, can be methods on the object rather than loose functions.
+      - >-
+          Adding a further field requires changing one class rather than every place a list is indexed.
+      - >-
+          The program reads in terms of the problem — students and marks — rather than in terms of indices.
+  - marks: 4
+    q: >-
+      Explain the difference between testing identity and testing equality for objects, and give a situation where the distinction matters.
+    points:
+      - >-
+          Identity tests whether two references point to the same object in memory.
+      - >-
+          Equality tests whether two objects hold values that are considered the same.
+      - >-
+          Two distinct objects can be equal, so an identity test would wrongly report them as different.
+      - >-
+          It matters when, for example, checking whether a student appears twice in a list, where equality of the data is what is wanted.
+---
+
+Everything up to now has kept data in one place and the code that works on it in
+another. A list of marks over here; a function that averages marks over there.
+Nothing links them, and nothing stops you passing the wrong list to the wrong
+function.
+
+**Object-oriented programming** puts them together. An object is data plus the
+operations allowed on that data, in one thing, with one name.
+
+## Class and object
+
+A **class** is a description. An **object** is a thing.
+
+The class `Dog` says that every dog has a name and an age, and can bark and have
+a birthday. It is a piece of writing. No dog exists yet.
+
+`rex = Dog("Rex", 3)` makes one — an **instance**. It has its own memory holding
+its own name and age. Making a second dog makes a second set of values, and the
+two do not interfere.
+
+<Figure caption="The class exists once, in the program text. Each object is a separate parcel of memory shaped by it.">
+  <ObjectModel />
+</Figure>
+
+The methods are the part people get wrong. They are **not** copied into each
+object. `bark()` is stored once with the class, and every object runs that same
+code — which is exactly why the method needs to be told which object it is
+working on.
+
+## self, and the confusion it causes
+
+```python
+class Dog:
+    def __init__(self, name, age):
+        self.name = name
+        self.age = age
+
+    def birthday(self):
+        self.age = self.age + 1
+```
+
+`self` is the object the method was called on. When you write `rex.birthday()`,
+Python calls `Dog.birthday(rex)` — the object arrives as the first argument.
+
+That explains a mistake nearly everyone makes once:
+
+```python
+    def birthday(self):
+        age = age + 1      # wrong: makes a local, changes nothing
+```
+
+Without `self.`, `age` is an ordinary local variable that appears when the method
+starts and vanishes when it ends. The dog gets no older, and nothing reports an
+error.
+
+<Aside kind="why" title="Why the object has to be passed in at all">
+There is one copy of the method's code and potentially a million objects. When
+the processor reaches the instruction that adds one to an age, it has to know
+*which* age — that is, which address in memory.
+
+So the object's address is passed to the method, exactly like any other argument.
+`self` is simply the name that parameter is given. Languages differ only in
+whether they make you write it: Java and C++ pass the same thing invisibly and
+call it `this`.
+
+Python's choice to make it explicit is why Python beginners meet the idea early
+and Java beginners meet it late — and, usually, more painfully.
+</Aside>
+
+## The constructor
+
+`__init__` runs when the object is created. Its job is to leave the object in a
+state where every other method can rely on the attributes existing and being
+sensible.
+
+That last part matters more than it sounds. If a `Dog` can exist with no name,
+every method that uses the name must cope with there not being one. Setting it in
+the constructor removes an entire class of check from the rest of the program.
+
+## Instance variables against class variables
+
+An **instance variable** belongs to the object: `self.name`. Each object has its
+own.
+
+A **class variable** belongs to the class and is shared by every object of it.
+The honest use is data that genuinely is common: a count of how many objects have
+been created, a shared configuration value, a constant.
+
+<Aside kind="trap" title="The shared mutable class variable">
+```python
+class Basket:
+    items = []          # one list, shared by every basket ever made
+
+    def add(self, thing):
+        self.items.append(thing)
+```
+
+Two baskets, one list. Adding an apple to yours puts an apple in mine.
+
+It looks right, it type-checks, and it passes any test that only makes one
+object. It fails the moment the program has two — which is often in production
+rather than in testing.
+
+The fix is to create the list in the constructor, so each object gets its own:
+
+```python
+    def __init__(self):
+        self.items = []
+```
+
+The rule worth carrying: **class variables should be values that are never
+mutated.** A shared integer that is only reassigned is usually fine; a shared
+list, dictionary or set is almost always a bug in waiting.
+</Aside>
+
+<Py step caption="Objects, self, the shared-list trap, and identity against equality — all four in one run. Step through it and watch which values change together.">{`
+class Dog:
+    species = "Canis familiaris"     # class variable: genuinely shared
+
+    def __init__(self, name, age):
+        self.name = name             # instance variables: one set per object
+        self.age = age
+
+    def birthday(self):
+        self.age += 1
+        return self.age
+
+    def describe(self):
+        return f"{self.name}, aged {self.age}"
+
+rex = Dog("Rex", 3)
+bella = Dog("Bella", 7)
+
+print(rex.describe())
+print(bella.describe())
+print("both share:", rex.species, "==", bella.species)
+
+rex.birthday()
+print()
+print("after rex has a birthday")
+print("  ", rex.describe(), "   <- changed")
+print("  ", bella.describe(), " <- untouched")
+
+# The methods are not copied into the objects. There is one function.
+print()
+print("same method object for both?", Dog.describe is type(bella).describe)
+
+# The shared mutable class variable, shown rather than described.
+class Basket:
+    items = []                       # WRONG on purpose
+    def add(self, thing):
+        self.items.append(thing)
+
+mine, yours = Basket(), Basket()
+mine.add("apple")
+print()
+print("shared class list  -> mine:", mine.items, " yours:", yours.items)
+
+class FixedBasket:
+    def __init__(self):
+        self.items = []              # one list per object
+    def add(self, thing):
+        self.items.append(thing)
+
+mine, yours = FixedBasket(), FixedBasket()
+mine.add("apple")
+print("per-object list    -> mine:", mine.items, " yours:", yours.items)
+
+# Identity against equality.
+a = Dog("Kip", 1)
+b = Dog("Kip", 1)
+c = a
+print()
+print("a is b   (same object?)", a is b)
+print("a is c   (same object?)", a is c)
+print("same values?           ", (a.name, a.age) == (b.name, b.age))
+c.birthday()
+print("after c has a birthday, a is", a.age, "because c and a are one dog")
+`}</Py>
+
+## Why bother
+
+Three reasons, and exam questions usually want all three.
+
+**Cohesion.** The data and the operations on it live in one place. To understand
+students, you read the `Student` class, not eleven scattered functions.
+
+**Correctness.** Two parallel lists can fall out of step; one list of objects
+cannot. Whole categories of bug simply stop being possible.
+
+**Change.** Add a field to a `Student` and you change one class. Add a fourth
+parallel list and you change every loop that indexes the other three.
+
+<Takeaway>
+A class is a description; an object is one thing made from it, with its own
+memory. Methods are shared, which is why they must be told which object they are
+working on — and that parameter, `self`, is the difference between changing the
+object and changing nothing at all.
+</Takeaway>

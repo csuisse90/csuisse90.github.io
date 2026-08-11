@@ -1,0 +1,370 @@
+---
+code: B4.1.2
+title: Stacks and queues
+lede: >-
+  Two structures defined by what they refuse to let you do, and the reason both turn up everywhere from undo buttons to printers.
+hl: true
+prereqs:
+  - B4.1.1
+cards:
+  - q: >-
+      What is a stack?
+    a: >-
+      A collection where items are added and removed at the same end. **Last in, first out**.
+  - q: >-
+      Name the stack operations.
+    a: >-
+      `push` adds to the top, `pop` removes and returns the top, `peek` or `top` looks without removing, and `isEmpty` reports whether anything is there.
+  - q: >-
+      What is a queue?
+    a: >-
+      A collection where items are added at the rear and removed from the front. **First in, first out**.
+  - q: >-
+      Name the queue operations.
+    a: >-
+      `enqueue` adds at the rear, `dequeue` removes and returns the front, `peek` looks at the front, and `isEmpty` reports whether anything is there.
+  - q: >-
+      What is stack overflow?
+    a: >-
+      Pushing onto a stack that has no room left. In a program it usually means uncontrolled recursion.
+  - q: >-
+      What is stack underflow?
+    a: >-
+      Popping from an empty stack. The operation must be refused rather than returning nonsense.
+  - q: >-
+      Give three uses of a stack.
+    a: >-
+      The call stack for function calls, undo history, and evaluating expressions or matching brackets.
+  - q: >-
+      Give three uses of a queue.
+    a: >-
+      A print spooler, keystrokes waiting to be processed, and packets buffered at a router.
+  - q: >-
+      What is a circular queue and why is it used?
+    a: >-
+      A fixed array in which the front and rear indices wrap round with modulo. It reuses freed space without shifting elements down.
+  - q: >-
+      Why not implement a queue as an array with the front always at index 0?
+    a: >-
+      Every dequeue would shift all remaining elements one place, making removal cost work proportional to the length.
+  - q: >-
+      What is a priority queue?
+    a: >-
+      A queue where each item has a priority and the highest-priority item leaves first, regardless of arrival order.
+  - q: >-
+      How do you tell a full circular queue from an empty one?
+    a: >-
+      Both give `front == rear`, so either keep a count of items or leave one slot always unused.
+practice:
+  - marks: 4
+    q: >-
+      Describe the operations of a stack and state the order in which items are removed.
+    points:
+      - >-
+          push adds an item to the top of the stack.
+      - >-
+          pop removes and returns the item at the top.
+      - >-
+          peek returns the top item without removing it, and isEmpty tests whether the stack holds anything.
+      - >-
+          Items are removed in the reverse of the order they were added, which is last in, first out.
+  - marks: 4
+    q: >-
+      Explain the difference between a stack and a queue, giving one appropriate use of each.
+    points:
+      - >-
+          A stack adds and removes at the same end, so the most recently added item leaves first.
+      - >-
+          A queue adds at one end and removes from the other, so the earliest item leaves first.
+      - >-
+          A suitable stack application is given, such as undo or the call stack.
+      - >-
+          A suitable queue application is given, such as a print spooler or a network buffer.
+  - marks: 4
+    q: >-
+      The values 4, 9, 2 and 7 are pushed onto a stack in that order, then two items are popped and 5 is pushed. State the contents of the stack from top to bottom and explain your answer.
+    points:
+      - >-
+          After the four pushes the stack from top to bottom is 7, 2, 9, 4.
+      - >-
+          The two pops remove 7 and then 2, because the most recent item leaves first.
+      - >-
+          Pushing 5 places it on top of the remaining items.
+      - >-
+          The final contents from top to bottom are 5, 9, 4.
+  - marks: 4
+    q: >-
+      Explain why a circular queue is used in preference to a simple array-based queue.
+    points:
+      - >-
+          In a simple array queue, removing from the front either shifts every remaining element or leaves the space unusable.
+      - >-
+          Shifting makes each dequeue cost work proportional to the number of items.
+      - >-
+          A circular queue advances the front index instead, using modulo arithmetic so it wraps to the start.
+      - >-
+          Space freed at the front is therefore reused, and both operations take constant time.
+  - marks: 4
+    q: >-
+      Explain what stack overflow and stack underflow are, and how a well-written implementation should respond to each.
+    points:
+      - >-
+          Overflow occurs when a push is attempted on a stack with no remaining capacity.
+      - >-
+          Underflow occurs when a pop or peek is attempted on an empty stack.
+      - >-
+          Each must be detected and reported rather than allowed to read or write invalid memory.
+      - >-
+          The operation should be refused, for example by raising an error, so the calling code can handle it.
+  - marks: 5
+    q: >-
+      Describe how a stack is used to check that the brackets in an expression are correctly matched.
+    points:
+      - >-
+          Each character of the expression is examined in turn.
+      - >-
+          An opening bracket is pushed onto the stack.
+      - >-
+          On a closing bracket, the stack is popped and the popped bracket must be of the matching type.
+      - >-
+          If the stack is empty when a closing bracket is met, or the types do not match, the expression is invalid.
+      - >-
+          The expression is valid only if the stack is empty once every character has been examined.
+  - marks: 4
+    q: >-
+      A hospital wishes to treat patients in arrival order, except that emergencies are seen first. Explain which abstract data type is appropriate and why a simple queue is not.
+    points:
+      - >-
+          A simple queue always removes the earliest arrival, so an emergency would wait behind routine cases.
+      - >-
+          A priority queue is appropriate, in which each patient is given a priority.
+      - >-
+          The item with the highest priority is removed first, regardless of when it was added.
+      - >-
+          Patients of equal priority are still served in arrival order, so fairness within a priority level is preserved.
+---
+
+A stack and a queue hold the same things and offer almost the same operations.
+The difference is one sentence, and everything else follows from it.
+
+**A stack gives back the item added most recently. A queue gives back the item
+that has been waiting longest.**
+
+<Figure caption="Identical contents, identical history, opposite answers. The structure is defined by which end you are allowed to touch.">
+  <StackQueue />
+</Figure>
+
+## Stacks
+
+Push adds to the top. Pop removes from the top. There is no third option, and
+that restriction is the point: you cannot reach into the middle of a stack, so no
+code can.
+
+```
+push(7)   push(4)   push(9)   pop() -> 9   pop() -> 4
+```
+
+Two errors have names.
+
+- **Overflow** — pushing when there is no room. In a fixed-size implementation
+  this means the array is full; in a running program it usually means recursion
+  that never reached its base case.
+- **Underflow** — popping when empty. The implementation must refuse. Returning
+  zero, or whatever happens to be in the memory, is how a small bug becomes a
+  security hole.
+
+### Where stacks actually appear
+
+**The call stack.** Every function call pushes a frame holding its parameters,
+its local variables and the address to return to. Returning pops it. Calls nest
+perfectly — the most recent call always finishes first — which is exactly LIFO.
+
+**Undo.** Each action is pushed; undo pops the most recent. Nobody has ever
+wanted undo to reverse their oldest action first.
+
+**Matching brackets and evaluating expressions.** Push each opening bracket; on a
+closing bracket, pop and check it matches. Nesting is LIFO, so a stack is not
+merely a convenient choice — it is the shape of the problem.
+
+<Aside kind="why" title="Why nesting and LIFO are the same idea">
+Anything properly nested has a last-opened-first-closed structure: brackets,
+function calls, HTML tags, `begin`/`end` blocks.
+
+Consider `( [ ( ) ] )`. When the first `)` arrives, the only bracket it could
+possibly close is the most recently opened one. If it does not match that, the
+expression is wrong — no amount of looking further ahead can rescue it.
+
+So the question "what am I currently inside?" always has the answer "the most
+recent thing I entered and have not yet left", and that is precisely what a
+stack's top holds.
+
+This is also why you cannot parse nested brackets with a loop and a counter alone
+once there is more than one kind of bracket. A counter records *how deep* you
+are; a stack records *what you are inside*, which is the extra information the
+mismatch check needs.
+</Aside>
+
+## Queues
+
+Enqueue at the rear, dequeue from the front. Fairness by construction: the thing
+that waited longest goes next.
+
+Printers, keyboard buffers, router packet buffers, ready processes waiting for a
+CPU, requests waiting for a web server. Wherever work arrives faster than it can
+be handled, something has to hold it in order, and that something is a queue.
+
+### The circular queue
+
+The obvious array implementation is wrong in an instructive way.
+
+Keep the front at index 0, and every dequeue shifts all remaining elements down
+one place — turning a constant-time operation into a $O(n)$ one. Let the front
+index advance instead, and the array steadily fills up with abandoned space at
+the start while `rear` runs off the end.
+
+A **circular queue** solves both by wrapping the indices round:
+
+$$
+\text{front} \leftarrow (\text{front} + 1) \bmod \text{size}
+$$
+
+Nothing is ever moved. Both operations are constant time, and freed space is
+reused.
+
+<Figure caption="The array is not circular; the arithmetic is. Advancing past the last slot lands back on the first.">
+  <CircularQueue />
+</Figure>
+
+<Aside kind="trap" title="Full and empty look identical">
+When a circular queue is empty, `front == rear`. When it is completely full,
+`front == rear` as well — the rear has caught the front up from behind.
+
+Two standard fixes:
+
+1. **Keep a count.** Store how many items are present. Empty is `count == 0`,
+   full is `count == size`. Costs one integer and is the clearest to read.
+2. **Leave one slot empty.** Declare full to be
+   `(rear + 1) mod size == front`. Costs one slot of the array and no extra
+   variable, which is why hardware buffers usually do it this way.
+
+What you must not do is neither. A queue that cannot distinguish full from empty
+will silently overwrite waiting data, and the symptom appears far from the cause.
+</Aside>
+
+<Py step caption="A stack, a circular queue, and bracket matching — all three built from the operations rather than borrowed from the language. Step through the bracket checker and watch the stack rise and fall.">{`
+class Stack:
+    def __init__(self, capacity=8):
+        self._items = [None] * capacity
+        self._top = -1
+
+    def push(self, value):
+        if self._top + 1 == len(self._items):
+            raise OverflowError("stack overflow")
+        self._top += 1
+        self._items[self._top] = value
+
+    def pop(self):
+        if self.is_empty():
+            raise IndexError("stack underflow")
+        value = self._items[self._top]
+        self._top -= 1
+        return value
+
+    def peek(self):
+        if self.is_empty():
+            raise IndexError("stack underflow")
+        return self._items[self._top]
+
+    def is_empty(self):
+        return self._top == -1
+
+    def contents(self):
+        return self._items[: self._top + 1]
+
+s = Stack()
+for v in (4, 9, 2, 7):
+    s.push(v)
+print("pushed 4 9 2 7 ->", s.contents(), " top is", s.peek())
+print("pop ->", s.pop(), " pop ->", s.pop())
+s.push(5)
+print("then push 5     ->", s.contents(), " top is", s.peek())
+
+for _ in range(3):
+    s.pop()
+try:
+    s.pop()
+except IndexError as e:
+    print("popping again   ->", e)
+
+# --- circular queue, with a count so full and empty are distinguishable ------
+class CircularQueue:
+    def __init__(self, size=5):
+        self._items = [None] * size
+        self._front = 0
+        self._rear = -1
+        self._count = 0
+
+    def enqueue(self, value):
+        if self._count == len(self._items):
+            raise OverflowError("queue is full")
+        self._rear = (self._rear + 1) % len(self._items)
+        self._items[self._rear] = value
+        self._count += 1
+
+    def dequeue(self):
+        if self._count == 0:
+            raise IndexError("queue is empty")
+        value = self._items[self._front]
+        self._items[self._front] = None
+        self._front = (self._front + 1) % len(self._items)
+        self._count -= 1
+        return value
+
+    def state(self):
+        return f"{self._items}  front={self._front} rear={self._rear} count={self._count}"
+
+q = CircularQueue(5)
+print()
+for v in ("a", "b", "c"):
+    q.enqueue(v)
+print("after a b c   ", q.state())
+print("dequeue ->", q.dequeue(), " ", q.state())
+print("dequeue ->", q.dequeue(), " ", q.state())
+for v in ("d", "e", "f"):
+    q.enqueue(v)
+print("after d e f   ", q.state(), " <- d and e wrapped to the start")
+
+# --- bracket matching: the classic stack problem -----------------------------
+def brackets_match(text):
+    pairs = {")": "(", "]": "[", "}": "{"}
+    stack = Stack(len(text) + 1)
+    for character in text:
+        if character in "([{":
+            stack.push(character)
+        elif character in pairs:
+            if stack.is_empty() or stack.pop() != pairs[character]:
+                return False
+    return stack.is_empty()
+
+print()
+for expression in ("(a[b]{c})", "(a[b)c]", "((a)", "a)b("):
+    print(f"  {expression:12} {brackets_match(expression)}")
+`}</Py>
+
+## Priority queues
+
+A plain queue is strictly fair, which is not always what is wanted. An emergency
+patient should not wait behind a sprained ankle that arrived first.
+
+A **priority queue** gives each item a priority and removes the highest first,
+with arrival order breaking ties. Operating-system schedulers, hospital triage
+and routers giving voice traffic precedence over downloads all use one.
+
+It is still an ADT: `enqueue(item, priority)` and `dequeue()`. How it is stored —
+usually a **heap** — is a separate question.
+
+<Takeaway>
+A stack answers "what am I currently inside?"; a queue answers "who has waited
+longest?". Both are defined by the operations they *refuse*, and that refusal is
+what makes them safe to build on.
+</Takeaway>

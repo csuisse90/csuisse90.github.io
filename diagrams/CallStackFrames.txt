@@ -1,0 +1,1 @@
+Every call is a frame holding its own copy of n, and nothing is multiplied until the base case is reached. Four calls are four frames — which is why a recursion 100,000 deep runs out of stack where a loop would not.

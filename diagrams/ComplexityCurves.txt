@@ -1,0 +1,1 @@
+The constant factors do not matter here; the shape does. An O(n²) algorithm that is fast on a class list is unusable on a school roll, and no amount of faster hardware changes the shape of the curve.

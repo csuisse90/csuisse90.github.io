@@ -1,0 +1,1 @@
+Each comparison discards half of what is left. Twelve items take at most four steps; a million take at most twenty. The price is that the list must be sorted first, which is why it is worth sorting once and searching many times.

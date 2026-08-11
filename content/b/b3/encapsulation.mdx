@@ -1,0 +1,323 @@
+---
+code: B3.1.2
+title: Encapsulation and interfaces
+lede: >-
+  Why hiding data is not about secrecy, what an invariant is, and how to tell a useful getter from a pointless one.
+prereqs:
+  - B3.1.1
+cards:
+  - q: >-
+      What is encapsulation?
+    a: >-
+      Keeping an object's data private and exposing only methods, so the object's state can only be changed in ways the class allows.
+  - q: >-
+      What does `public` mean?
+    a: >-
+      Accessible from anywhere. Anything public is a promise you must keep working, because other code now depends on it.
+  - q: >-
+      What does `private` mean?
+    a: >-
+      Accessible only from inside the class. It can be renamed, retyped or removed without breaking any other code.
+  - q: >-
+      What does `protected` mean?
+    a: >-
+      Accessible from inside the class and from its subclasses, but not from unrelated code.
+  - q: >-
+      What is an accessor, or getter?
+    a: >-
+      A method that returns the value of a private attribute without allowing it to be changed.
+  - q: >-
+      What is a mutator, or setter?
+    a: >-
+      A method that changes a private attribute, and which can validate the new value before accepting it.
+  - q: >-
+      What is an invariant?
+    a: >-
+      A statement about an object that must be true at all times, such as a balance never being negative. Encapsulation is how it is enforced.
+  - q: >-
+      Give two benefits of encapsulation.
+    a: >-
+      Validation happens in one place so bad state cannot be created, and the internal representation can be changed without altering any calling code.
+  - q: >-
+      What is an interface, in object-oriented terms?
+    a: >-
+      The set of public methods an object offers — what it can be asked to do, with nothing said about how it does it.
+  - q: >-
+      Why is a getter-and-setter pair for every attribute a poor design?
+    a: >-
+      Because it exposes the same state under a longer name. Nothing is protected and the class has no rules of its own.
+  - q: >-
+      How does Python express privacy?
+    a: >-
+      By convention. A leading underscore means "internal", and a double underscore triggers name mangling, but neither is enforced by the language.
+  - q: >-
+      What does information hiding buy you when a program changes?
+    a: >-
+      Anything hidden can be rewritten freely. Only what was exposed constrains you, so a small public interface keeps future options open.
+practice:
+  - marks: 4
+    q: >-
+      Explain what encapsulation is and state two benefits of it.
+    points:
+      - >-
+          Encapsulation means keeping an object's data private and providing access only through its methods.
+      - >-
+          Any change to the state must pass through code the class controls.
+      - >-
+          Validation can therefore be written once and cannot be bypassed.
+      - >-
+          The internal representation can be changed without affecting code that uses the object.
+  - marks: 3
+    q: >-
+      Describe the difference between public, private and protected access.
+    points:
+      - >-
+          Public members can be accessed from anywhere in the program.
+      - >-
+          Private members can be accessed only from within the class that defines them.
+      - >-
+          Protected members can be accessed within the class and its subclasses, but not from unrelated code.
+  - marks: 4
+    q: >-
+      A class stores a bank balance as a public attribute. Explain the risks and describe how encapsulation would remove them.
+    points:
+      - >-
+          Any code anywhere can assign to the balance, including invalid values such as a negative amount.
+      - >-
+          A wrong value could originate anywhere in the program, making the fault hard to locate.
+      - >-
+          Making the attribute private and providing deposit and withdraw methods forces all changes through one place.
+      - >-
+          Those methods can reject invalid amounts, so the object can never enter an invalid state.
+  - marks: 4
+    q: >-
+      Explain what is meant by an invariant, and how a class maintains one.
+    points:
+      - >-
+          An invariant is a condition about an object's state that must always hold.
+      - >-
+          The constructor establishes it when the object is created.
+      - >-
+          Every method that changes the state must leave it true, rejecting changes that would break it.
+      - >-
+          This is only possible if the state cannot be changed from outside the class.
+  - marks: 4
+    q: >-
+      A student adds a getter and a setter for every private attribute in a class. Discuss whether this achieves encapsulation.
+    points:
+      - >-
+          The attributes are technically private, so the syntax of encapsulation is present.
+      - >-
+          A setter that accepts any value provides the same freedom as a public attribute.
+      - >-
+          No validation or rule is enforced, so invalid states are still reachable.
+      - >-
+          Genuine encapsulation means exposing operations that make sense for the object, not exposing every field.
+  - marks: 4
+    q: >-
+      Explain how encapsulation makes a program easier to change, referring to the idea of an interface.
+    points:
+      - >-
+          The public methods form the interface, which is what other code depends on.
+      - >-
+          Anything private is not depended upon and may be altered freely.
+      - >-
+          The internal storage could be replaced entirely while the interface stays the same.
+      - >-
+          Callers therefore continue to work without modification, so the change is contained within the class.
+  - marks: 5
+    q: >-
+      A team is designing a Student class. Discuss how they should decide which members are public and which are private.
+    points:
+      - >-
+          Start by identifying the operations other code genuinely needs to perform on a student.
+      - >-
+          Those operations become the public interface, expressed in terms of the problem rather than the storage.
+      - >-
+          Data that has rules attached, such as a mark that must lie between 0 and 100, should be private with validated access.
+      - >-
+          Anything only needed internally, such as a cached calculation, should be private so it can later be changed or removed.
+      - >-
+          The default should be private, because making something public later is easy but withdrawing it is not.
+---
+
+Encapsulation is often taught as "make your variables private", which is true and
+tells you nothing about why.
+
+The reason is this: **every piece of state that can be changed from outside the
+class is a piece of state whose correctness you cannot guarantee.**
+
+## The bank account
+
+A balance that anything may assign to is a balance that can become $-900$. Not
+because anybody intends it — because somewhere, in a program of twenty thousand
+lines, a subtraction runs in the wrong order.
+
+Make it private and give the class two methods, and the rule lives in exactly one
+place:
+
+```python
+class BankAccount:
+    def __init__(self, opening):
+        self._balance = opening
+
+    def withdraw(self, amount):
+        if amount <= 0:
+            raise ValueError("amount must be positive")
+        if amount > self._balance:
+            raise ValueError("insufficient funds")
+        self._balance -= amount
+
+    def get_balance(self):
+        return self._balance
+```
+
+Now there is no path to a negative balance. Not "no path anybody has taken" — no
+path at all.
+
+<Figure caption="Two ways in, both through code the class controls. The crossed line is the one encapsulation removes.">
+  <ObjectShell />
+</Figure>
+
+## Invariants
+
+The statement "the balance is never negative" is an **invariant**: something true
+of every account, always.
+
+An invariant is established by the constructor and preserved by every method. If
+that holds, then anywhere in the program, at any moment, you may rely on it
+without checking — and *not having to check* is the whole return on the
+investment.
+
+<Aside kind="why" title="Why the argument is really about how much you must hold in your head">
+Suppose the balance is public and you find one that is negative. Which code did
+it? Any of it. Every assignment in the program is a suspect, and you cannot rule
+one out without reading it.
+
+Now suppose it is private. The only code that can have done it is inside the
+class — perhaps forty lines. You can read all forty and be *certain*.
+
+That is the same argument as the one against global variables, applied one level
+up, and it is the deep reason both rules exist. Encapsulation does not make a
+program correct. It makes the region you must search when it is not correct small
+enough to search.
+</Aside>
+
+## Getters, setters, and a common piece of cargo cult
+
+The advice "make attributes private and add a getter and setter for each" is
+extremely widespread and mostly wrong.
+
+```python
+def set_balance(self, value):
+    self._balance = value
+```
+
+Anything may still set the balance to anything. The attribute is private in
+syntax and public in effect; all that has been added is typing.
+
+A useful accessor is one that either
+
+- **enforces a rule** the class owns, like `withdraw`, or
+- **exposes a value without exposing the ability to change it**, like
+  `get_balance`, or
+- **presents something derived**, like `get_age()` computed from a date of birth.
+
+The design question is not "which fields need accessors?" but "what should this
+object be able to do?". Answer that, and the private data follows.
+
+<Py caption="The same class with the balance public, then encapsulated. Only the second one refuses the impossible.">{`
+# Version 1: nothing stops anybody.
+class LooseAccount:
+    def __init__(self, opening):
+        self.balance = opening
+
+a = LooseAccount(250)
+a.balance = -900
+print("loose account balance:", a.balance, " <- nothing objected")
+
+# Version 2: the rule lives inside the class, so there is no way round it.
+class Account:
+    def __init__(self, opening):
+        if opening < 0:
+            raise ValueError("cannot open with a negative balance")
+        self._balance = opening          # private by convention
+
+    def deposit(self, amount):
+        if amount <= 0:
+            raise ValueError("deposit must be positive")
+        self._balance += amount
+
+    def withdraw(self, amount):
+        if amount <= 0:
+            raise ValueError("withdrawal must be positive")
+        if amount > self._balance:
+            raise ValueError("insufficient funds")
+        self._balance -= amount
+
+    def get_balance(self):
+        return self._balance
+
+b = Account(250)
+b.deposit(50)
+print()
+print("after depositing 50:", b.get_balance())
+
+for attempt in (400, -10):
+    try:
+        b.withdraw(attempt)
+    except ValueError as e:
+        print(f"withdraw({attempt}) refused:", e)
+
+print("balance is still     ", b.get_balance(), " <- the invariant held")
+
+# Changing how it is stored breaks nothing outside the class.
+class PennyAccount:
+    """Stores pence as an integer, because floats lose money."""
+    def __init__(self, opening):
+        self._pence = round(opening * 100)
+
+    def deposit(self, amount):
+        self._pence += round(amount * 100)
+
+    def get_balance(self):
+        return self._pence / 100
+
+for account in (Account(10), PennyAccount(10)):
+    account.deposit(0.1)
+    account.deposit(0.2)
+    print()
+    print(type(account).__name__, "reports", account.get_balance())
+`}</Py>
+
+## Python's version of private
+
+Python has no enforced privacy. It has two conventions:
+
+- A single leading underscore, `_balance`, means "internal — do not touch". Tools
+  respect it; the language does not.
+- A double leading underscore, `__balance`, triggers **name mangling**: the
+  attribute is stored as `_ClassName__balance`, which prevents accidental
+  collisions in subclasses but is still reachable by anyone determined.
+
+<Aside kind="deeper" title="Is a convention good enough?">
+Java will refuse to compile code that touches a private field. Python will let
+you, and merely make it obvious that you are.
+
+In practice the difference matters less than it sounds, because encapsulation's
+real job is telling the *reader* which parts of a class are load-bearing. A
+leading underscore does that. The compiler check adds enforcement against
+deliberate misuse, which is rarely the failure mode — accidents are.
+
+Where the difference does bite is in libraries used by strangers. If anyone can
+reach your internals, then in time somebody will, and you can no longer change
+them without breaking their code. That is why Python libraries document a public
+API carefully and why "we never promised that would keep working" is such a
+common argument.
+</Aside>
+
+<Takeaway>
+Private is not about secrecy. It is about shrinking the amount of code that could
+possibly have broken something, and keeping the freedom to change anything nobody
+was ever allowed to depend on.
+</Takeaway>

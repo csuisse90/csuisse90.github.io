@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Sprite from "./Sprite";
 
-// Shown once per browsing session: the sprite fades up and grows, then the
-// whole overlay fades out onto the page underneath.
+// Shown once per browsing session: the mark fades up and grows, then the whole
+// overlay fades out onto the page underneath.
 const SEEN = "splashSeen";
 
 export default function Splash() {
@@ -30,7 +29,9 @@ export default function Splash() {
 
   return (
     <div className="splash" data-phase={phase} aria-hidden>
-      <Sprite width={150} className="splashSprite" />
+      {/* Anthropic's own Claude mark, rather than a hand-drawn approximation. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/claude.png" alt="" width={150} height={150} className="splashSprite" />
     </div>
   );
 }

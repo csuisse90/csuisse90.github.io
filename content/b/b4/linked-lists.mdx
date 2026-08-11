@@ -1,0 +1,374 @@
+---
+code: B4.1.3
+title: Linked lists
+lede: >-
+  A collection held together by pointers rather than by position, the four operations you must be able to trace, and the order in which to rewire them.
+hl: true
+prereqs:
+  - B4.1.1
+cards:
+  - q: >-
+      What is a linked list?
+    a: >-
+      A dynamic structure of nodes, each holding a value and a pointer to the next node. The list is reached through a pointer to the first node.
+  - q: >-
+      What is a node?
+    a: >-
+      A record holding the data and one or more pointers. In a singly linked list it holds the value and `next`.
+  - q: >-
+      What is the head?
+    a: >-
+      The pointer to the first node. Lose the head and the whole list is unreachable.
+  - q: >-
+      How is the end of a list marked?
+    a: >-
+      The last node's `next` pointer is null, which is what a traversal tests for.
+  - q: >-
+      How do you traverse a linked list?
+    a: >-
+      Start at the head, use the value, follow `next`, and stop when the pointer is null.
+  - q: >-
+      What is the cost of inserting at the front?
+    a: >-
+      Constant. Create the node, point it at the current head, then make the head point at it.
+  - q: >-
+      Why must the order of pointer assignments be right when inserting?
+    a: >-
+      Overwriting a pointer before copying it loses the rest of the list, which then cannot be recovered.
+  - q: >-
+      How is a node deleted?
+    a: >-
+      The previous node's `next` is set to the deleted node's `next`, so the list skips it. Deleting the head means moving the head pointer.
+  - q: >-
+      What is a doubly linked list?
+    a: >-
+      Each node holds a pointer to the next **and** the previous node, allowing traversal in both directions at the cost of another pointer per node.
+  - q: >-
+      What is a circular linked list?
+    a: >-
+      One where the last node points back to the first rather than to null, so traversal can continue indefinitely.
+  - q: >-
+      Give two advantages of a linked list over an array.
+    a: >-
+      It grows and shrinks as needed with no fixed limit, and insertion or deletion at a known position takes constant time with no shifting.
+  - q: >-
+      Give two disadvantages of a linked list.
+    a: >-
+      There is no direct access by index, so reaching the $n$th node takes $n$ steps, and every node costs extra memory for its pointer.
+practice:
+  - marks: 4
+    q: >-
+      Describe the structure of a singly linked list.
+    points:
+      - >-
+          It consists of nodes, each holding a data value and a pointer.
+      - >-
+          Each node's pointer holds the address of the next node.
+      - >-
+          A head pointer identifies the first node in the list.
+      - >-
+          The final node's pointer is null, marking the end.
+  - marks: 4
+    q: >-
+      Describe an algorithm to insert a new node at the front of a linked list.
+    points:
+      - >-
+          Create the new node and store the value in it.
+      - >-
+          Set the new node's next pointer to the current head.
+      - >-
+          Set the head pointer to the new node.
+      - >-
+          The operation takes constant time as no existing nodes are moved.
+  - marks: 4
+    q: >-
+      Explain why the order of the pointer assignments matters when inserting a node into a linked list.
+    points:
+      - >-
+          Each node is reachable only through the pointer that refers to it.
+      - >-
+          If the previous node's pointer is overwritten first, the address of the rest of the list is lost.
+      - >-
+          Nothing then refers to those nodes, so they cannot be recovered.
+      - >-
+          The existing pointer must therefore be copied into the new node before it is overwritten.
+  - marks: 4
+    q: >-
+      Describe how a node holding a given value is deleted from a singly linked list.
+    points:
+      - >-
+          Traverse the list keeping a reference to the previous node as well as the current one.
+      - >-
+          Stop when the current node holds the value being sought, or the end is reached.
+      - >-
+          Set the previous node's next pointer to the current node's next pointer, so the list bypasses it.
+      - >-
+          If the node to delete is the head, move the head pointer to the second node instead.
+  - marks: 4
+    q: >-
+      Compare a singly linked list with a doubly linked list.
+    points:
+      - >-
+          A singly linked node stores one pointer, to the next node; a doubly linked node also stores one to the previous node.
+      - >-
+          A doubly linked list can be traversed in both directions.
+      - >-
+          Deleting a known node is simpler, as the previous node can be reached without traversing from the head.
+      - >-
+          The cost is extra memory per node and two pointers to maintain correctly on every change.
+  - marks: 4
+    q: >-
+      A program must store a queue of tasks that is frequently added to and removed from, and whose maximum length is unknown. Explain why a linked list is a better choice than an array.
+    points:
+      - >-
+          The maximum length is unknown, so an array's size would have to be guessed.
+      - >-
+          Too small an array overflows and too large a one wastes memory, while a linked list allocates only what is used.
+      - >-
+          Additions and removals at the ends take constant time in a linked list with head and tail pointers.
+      - >-
+          An array-based queue would require shifting elements or the extra complexity of circular indices.
+  - marks: 5
+    q: >-
+      Explain how a linked list is traversed, and discuss why searching one cannot use binary search.
+    points:
+      - >-
+          Traversal begins at the head and follows each node's next pointer in turn.
+      - >-
+          Each node's value is examined until the target is found or a null pointer is reached.
+      - >-
+          Binary search requires jumping directly to the middle element of the range being searched.
+      - >-
+          A linked list provides no way to calculate the address of the middle node, as nodes are not stored consecutively.
+      - >-
+          Reaching the middle would itself require traversing half the list, so the halving would give no saving.
+---
+
+An array holds its elements together by putting them next to each other. A
+**linked list** holds them together by having each one point at the next.
+
+That single change swaps every cost around.
+
+## The node
+
+```python
+class Node:
+    def __init__(self, value):
+        self.value = value
+        self.next = None      # the address of the next node, or nothing
+```
+
+A list is a chain of these, plus one pointer called the **head** naming the
+first. The last node's `next` is null, and that null is how a traversal knows to
+stop.
+
+<Figure caption="Inserting 5 rewires two pointers. Nothing else in the list is touched, however long it is.">
+  <LinkedListDiagram />
+</Figure>
+
+The head deserves respect. It is the only reference into the structure. Overwrite
+it before saving what it pointed to and the entire list becomes unreachable — the
+memory is still there, and nothing in the program can ever find it again.
+
+## Traversal
+
+Every algorithm on a linked list is a variation of this:
+
+```
+current ← head
+WHILE current ≠ null
+    do something with current.value
+    current ← current.next
+END WHILE
+```
+
+Note what is absent: any index, and any use of a length. You cannot ask for the
+tenth node; you can only be at a node and move to the next.
+
+## Insertion, in the right order
+
+Inserting after a node `p`:
+
+```
+new.next ← p.next        (1)  copy before you overwrite
+p.next   ← new           (2)
+```
+
+Do those two lines in the other order and `p.next` now points at the new node
+while the new node points at itself or at nothing — and the rest of the list has
+no remaining reference. It is gone.
+
+<Aside kind="trap" title="The classic exam mistake, drawn out">
+```
+p.next   ← new           (1)  WRONG ORDER
+new.next ← p.next        (2)
+```
+
+After line 1, `p.next` is the new node. Line 2 then reads `p.next`, which is now
+the new node, and sets `new.next` to itself.
+
+The result is a list ending in a node pointing at itself. Any traversal loops
+forever, and every node that followed `p` is lost.
+
+The rule, and it applies to every rewiring in this topic: **copy the old pointer
+out before you write over it.** In exam answers, state the two assignments in
+order and say why. That ordering is usually worth a mark on its own.
+</Aside>
+
+## Deletion
+
+To remove a node you need the one *before* it, because that is the pointer that
+has to change:
+
+```
+previous.next ← current.next
+```
+
+The node is now bypassed. Nothing points at it, so it is unreachable and its
+memory can be recovered.
+
+Two cases need care. Deleting the **head** means moving the head pointer instead.
+Deleting from an **empty list** must be refused rather than crashing.
+
+<Aside kind="why" title="Why deletion needs the previous node, and how doubly linked lists escape it">
+The pointer that must change lives in the *preceding* node, and a singly linked
+node has no way to reach backwards. So the only way to find it is to traverse
+from the head keeping a second reference one step behind.
+
+That is why deletion is quoted as $O(n)$ overall despite the rewiring itself
+being one assignment: finding the previous node is the expensive part.
+
+A **doubly linked list** stores `prev` as well as `next`, so given any node you
+can reach its neighbour on both sides and delete it in genuinely constant time:
+
+```
+node.prev.next ← node.next
+node.next.prev ← node.prev
+```
+
+The price is a second pointer in every node — often as much memory as the data —
+and two pointers to keep consistent on every operation instead of one, which is
+twice as many chances to get it wrong.
+</Aside>
+
+<Py step caption="A linked list with insert, delete, search and reverse, each printing the chain afterwards. Step through reverse() — it is three pointer assignments in a loop and it is worth watching them.">{`
+class Node:
+    def __init__(self, value):
+        self.value = value
+        self.next = None
+
+class LinkedList:
+    def __init__(self):
+        self.head = None
+
+    def show(self):
+        parts, node = [], self.head
+        while node is not None:
+            parts.append(str(node.value))
+            node = node.next
+        return " -> ".join(parts) + " -> None" if parts else "(empty)"
+
+    def insert_front(self, value):
+        node = Node(value)
+        node.next = self.head        # copy the old pointer out...
+        self.head = node             # ...then overwrite it
+        return self
+
+    def insert_after(self, target, value):
+        node = self.head
+        while node is not None and node.value != target:
+            node = node.next
+        if node is None:
+            return False
+        new = Node(value)
+        new.next = node.next         # order matters, see above
+        node.next = new
+        return True
+
+    def delete(self, value):
+        previous, current = None, self.head
+        while current is not None and current.value != value:
+            previous, current = current, current.next
+        if current is None:
+            return False             # not present
+        if previous is None:
+            self.head = current.next # deleting the head
+        else:
+            previous.next = current.next
+        return True
+
+    def find(self, value):
+        steps, node = 0, self.head
+        while node is not None:
+            steps += 1
+            if node.value == value:
+                return steps
+            node = node.next
+        return None
+
+    def reverse(self):
+        previous, current = None, self.head
+        while current is not None:
+            following = current.next   # save, because the next line destroys it
+            current.next = previous    # turn this link round
+            previous = current         # shuffle both markers forward
+            current = following
+        self.head = previous
+        return self
+
+items = LinkedList()
+for v in (9, 7, 12):
+    items.insert_front(v)
+print("built by inserting at the front:", items.show())
+
+items.insert_after(12, 5)
+print("insert 5 after 12             :", items.show())
+
+items.delete(7)
+print("delete 7                      :", items.show())
+
+items.delete(12)
+print("delete the head               :", items.show())
+
+print()
+print("find 9  ->", items.find(9), "steps from the head")
+print("find 99 ->", items.find(99), "(not present)")
+
+for v in (20, 30, 40):
+    items.insert_front(v)
+print()
+print("before reversing:", items.show())
+print("after reversing :", items.reverse().show())
+print()
+print("Reversing moved no data. Only the pointers changed direction.")
+`}</Py>
+
+## Variations
+
+**Doubly linked** — each node also points backwards. Traversal both ways,
+constant-time deletion given a node, at the cost of a pointer per node.
+
+**Circular** — the last node points at the first instead of at null. Useful for
+anything that cycles: round-robin scheduling, a playlist on repeat. Traversal
+must count or watch for the starting node, because there is no null to stop at.
+
+**With a tail pointer** — keeping a second pointer to the last node makes
+appending constant time instead of $O(n)$. Almost every real implementation does
+this.
+
+## When to use one
+
+Use a linked list when the size is unpredictable and the work is insertion and
+removal rather than indexing.
+
+Use an array when you index, when you want to binary search, or when the data is
+walked through repeatedly and cache behaviour matters.
+
+The one thing a linked list can never do is jump to the middle — which is why a
+sorted linked list cannot be binary searched, even though a sorted array can.
+
+<Takeaway>
+A linked list trades instant access for cheap rearrangement. Every operation on
+one is a matter of pointer assignments in the correct order, and the correct
+order is always: copy the old pointer before overwriting it.
+</Takeaway>

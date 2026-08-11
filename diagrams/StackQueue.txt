@@ -1,0 +1,1 @@
+Both received 7, then 4, then 9. The stack hands back 9 and the queue hands back 7. Nothing else about them differs: it is only the end you are allowed to touch.

@@ -1,0 +1,1 @@
+Both subclasses inherit name, age and eat(). Each replaces speak() with its own version. Calling speak() on a list of animals runs the right one for each object without a single if — that is polymorphism.

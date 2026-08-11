@@ -1,0 +1,1 @@
+Splitting costs nothing; the work is in the merges. There are log₂ n levels of merging and each level touches all n items, which is exactly where n log n comes from — and why merge sort beats bubble sort by a growing margin rather than a fixed one.

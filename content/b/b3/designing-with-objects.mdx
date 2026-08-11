@@ -1,0 +1,347 @@
+---
+code: B3.1.4
+title: Designing with objects
+lede: >-
+  Turning a written problem into classes, reading a UML diagram, and knowing which relationship line to draw between two boxes.
+prereqs:
+  - B3.1.3
+cards:
+  - q: >-
+      What is a UML class diagram?
+    a: >-
+      A standard drawing of the classes in a system: a box per class with its attributes and methods, and lines showing how the classes relate.
+  - q: >-
+      What are the three compartments of a UML class box?
+    a: >-
+      The class name, the attributes, and the methods.
+  - q: >-
+      What do `+` and `−` mean in a UML class box?
+    a: >-
+      `+` marks a public member, `−` a private one, and `#` a protected one.
+  - q: >-
+      What is an association?
+    a: >-
+      A plain line: one class knows about another and can use it, with no ownership implied.
+  - q: >-
+      What is aggregation, and how is it drawn?
+    a: >-
+      A has-a relationship where the parts can exist without the whole. An open diamond at the whole's end.
+  - q: >-
+      What is composition, and how is it drawn?
+    a: >-
+      A stronger has-a where the parts are owned and die with the whole. A filled diamond at the whole's end.
+  - q: >-
+      How is inheritance drawn?
+    a: >-
+      A line with a hollow triangle pointing at the superclass.
+  - q: >-
+      What is multiplicity?
+    a: >-
+      The numbers on the ends of a relationship saying how many objects take part — `1`, `0..1`, `1..*` or `*`.
+  - q: >-
+      What is a useful first step in identifying classes from a problem description?
+    a: >-
+      Underline the nouns as candidate classes and the verbs as candidate methods, then discard the ones that are not worth modelling.
+  - q: >-
+      What is meant by a class having a single responsibility?
+    a: >-
+      It does one job, so there is only one kind of change that would require it to be rewritten.
+  - q: >-
+      What is coupling?
+    a: >-
+      How much one class depends on the internals of another. Loose coupling means a class can be changed without disturbing its neighbours.
+  - q: >-
+      What is cohesion?
+    a: >-
+      How closely the parts of a class belong together. High cohesion means everything in the class serves its one job.
+practice:
+  - marks: 4
+    q: >-
+      Describe the information shown in a UML class diagram.
+    points:
+      - >-
+          Each class is drawn as a box divided into name, attributes and methods.
+      - >-
+          Visibility is shown by symbols such as + for public and − for private.
+      - >-
+          Lines between boxes show relationships such as association, aggregation, composition and inheritance.
+      - >-
+          Multiplicities on the line ends show how many objects participate in each relationship.
+  - marks: 4
+    q: >-
+      Explain the difference between aggregation and composition, giving an example of each.
+    points:
+      - >-
+          Both are has-a relationships in which one class holds objects of another.
+      - >-
+          In aggregation the parts can exist independently of the whole.
+      - >-
+          In composition the parts belong to the whole and are destroyed with it.
+      - >-
+          Valid examples are given, such as a team aggregating players, and a book composed of pages.
+  - marks: 4
+    q: >-
+      A school library system must let members borrow and return books, and produce a list of overdue loans. Identify four suitable classes and justify one of them.
+    points:
+      - >-
+          Sensible classes are identified, such as Member, Book, Loan and Library.
+      - >-
+          Each corresponds to a distinct thing in the problem with its own data.
+      - >-
+          A justification is given, for example that a Loan has its own attributes such as the date due, so it cannot simply be a field of Book.
+      - >-
+          The operations of the system map onto methods of these classes.
+  - marks: 3
+    q: >-
+      Explain what is meant by high cohesion and why it is desirable.
+    points:
+      - >-
+          A class has high cohesion when everything in it contributes to a single, clearly stated responsibility.
+      - >-
+          Such a class is easier to name, understand and test.
+      - >-
+          Only one kind of requirement change forces it to be rewritten, so changes stay contained.
+  - marks: 4
+    q: >-
+      Explain what is meant by coupling, and describe how it can be reduced between two classes.
+    points:
+      - >-
+          Coupling is the degree to which one class depends on another.
+      - >-
+          Tight coupling occurs when one class relies on another's internal data or implementation.
+      - >-
+          Reducing coupling means depending only on a small public interface.
+      - >-
+          The other class can then be changed or replaced without altering the first.
+  - marks: 5
+    q: >-
+      A student designs a single class, GameManager, that holds the board, the players, the scores, the rules and the display code. Discuss the problems with this design and how it should be improved.
+    points:
+      - >-
+          The class has many unrelated responsibilities, so it has low cohesion.
+      - >-
+          Any change to the display, the rules or the scoring requires editing the same class, increasing the risk of breaking unrelated behaviour.
+      - >-
+          It cannot be tested in parts, because the game logic cannot be exercised without the display.
+      - >-
+          It should be split into classes such as Board, Player, Rules and Display, each with one responsibility.
+      - >-
+          The manager then coordinates those objects, depending only on their public interfaces.
+  - marks: 4
+    q: >-
+      Explain how identifying nouns and verbs in a problem statement helps in designing classes, and state one limitation of the technique.
+    points:
+      - >-
+          Nouns suggest candidate classes or attributes, since they name things in the problem domain.
+      - >-
+          Verbs suggest candidate methods, since they name things that can be done.
+      - >-
+          It provides a systematic starting point rather than requiring the design to be invented from nothing.
+      - >-
+          A limitation is that it over-produces, since many nouns are attributes or irrelevant, so the list must be filtered by judgement.
+---
+
+You now have the mechanisms. The harder question is which classes to create at
+all, and that is a design decision rather than a language one.
+
+## From a description to classes
+
+The standard opening move: **underline the nouns, circle the verbs.**
+
+> A school library lets *members* borrow *books*. A *loan* records which member
+> has which book and when it is *due*. The librarian can *issue* a loan, *return*
+> a book, and *list* everything overdue.
+
+Nouns: member, book, loan, due date, librarian. Verbs: borrow, issue, return,
+list overdue.
+
+Then filter, because the technique deliberately over-produces:
+
+- **Member** — has data of its own. A class.
+- **Book** — likewise. A class.
+- **Loan** — a class, and the interesting one. It is tempting to put
+  `borrowed_by` on `Book`, but a loan has its own data: a start date, a due date,
+  a renewal count. Anything with attributes of its own wants to be a class.
+- **Due date** — an attribute of `Loan`, not a class.
+- **Librarian** — probably not a class at all. Nothing in the description gives
+  it data or behaviour distinct from "the person using the program".
+
+That last judgement is the one that separates a design from a list of nouns.
+
+## UML, briefly
+
+A class is a box in three parts: name, attributes, methods. Visibility is marked
+`+` public, `−` private, `#` protected.
+
+```
++---------------------------+
+|          Loan             |
++---------------------------+
+| - member : Member         |
+| - book : Book             |
+| - due : Date              |
++---------------------------+
+| + is_overdue() : boolean  |
+| + renew() : boolean       |
++---------------------------+
+```
+
+The lines between boxes carry as much meaning as the boxes.
+
+<Figure caption="Four lines, four different claims about how two classes relate. Getting the diamond on the wrong end reverses the meaning.">
+  <UmlRelations />
+</Figure>
+
+**Multiplicity** goes on the ends: `1`, `0..1`, `1..*`, `*`. A `Member` has
+`0..*` loans; a `Loan` has exactly `1` member. Reading those numbers out loud is
+the fastest way to catch a design error.
+
+<Aside kind="why" title="Aggregation against composition, and why anyone cares">
+Both mean "has-a". The distinction is **lifetime**.
+
+Aggregation: a `Team` has `Player`s. Delete the team and the players still exist
+— they join another team. The team holds references to things it does not own.
+
+Composition: a `Book` has `Page`s. Delete the book and the pages are gone. There
+is no such thing as a page that outlives its book.
+
+It matters in three practical places. **Deletion**: does removing the whole
+remove the parts? **Copying**: does copying the whole copy the parts, or share
+them? **Sharing**: may two wholes hold the same part at once — sensible for
+players, meaningless for pages?
+
+If you cannot answer those three questions about a relationship, you have not
+finished designing it.
+</Aside>
+
+## Responsibility
+
+The single most useful design rule is that **a class should have one reason to
+change**.
+
+A `GameManager` holding the board, the rules, the score and the drawing code has
+four reasons: a new rule, a new scoring system, a new display, a new board size.
+Every one of them edits the same file, and each edit risks the other three.
+
+Split it, and a change to the display cannot break the rules — not because
+anybody is careful, but because the rules are somewhere else.
+
+Two words describe the goal:
+
+- **High cohesion** — everything in the class serves its one job.
+- **Loose coupling** — the class depends on other classes' interfaces, never
+  their internals.
+
+They pull in the same direction. A class doing one job needs less from its
+neighbours.
+
+<Py step caption="The library design, small but complete: four classes, each with one job, and no class reaching inside another. Step through issue() to see the objects collaborate.">{`
+class Book:
+    def __init__(self, isbn, title):
+        self.isbn = isbn
+        self.title = title
+        self._on_loan = False
+
+    def is_available(self):
+        return not self._on_loan
+
+    def mark_out(self):
+        self._on_loan = True
+
+    def mark_in(self):
+        self._on_loan = False
+
+class Member:
+    def __init__(self, member_id, name):
+        self.member_id = member_id
+        self.name = name
+
+class Loan:
+    """Has data of its own, so it is a class rather than a field on Book."""
+    LIMIT = 14
+
+    def __init__(self, member, book, day_issued):
+        self.member = member
+        self.book = book
+        self.due = day_issued + Loan.LIMIT
+        self.renewals = 0
+
+    def is_overdue(self, today):
+        return today > self.due
+
+    def renew(self, today):
+        if self.renewals >= 2 or self.is_overdue(today):
+            return False
+        self.due += Loan.LIMIT
+        self.renewals += 1
+        return True
+
+class Library:
+    """Coordinates the others. It never reaches inside them."""
+    def __init__(self):
+        self.loans = []
+
+    def issue(self, member, book, today):
+        if not book.is_available():
+            return None
+        book.mark_out()
+        loan = Loan(member, book, today)
+        self.loans.append(loan)
+        return loan
+
+    def take_back(self, book):
+        book.mark_in()
+        self.loans = [l for l in self.loans if l.book is not book]
+
+    def overdue(self, today):
+        return [l for l in self.loans if l.is_overdue(today)]
+
+ada = Member("M001", "Ada")
+alan = Member("M002", "Alan")
+hobbit = Book("978-0", "The Hobbit")
+dune = Book("978-1", "Dune")
+
+library = Library()
+first = library.issue(ada, hobbit, day := 0)
+library.issue(alan, dune, 0)
+
+print("issued to", first.member.name, "-", first.book.title, "due day", first.due)
+print("second copy available?", hobbit.is_available())
+print("issuing it again gives:", library.issue(alan, hobbit, 0))
+
+print()
+print("on day 20:")
+for loan in library.overdue(20):
+    print("  overdue:", loan.book.title, "held by", loan.member.name)
+
+print()
+print("Ada renews on day 10:", first.renew(10), "-> now due day", first.due)
+print("Ada renews on day 40:", first.renew(40), "<- refused, already overdue")
+
+library.take_back(hobbit)
+print()
+print("after return, available?", hobbit.is_available(), " loans left:", len(library.loans))
+`}</Py>
+
+<Aside kind="deeper" title="Where object-oriented design goes too far">
+It is possible to over-apply all of this. Signs that you have:
+
+- Classes that hold no data and have one method. That is a function.
+- A hierarchy five levels deep in which every level adds one method.
+- Interfaces with exactly one implementation, added "in case we need another".
+- Getters and setters for every field, so the class has no rules of its own.
+
+The purpose of a class is to make a *concept* from the problem explicit and give
+it a name. If a class does not correspond to something you would mention when
+explaining the system out loud, it is probably scaffolding rather than design.
+
+The IB will not ask you to weigh this up, but it is the difference between a
+design that helps and one that merely looks object-oriented.
+</Aside>
+
+<Takeaway>
+Nouns suggest classes, verbs suggest methods, and judgement removes most of them.
+Aim at one responsibility per class and dependence on interfaces rather than
+internals — then a change to one part of the system stays in one part of the
+system.
+</Takeaway>

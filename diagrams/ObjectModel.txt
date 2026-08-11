@@ -1,0 +1,1 @@
+The class is written once and says what every dog has and can do. Each object is a separate set of values with the same shape. The methods are not copied — every object runs the same code, on its own data.

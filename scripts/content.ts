@@ -76,6 +76,19 @@ for (const file of walk(contentDir)) {
     }
   }
 
+  // Inline maths that wraps onto a second line stops being maths: MDX then sees
+  // the braces in "\overline{Y}" as a JavaScript expression and the build dies
+  // with "Y is not defined", a long way from the cause.
+  const prose = body
+    .replace(/<Py[\s\S]*?<\/Py>/g, "")
+    .replace(/^```[\s\S]*?^```/gm, "")
+    .replace(/\$\$[\s\S]*?\$\$/g, "");
+  for (const line of prose.split("\n")) {
+    if ((line.match(/(?<!\\)\$/g) ?? []).length % 2 === 1) {
+      fail(file, `inline maths is not closed on its own line:\n  ${line.trim()}`);
+    }
+  }
+
   const { data } = matter(raw);
   const fm = data as Frontmatter;
 

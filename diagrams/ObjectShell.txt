@@ -1,0 +1,1 @@
+The only way in is through a method, and the method is where the rule lives. Reaching past it — the crossed arrow — is what lets a balance go negative, which is why the attribute is private in the first place.

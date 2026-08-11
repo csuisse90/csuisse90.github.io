@@ -1,0 +1,1 @@
+Inserting 5 changes two pointers and nothing else. The same insertion in an array would shift every element after it. The price is that reaching the nth node means walking n links — there is no arithmetic shortcut to it.

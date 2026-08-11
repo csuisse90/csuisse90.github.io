@@ -1,0 +1,325 @@
+---
+code: B4.1.5
+title: Recursion
+lede: >-
+  A function that calls itself, why it needs a base case more than it needs anything else, and what it is actually building in memory while it runs.
+hl: true
+prereqs:
+  - B4.1.4
+cards:
+  - q: >-
+      What is recursion?
+    a: >-
+      A function defined in terms of itself: it solves a small case directly and solves a larger one by calling itself on something smaller.
+  - q: >-
+      What two parts must every recursive function have?
+    a: >-
+      A **base case** that returns without recursing, and a **recursive case** that calls itself on a strictly smaller problem.
+  - q: >-
+      What happens if the base case is missing or unreachable?
+    a: >-
+      The calls never stop, the stack fills, and the program crashes with a stack overflow.
+  - q: >-
+      What is a stack frame?
+    a: >-
+      The block of memory holding one call's parameters, local variables and return address. Each active call has its own.
+  - q: >-
+      Why does recursion use more memory than iteration?
+    a: >-
+      Every call that has not yet returned occupies a frame on the call stack, so depth $n$ costs $n$ frames. A loop reuses one.
+  - q: >-
+      What is the recursive definition of factorial?
+    a: >-
+      $n! = 1$ when $n \le 1$, and $n! = n \times (n-1)!$ otherwise.
+  - q: >-
+      Why is naive recursive Fibonacci so slow?
+    a: >-
+      It recomputes the same values repeatedly. The number of calls grows exponentially, roughly doubling for each increase of one in $n$.
+  - q: >-
+      What is memoisation?
+    a: >-
+      Storing the result of each call so a repeated call returns the stored answer instead of recomputing it.
+  - q: >-
+      When is recursion the better choice?
+    a: >-
+      When the data or the problem is itself recursive — trees, nested structures, divide and conquer — so the code matches the shape of the problem.
+  - q: >-
+      When is iteration the better choice?
+    a: >-
+      When the problem is a straightforward repetition, where a loop is clearer and avoids the memory and call cost.
+  - q: >-
+      What is tail recursion?
+    a: >-
+      A recursive call that is the last thing the function does. Some languages turn it into a loop, reusing one frame instead of many.
+  - q: >-
+      Why is every tree algorithm naturally recursive?
+    a: >-
+      Because every subtree is itself a tree, so the same procedure applies unchanged to a smaller input.
+practice:
+  - marks: 3
+    q: >-
+      Define recursion and state the two components every recursive algorithm must have.
+    points:
+      - >-
+          Recursion is a technique in which a function calls itself to solve a smaller instance of the same problem.
+      - >-
+          A base case gives a result directly, without any further call.
+      - >-
+          A recursive case calls the function on a smaller input and combines the result.
+  - marks: 4
+    q: >-
+      Explain what happens in memory when a recursive function is called several times before any call returns.
+    points:
+      - >-
+          Each call places a new stack frame on the call stack.
+      - >-
+          The frame holds that call's parameters, local variables and return address.
+      - >-
+          Frames accumulate until the base case is reached, so no result is produced until then.
+      - >-
+          Frames are then removed in reverse order as each call returns to the one that made it.
+  - marks: 4
+    q: >-
+      Trace the recursive calculation of `factorial(4)`, showing the calls and the values returned.
+    points:
+      - >-
+          factorial(4) calls factorial(3), which calls factorial(2), which calls factorial(1).
+      - >-
+          factorial(1) meets the base case and returns 1 without recursing.
+      - >-
+          The returns then unwind: factorial(2) returns 2, factorial(3) returns 6.
+      - >-
+          factorial(4) returns 4 × 6 = 24.
+  - marks: 4
+    q: >-
+      Explain why a recursive solution may fail with a stack overflow where an iterative one would not.
+    points:
+      - >-
+          Each unreturned recursive call occupies a stack frame.
+      - >-
+          The call stack has a limited size, typically allowing a few thousand frames.
+      - >-
+          A recursion whose depth exceeds this exhausts the stack and the program terminates.
+      - >-
+          An iterative solution reuses a single frame regardless of the number of repetitions.
+  - marks: 4
+    q: >-
+      The naive recursive Fibonacci function is extremely slow for moderate inputs. Explain why, and describe one way to improve it.
+    points:
+      - >-
+          Each call makes two further calls, so the number of calls grows exponentially with n.
+      - >-
+          The same subproblems are computed many times, for example fib(3) being recalculated repeatedly.
+      - >-
+          Memoisation stores each computed result so a repeated call returns it immediately.
+      - >-
+          This reduces the work to one calculation per value, making the running time linear.
+  - marks: 5
+    q: >-
+      Compare recursion and iteration as ways of solving a problem, and state when each is preferable.
+    points:
+      - >-
+          Both can express repetition, and any recursive solution can in principle be written iteratively.
+      - >-
+          Recursion uses stack memory proportional to its depth, whereas iteration uses a fixed amount.
+      - >-
+          Recursion carries the overhead of a function call for each step, so it is generally slower.
+      - >-
+          Recursion is clearer when the data or problem is itself recursive, such as traversing a tree.
+      - >-
+          Iteration is preferable for simple repetition, where a loop is both clearer and cheaper.
+  - marks: 4
+    q: >-
+      Explain why traversing a binary tree is usually written recursively rather than iteratively.
+    points:
+      - >-
+          Each child of a node is itself the root of a subtree, so the same procedure applies to it.
+      - >-
+          The recursive code therefore states the definition of the traversal directly.
+      - >-
+          Writing it iteratively requires an explicit stack to remember which nodes still need visiting.
+      - >-
+          That stack duplicates by hand what the call stack does automatically, making the code longer and easier to get wrong.
+---
+
+A recursive function is one that calls itself. The idea is small; what it does to
+memory is where the understanding lives.
+
+## The two parts
+
+Every recursive function has exactly two kinds of case, and both are compulsory.
+
+```python
+def factorial(n):
+    if n <= 1:            # base case: answerable without recursing
+        return 1
+    return n * factorial(n - 1)   # recursive case: a smaller problem
+```
+
+The **base case** stops it. The **recursive case** must move towards the base
+case — strictly smaller each time, or it will never arrive.
+
+Omit the base case and nothing catches the fall. The function calls itself until
+the stack is exhausted and the program dies.
+
+## What it builds
+
+`factorial(4)` does not compute anything on the way down. It cannot: it needs
+`factorial(3)` before it can multiply, and that needs `factorial(2)`, and so on.
+
+So four calls pile up, each waiting. Only when `factorial(1)` returns 1 does any
+arithmetic happen, and then the answers unwind back up.
+
+<Figure caption="Four frames on the way down, holding four separate copies of n. Nothing is multiplied until the base case returns.">
+  <CallStackFrames />
+</Figure>
+
+Each waiting call is a **stack frame** holding its own `n`, its own local
+variables, and the address to return to. Depth $n$ costs $n$ frames — which is
+the whole memory argument against recursion, and the reason a recursion 100,000
+deep crashes where a loop would not.
+
+<Aside kind="why" title="Why the stack is small, and what happens when it fills">
+The call stack is a fixed block of memory reserved when a thread starts —
+typically 1 MB, sometimes 8 MB. It is deliberately modest, because every thread
+gets one and a server may run thousands.
+
+A frame for a simple function is perhaps 50–100 bytes, so a megabyte allows
+roughly ten to twenty thousand frames. Python's own limit is lower still — about
+1,000 by default — and it raises `RecursionError` before the real stack runs out,
+because a genuine C-level stack overflow cannot be caught and would take the
+whole interpreter down.
+
+That is why a stack overflow is a *crash* rather than an exception in most
+languages. There is no memory left in which to run the error handler.
+</Aside>
+
+## The Fibonacci trap
+
+The textbook second example of recursion is also a good example of recursion done
+badly.
+
+```python
+def fib(n):
+    if n <= 1:
+        return n
+    return fib(n - 1) + fib(n - 2)
+```
+
+Correct, elegant, and catastrophically slow. Each call makes two more, so the
+number of calls roughly doubles with every increase in $n$: about $2^n$ calls for
+`fib(n)`.
+
+The reason is that it recomputes. Calculating `fib(30)` computes `fib(28)` twice,
+`fib(27)` three times, `fib(5)` hundreds of thousands of times.
+
+**Memoisation** fixes it. Store each answer the first time and look it up
+thereafter. The work drops from exponential to linear, from about 2.7 million
+calls to 31.
+
+<Aside kind="deeper" title="Why recursion gets blamed for this">
+It is worth being precise: the exponential behaviour is not caused by recursion.
+It is caused by solving the same subproblem repeatedly. The same algorithm
+written with a loop that recomputed in the same way would be just as slow.
+
+What recursion does is make that mistake easy to write and hard to see. The code
+looks like the mathematical definition, and the mathematical definition says
+nothing about how many times each term is evaluated.
+
+This is the origin of **dynamic programming**: recognise the overlapping
+subproblems, then either store the results as you go (memoisation, top-down) or
+compute them in order from the bottom (tabulation, bottom-up). Both turn the same
+recursive insight into something that finishes.
+</Aside>
+
+<Py step caption="Factorial traced call by call, Fibonacci counted rather than trusted, and the same Fibonacci with memoisation. Step through factorial to watch the frames build up and unwind.">{`
+# Factorial, printing what happens on the way down and on the way back.
+def factorial(n, depth=0):
+    pad = "  " * depth
+    print(f"{pad}factorial({n}) called")
+    if n <= 1:
+        print(f"{pad}factorial(1) is the base case -> 1")
+        return 1
+    result = n * factorial(n - 1, depth + 1)
+    print(f"{pad}factorial({n}) returns {n} x {result // n} = {result}")
+    return result
+
+print("factorial(4)\\n")
+factorial(4)
+
+# Fibonacci: count the calls rather than take anyone's word for it.
+calls = 0
+
+def fib(n):
+    global calls
+    calls += 1
+    if n <= 1:
+        return n
+    return fib(n - 1) + fib(n - 2)
+
+print()
+print(" n   fib(n)   calls made")
+for n in (5, 10, 20, 25):
+    calls = 0
+    value = fib(n)
+    print(f"{n:2}   {value:6}   {calls:,}")
+
+# The same function, remembering what it has already worked out.
+memo = {}
+memo_calls = 0
+
+def fib_fast(n):
+    global memo_calls
+    memo_calls += 1
+    if n in memo:
+        return memo[n]
+    memo[n] = n if n <= 1 else fib_fast(n - 1) + fib_fast(n - 2)
+    return memo[n]
+
+memo.clear()
+memo_calls = 0
+value = fib_fast(25)
+print()
+print(f"with memoisation: fib(25) = {value} in {memo_calls} calls")
+print("Same recursion. The only change is not solving the same thing twice.")
+
+# Depth is a real limit, not a theoretical one.
+import sys
+def count_down(n):
+    return 0 if n == 0 else 1 + count_down(n - 1)
+
+print()
+print("Python's recursion limit:", sys.getrecursionlimit())
+try:
+    count_down(50_000)
+except RecursionError as e:
+    print("count_down(50,000) ->", type(e).__name__)
+print("The same loop written with while would finish without difficulty.")
+`}</Py>
+
+## Recursion against iteration
+
+| | Recursion | Iteration |
+| --- | --- | --- |
+| Memory | One frame per level | One frame total |
+| Speed | A call per step | No call overhead |
+| Depth limit | Yes — the stack | No |
+| Clearer for | Trees, nesting, divide and conquer | Plain repetition |
+
+Anything recursive can be written iteratively and the reverse, so the choice is
+about clarity and cost, not capability.
+
+Use **iteration** for straightforward repetition. `factorial` as a loop is
+shorter, faster and unlimited in depth; the recursive version is a teaching
+example rather than a recommendation.
+
+Use **recursion** when the *data* is recursive. A tree's children are trees. A
+folder's contents include folders. A nested list contains lists. Writing those
+iteratively means building your own stack to remember where to come back to —
+which is doing by hand exactly what the call stack was doing for free.
+
+<Takeaway>
+Recursion needs a base case, and every call that has not returned costs a frame.
+Reach for it when the problem is genuinely self-similar; reach for a loop when it
+is merely repetitive — and watch for the same subproblem being solved twice.
+</Takeaway>

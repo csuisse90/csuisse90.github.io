@@ -124,21 +124,21 @@ export default function Home() {
       <h2 className="display">B · Computational thinking and programming</h2>
 
       <div className="cardGrid">
-        <Link href="/computational-thinking/" className="card">
+        <Link href="/b/b1/abstraction-and-decomposition/" className="card">
           <div className="cardTitle">Computational thinking</div>
           <div className="cardBody">Decomposition, abstraction, algorithm design. B1.</div>
         </Link>
-        <Link href="/programming/" className="card">
+        <Link href="/b/b2/variables-and-types/" className="card">
           <div className="cardTitle">Programming</div>
-          <div className="cardBody">Constructs, collections, searching and sorting. B2.</div>
+          <div className="cardBody">Types, selection, iteration, functions, collections. B2.</div>
         </Link>
-        <Link href="/oop/" className="card">
+        <Link href="/b/b3/objects-and-classes/" className="card">
           <div className="cardTitle">Object-oriented</div>
           <div className="cardBody">Classes, encapsulation, inheritance, polymorphism. B3.</div>
         </Link>
-        <Link href="/abstract-data-types/" className="card">
+        <Link href="/b/b4/abstract-data-types/" className="card">
           <div className="cardTitle">Abstract data types</div>
-          <div className="cardBody">Stacks, queues, trees, recursion. B4, HL only.</div>
+          <div className="cardBody">Stacks, queues, linked lists, trees, recursion, complexity. B4, HL.</div>
         </Link>
       </div>
 

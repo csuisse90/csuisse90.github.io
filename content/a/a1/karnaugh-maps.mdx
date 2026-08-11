@@ -148,8 +148,8 @@ rectangles.
 A two-variable map is a $2\times2$ grid; three variables give $2\times4$; four give
 $4\times4$. Each cell holds the output for one input combination.
 
-The unusual part is the ordering of the headings: $00, 01, 11, 10$, not $00, 01,
-10, 11$.
+The unusual part is the ordering of the headings: $00, 01, 11, 10$,
+not $00, 01, 10, 11$.
 
 This is **Gray code**, and it is the whole idea. In Gray code, consecutive values
 differ in exactly one bit. So any two adjacent cells on the map differ in exactly
@@ -180,8 +180,9 @@ Rule 6 is where marks are won and lost. A group of four eliminates two variables
 two groups of two eliminate one each. Bigger is always better.
 
 <Aside kind="why" title="Why groups must be powers of two">
-Combining two adjacent cells works because of $X\overline{Y} + XY = X(\overline{Y}
-+ Y) = X$ — one variable takes both values across the group, so it drops out.
+Combining two adjacent cells works because of
+$X\overline{Y} + XY = X(\overline{Y} + Y) = X$ — one variable takes both values
+across the group, so it drops out.
 
 A group of four is two groups of two combined, so two variables drop out. A group
 of eight is two groups of four, so three drop out. Each doubling removes exactly

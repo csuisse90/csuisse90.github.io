@@ -27,11 +27,8 @@ const TOOLS = [
   { href: "/reference/", label: "Reference sheet", code: "REF" },
 ];
 
-/** B3 and B4 have not been rewritten yet, so their original notes stay
- *  reachable, along with the two extension pages that belong to no unit. */
+/** Two extension pages that go beyond the syllabus and belong to no unit. */
 const LEGACY = [
-  { href: "/oop/", label: "Object-oriented", code: "B3" },
-  { href: "/abstract-data-types/", label: "Abstract data types", code: "B4" },
   { href: "/circuits/", label: "Real circuits", code: "EXT" },
   { href: "/timing/", label: "Timing & hazards", code: "EXT" },
 ];
@@ -107,9 +104,9 @@ export default function SiteChrome({ children }: { children: React.ReactNode }) 
         ))}
 
         <div className="navTheme">
-          <div className="navThemeHead">Still to come</div>
+          <div className="navThemeHead">Beyond the syllabus</div>
           <div className="navGroup">
-            <div className="navHead">Not yet rewritten</div>
+            <div className="navHead">Extension</div>
             {LEGACY.map((item) => (
               <Link
                 key={item.href}

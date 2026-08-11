@@ -1,0 +1,331 @@
+---
+code: B3.1.3
+title: Inheritance and polymorphism
+lede: >-
+  Reusing a class by extending it, replacing one behaviour without touching the rest, and the reason a list of different things can be treated as one.
+prereqs:
+  - B3.1.2
+cards:
+  - q: >-
+      What is inheritance?
+    a: >-
+      Defining a class in terms of an existing one, so it gains that class's attributes and methods and adds or replaces what it needs.
+  - q: >-
+      What are the two classes in an inheritance relationship called?
+    a: >-
+      The **superclass**, base or parent, and the **subclass**, derived or child.
+  - q: >-
+      What relationship must hold for inheritance to be appropriate?
+    a: >-
+      **is-a**. A Dog is an Animal. If the sentence is false, inheritance is the wrong tool.
+  - q: >-
+      What is overriding?
+    a: >-
+      A subclass providing its own version of a method the superclass already defines. Calls on that subclass run the new version.
+  - q: >-
+      What is polymorphism?
+    a: >-
+      Objects of different classes responding to the same call in their own way, so one piece of code works with all of them.
+  - q: >-
+      Why does polymorphism remove `if` statements?
+    a: >-
+      The decision about which behaviour to run is made by the object's own type, not by a branch listing every case.
+  - q: >-
+      What is an abstract class?
+    a: >-
+      A class that cannot be instantiated, existing to define a common interface and shared behaviour for its subclasses.
+  - q: >-
+      What is an abstract method?
+    a: >-
+      A method declared without an implementation, which every concrete subclass must provide.
+  - q: >-
+      What is composition, and how does it differ from inheritance?
+    a: >-
+      Building a class from objects of other classes — **has-a** rather than **is-a**. It is more flexible, because the parts can be swapped at run time.
+  - q: >-
+      Why is deep inheritance discouraged?
+    a: >-
+      Behaviour is scattered across many levels, so understanding one method means reading the whole chain, and a change high up affects everything below.
+  - q: >-
+      What does it mean to call the superclass version of a method?
+    a: >-
+      Running the parent's implementation from inside the override, usually to extend it rather than replace it. In Python this is `super()`.
+  - q: >-
+      What is the Liskov substitution principle, informally?
+    a: >-
+      Anywhere the superclass works, a subclass must work too. If a subclass breaks a promise the superclass made, the inheritance is wrong.
+practice:
+  - marks: 4
+    q: >-
+      Explain what inheritance is and state two benefits of using it.
+    points:
+      - >-
+          A subclass is defined in terms of an existing superclass and automatically has its attributes and methods.
+      - >-
+          Shared code is written once in the superclass rather than repeated in each subclass.
+      - >-
+          A change to the shared behaviour is made in one place and applies everywhere.
+      - >-
+          Subclasses can be treated as instances of the superclass, so common code can process them together.
+  - marks: 3
+    q: >-
+      Explain what method overriding is and why a subclass might do it.
+    points:
+      - >-
+          Overriding means a subclass defines a method with the same name as one in its superclass.
+      - >-
+          Calls on objects of the subclass use the subclass's version.
+      - >-
+          It allows a subclass to specialise behaviour that differs from the general case while inheriting everything else.
+  - marks: 4
+    q: >-
+      Explain what polymorphism is, using an example, and state why it reduces the need for conditional statements.
+    points:
+      - >-
+          Polymorphism means objects of different classes respond to the same method call in their own way.
+      - >-
+          A valid example is given, such as calling `speak()` on a list containing dogs and cats.
+      - >-
+          The correct version is selected by the type of the object at run time.
+      - >-
+          The calling code therefore needs no branch listing each possible type, and requires no change when a new type is added.
+  - marks: 4
+    q: >-
+      Distinguish between inheritance and composition, and state when each is appropriate.
+    points:
+      - >-
+          Inheritance models an is-a relationship, where the subclass is a kind of the superclass.
+      - >-
+          Composition models a has-a relationship, where an object holds other objects as parts.
+      - >-
+          Inheritance is appropriate when subclasses genuinely satisfy everything promised by the superclass.
+      - >-
+          Composition is appropriate when behaviour is being reused without such a relationship, and it allows the part to be replaced at run time.
+  - marks: 4
+    q: >-
+      Explain what an abstract class is and why one might be used.
+    points:
+      - >-
+          An abstract class cannot itself be instantiated.
+      - >-
+          It defines methods that subclasses must implement, and may provide shared implementations of others.
+      - >-
+          It guarantees that every subclass offers a common interface, so they can be used interchangeably.
+      - >-
+          It prevents the creation of an object of a general type that has no meaningful concrete behaviour.
+  - marks: 5
+    q: >-
+      A developer creates a class Square that inherits from Rectangle and overrides the setters so that width and height are always equal. Discuss whether this is a sound use of inheritance.
+    points:
+      - >-
+          Mathematically a square is a rectangle, so the is-a test appears to be satisfied.
+      - >-
+          Code written for a rectangle may assume that setting the width leaves the height unchanged.
+      - >-
+          A Square breaks that assumption, so it cannot safely be used everywhere a Rectangle can.
+      - >-
+          This violates the principle that a subclass must be substitutable for its superclass.
+      - >-
+          A reasoned alternative is given, such as making both immutable, or using a common Shape interface rather than inheriting.
+  - marks: 4
+    q: >-
+      Explain why a deep inheritance hierarchy can make a program harder to maintain.
+    points:
+      - >-
+          Behaviour of one object is defined across several classes, so understanding it means reading the whole chain.
+      - >-
+          It is not obvious from a subclass which version of a method will actually run.
+      - >-
+          A change to a class high in the hierarchy affects every class beneath it, possibly unintentionally.
+      - >-
+          Subclasses become tightly coupled to their parents' implementations, so those cannot be changed freely.
+---
+
+Two classes that share most of their behaviour should not contain two copies of
+it. **Inheritance** is the mechanism for saying "the same as that, except for
+this".
+
+## The relationship
+
+```python
+class Animal:
+    def __init__(self, name, age):
+        self.name = name
+        self.age = age
+
+    def eat(self):
+        return f"{self.name} eats"
+
+    def speak(self):
+        return "..."
+
+class Dog(Animal):
+    def speak(self):
+        return "Woof"
+```
+
+`Dog` writes four lines and gets a constructor, `eat`, and everything else
+`Animal` has. It replaces `speak`. That replacement is **overriding**.
+
+<Figure caption="Everything not mentioned in a subclass is inherited. The triangle always points at the parent.">
+  <InheritanceTree />
+</Figure>
+
+The test for whether inheritance is right is one sentence: **is a Dog an
+Animal?** If it reads as nonsense, the relationship is wrong, however convenient
+the shared code would be.
+
+<Aside kind="trap" title="Inheriting for convenience, and why it goes wrong">
+The tempting misuse is inheriting to get at some useful code:
+
+```python
+class Stack(list):        # a stack is not a list
+    def push(self, x): self.append(x)
+    def pop_top(self):  return self.pop()
+```
+
+This works, and it also gives your stack `insert`, `sort`, `remove` and indexing.
+Somebody will use them. Your stack can now have something inserted in the middle,
+which is precisely the thing a stack is supposed to prevent.
+
+You inherited to reuse an implementation and accidentally inherited an entire
+interface you did not want. Composition — *holding* a list rather than *being*
+one — reuses the code and exposes nothing:
+
+```python
+class Stack:
+    def __init__(self): self._items = []
+    def push(self, x):  self._items.append(x)
+    def pop(self):      return self._items.pop()
+```
+</Aside>
+
+## Polymorphism
+
+**Poly-morphism**: many forms. The same call, different behaviour, decided by the
+object rather than by the caller.
+
+```python
+for animal in [Dog("Rex", 3), Cat("Bella", 7), Dog("Kip", 1)]:
+    print(animal.speak())
+```
+
+Nothing in that loop knows what kind of animal it holds. Each object runs its own
+`speak`. Add a `Horse` class tomorrow and the loop is unchanged.
+
+Compare the alternative:
+
+```python
+for animal in animals:
+    if animal.kind == "dog":
+        print("Woof")
+    elif animal.kind == "cat":
+        print("Meow")
+    # and every new animal means finding and editing this, and the four
+    # other places like it
+```
+
+That branch is the thing polymorphism deletes. Not for elegance — because a
+branch listing every case must be found and updated every time a case is added,
+and it will be missed somewhere.
+
+<Aside kind="why" title="How the right method is actually found">
+Each object carries a reference to its class. Each class carries a table of its
+methods and a pointer to its parent.
+
+Calling `animal.speak()` looks up `speak` in the object's own class first. If it
+is not there, the search moves to the parent, then the grandparent, until it is
+found or the chain runs out. This is the **method resolution order**.
+
+Two consequences fall out of it. First, overriding works simply because the
+subclass is looked at first. Second, the lookup costs something — a real one at
+run time — which is why languages that care about speed cache the result or,
+where the type is known at compile time, resolve it in advance.
+
+`super().speak()` is a deliberate instruction to start the search one level up
+instead, which is how an override extends its parent rather than replacing it.
+</Aside>
+
+<Py step caption="Inheritance, overriding, extending with super(), and one loop that handles four kinds of animal without a single if. Step through the loop and watch the different methods run.">{`
+class Animal:
+    def __init__(self, name, age):
+        self.name = name
+        self.age = age
+
+    def speak(self):
+        return "..."
+
+    def describe(self):
+        return f"{self.name} ({type(self).__name__}, {self.age}) says {self.speak()}"
+
+class Dog(Animal):
+    def __init__(self, name, age, breed):
+        super().__init__(name, age)      # extend the parent, do not retype it
+        self.breed = breed
+
+    def speak(self):
+        return "Woof"
+
+    def fetch(self):
+        return f"{self.name} brings the ball back"
+
+class Cat(Animal):
+    def speak(self):
+        return "Meow"
+
+class Fish(Animal):
+    pass                                  # inherits everything, overrides nothing
+
+animals = [Dog("Rex", 3, "collie"), Cat("Bella", 7), Fish("Bubble", 1), Dog("Kip", 1, "lab")]
+
+for a in animals:
+    print(a.describe())
+
+# One line of code, four behaviours. No branch names any class.
+print()
+print("chorus:", ", ".join(a.speak() for a in animals))
+
+# Only dogs fetch. The subclass added behaviour the parent never had.
+print()
+for a in animals:
+    if isinstance(a, Dog):
+        print(a.fetch())
+
+# Where the method was actually found.
+print()
+print("resolution order for Dog:", [c.__name__ for c in Dog.__mro__])
+print("Fish uses Animal.speak? ", Fish.speak is Animal.speak)
+print("Dog uses Animal.speak?  ", Dog.speak is Animal.speak)
+`}</Py>
+
+## Abstract classes
+
+Sometimes the parent should never be instantiated. There is no such thing as a
+plain `Shape`; there are circles and rectangles.
+
+An **abstract class** says so. It cannot be instantiated, and it may declare
+**abstract methods** that every concrete subclass must implement. That gives a
+guarantee the caller can rely on: whatever shape arrives, it has an `area()`.
+
+## Inheritance against composition
+
+Inheritance is often the first tool reached for and rarely the best one.
+
+| | Inheritance | Composition |
+| --- | --- | --- |
+| Relationship | is-a | has-a |
+| Fixed when? | At compile time | Can change at run time |
+| What you get | The whole parent, wanted or not | Only what you use |
+| Coupling | Tight — to the parent's internals | Loose — to its interface |
+
+A `Car` **is not** an `Engine`; it **has** one. Modelling that with composition
+also lets you swap the engine for an electric one without a new class hierarchy.
+
+The rule of thumb that survives contact with real code: **inherit only when
+subclasses are genuinely substitutable for the parent; otherwise compose.**
+
+<Takeaway>
+Inheritance shares code down an is-a relationship; polymorphism lets one piece of
+code work with every class along it. Both fail in the same way — when a subclass
+cannot honestly do everything its parent promised.
+</Takeaway>

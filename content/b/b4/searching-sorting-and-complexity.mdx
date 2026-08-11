@@ -1,0 +1,410 @@
+---
+code: B4.1.6
+title: Searching, sorting and complexity
+lede: >-
+  The five algorithms you must be able to trace, the notation for saying how badly they scale, and why the difference is not about speed but about shape.
+hl: true
+prereqs:
+  - B4.1.5
+cards:
+  - q: >-
+      How does a linear search work?
+    a: >-
+      Examine each element in turn until the target is found or the end is reached. It needs no ordering.
+  - q: >-
+      What is the cost of a linear search?
+    a: >-
+      $O(n)$. On average $n/2$ comparisons, and $n$ in the worst case.
+  - q: >-
+      How does a binary search work?
+    a: >-
+      Compare with the middle element of the range; discard the half that cannot contain the target; repeat until found or the range is empty.
+  - q: >-
+      What must be true before a binary search can be used?
+    a: >-
+      The data must already be sorted on the key being searched.
+  - q: >-
+      What is the cost of a binary search?
+    a: >-
+      $O(\log n)$ — at most $\lceil \log_2 n \rceil$ comparisons, so about 20 for a million items.
+  - q: >-
+      How does a bubble sort work?
+    a: >-
+      Repeatedly pass through the list swapping adjacent elements that are out of order, until a pass makes no swaps.
+  - q: >-
+      How does a selection sort work?
+    a: >-
+      Find the smallest remaining element and swap it into the next position, repeating for each position in turn.
+  - q: >-
+      How does an insertion sort work?
+    a: >-
+      Take each element in turn and slide it back into its correct place among the elements already sorted.
+  - q: >-
+      Which simple sort is best on nearly sorted data, and why?
+    a: >-
+      Insertion sort. Each element moves only a short distance, so it approaches $O(n)$ rather than $O(n^2)$.
+  - q: >-
+      How does merge sort work?
+    a: >-
+      Split the list in half repeatedly until each part holds one element, then merge pairs back together in order.
+  - q: >-
+      Why is merge sort $O(n \log n)$?
+    a: >-
+      There are $\log_2 n$ levels of merging, and each level does $n$ work merging every element once.
+  - q: >-
+      What does big-O notation describe?
+    a: >-
+      How the work grows with the size of the input, ignoring constant factors and lower-order terms.
+  - q: >-
+      What is a stable sort?
+    a: >-
+      One that keeps equal elements in their original relative order, which matters when sorting by one key after another.
+practice:
+  - marks: 4
+    q: >-
+      Compare linear search and binary search, stating the conditions under which each can be used.
+    points:
+      - >-
+          Linear search examines each element in turn and works on data in any order.
+      - >-
+          Binary search repeatedly halves the range and requires the data to be sorted.
+      - >-
+          Linear search takes O(n) comparisons while binary search takes O(log n).
+      - >-
+          Linear search is preferable for small or unsorted data, since sorting first may cost more than it saves.
+  - marks: 4
+    q: >-
+      A sorted array holds 1,000,000 records. State the maximum number of comparisons needed by a binary search and explain your answer.
+    points:
+      - >-
+          Each comparison discards half of the remaining elements.
+      - >-
+          The number of comparisons is therefore the number of times 1,000,000 can be halved.
+      - >-
+          This is log₂ 1,000,000, which is approximately 20.
+      - >-
+          At most 20 comparisons are needed, compared with up to 1,000,000 for a linear search.
+  - marks: 4
+    q: >-
+      Describe how a bubble sort orders a list, and explain how the algorithm can detect that it has finished early.
+    points:
+      - >-
+          Adjacent pairs of elements are compared and swapped if they are in the wrong order.
+      - >-
+          Each complete pass moves the largest remaining element to its final position at the end.
+      - >-
+          A flag records whether any swap occurred during a pass.
+      - >-
+          If a pass completes with no swaps the list is already sorted, so the algorithm stops.
+  - marks: 4
+    q: >-
+      Explain why merge sort is O(n log n) while bubble sort is O(n²).
+    points:
+      - >-
+          Merge sort divides the list in half repeatedly, giving log₂ n levels.
+      - >-
+          Each level merges every element exactly once, so each level costs n operations.
+      - >-
+          Bubble sort makes a pass for each element, and each pass compares up to n elements.
+      - >-
+          Its work is therefore proportional to n × n rather than n × log n.
+  - marks: 4
+    q: >-
+      Explain what big-O notation describes and why constant factors are ignored.
+    points:
+      - >-
+          Big-O describes how the running time or memory grows as the input size increases.
+      - >-
+          It classifies algorithms by the shape of that growth rather than by exact timings.
+      - >-
+          Constant factors depend on the machine and language, so they do not distinguish algorithms.
+      - >-
+          For large inputs the fastest-growing term dominates, so lower-order terms and constants become insignificant.
+  - marks: 5
+    q: >-
+      A program must sort 20 items once, and another must sort 2,000,000 items repeatedly. Discuss which sorting algorithm each should use.
+    points:
+      - >-
+          For 20 items the difference in growth is irrelevant, since both finish almost instantly.
+      - >-
+          Insertion sort is a reasonable choice there, being simple to write and fast on small or nearly sorted data.
+      - >-
+          For 2,000,000 items an O(n²) sort would require around four trillion operations and is not viable.
+      - >-
+          Merge sort or a comparable O(n log n) algorithm requires around forty million, which is practical.
+      - >-
+          A justified conclusion is reached, noting that merge sort's extra memory requirement is an acceptable cost at that size.
+  - marks: 4
+    q: >-
+      Explain what is meant by a stable sort and give a situation in which stability matters.
+    points:
+      - >-
+          A stable sort preserves the original relative order of elements that compare as equal.
+      - >-
+          An unstable sort may reorder such elements arbitrarily.
+      - >-
+          It matters when data is sorted by one key and then by another.
+      - >-
+          For example, sorting by name and then by class keeps each class's names in alphabetical order only if the second sort is stable.
+---
+
+Two questions decide whether a program works at scale: how you find something,
+and how you put things in order. Both have well-known answers, and the
+differences between them are enormous.
+
+## Searching
+
+### Linear search
+
+Look at each element until you find it or run out.
+
+$n$ comparisons in the worst case, $n/2$ on average, and — the thing people
+forget to say — **it works on unsorted data**. That is its whole advantage.
+
+### Binary search
+
+If the data is sorted, compare with the middle. The target is either that element
+or in one of the halves, and the other half can be discarded entirely.
+
+<Figure caption="Each comparison throws away half of what is left. Four steps are enough for twelve items; twenty are enough for a million.">
+  <BinarySearchSteps />
+</Figure>
+
+The maximum number of comparisons is $\lceil \log_2 n \rceil$:
+
+| Items | Linear (worst) | Binary (worst) |
+| --- | --- | --- |
+| 100 | 100 | 7 |
+| 1,000 | 1,000 | 10 |
+| 1,000,000 | 1,000,000 | 20 |
+| 1,000,000,000 | 1,000,000,000 | 30 |
+
+Notice the shape: a thousandfold increase in data adds ten comparisons.
+
+<Aside kind="trap" title="Sorting first is not always worth it">
+"Binary search is faster, so sort the data first" is wrong as often as it is
+right.
+
+Sorting costs $O(n \log n)$. A single linear search costs $O(n)$. Sorting in
+order to make one search is strictly more expensive than just searching.
+
+The sum for $k$ searches is:
+
+- Linear throughout: $k \times n$
+- Sort once, then binary: $n \log n + k \log n$
+
+So sorting pays off when $k$ is large — many searches over data that does not
+change. It does not pay off for one search, and it does not pay off if the data
+changes between searches, because then you are sorting repeatedly.
+
+This is exactly why a database index is built once and then reused, and why
+building an index on a table you only query once is a waste.
+</Aside>
+
+## Sorting
+
+### Bubble sort
+
+Compare adjacent pairs, swap if out of order, repeat. After each pass the largest
+remaining element has reached the end.
+
+Its only virtues are that it is easy to write and easy to trace, which is why it
+is taught. With a swap flag it detects an already-sorted list in one pass —
+$O(n)$ in the best case — but $O(n^2)$ otherwise.
+
+### Selection sort
+
+Find the smallest element, swap it into position 0. Find the smallest of the
+rest, swap into position 1. Continue.
+
+Always $O(n^2)$ comparisons regardless of the input, but at most $n$ swaps, which
+matters if a swap is expensive — moving large records rather than integers.
+
+### Insertion sort
+
+Take each element and slide it back into place among those already sorted, like
+putting a card into a hand you are holding.
+
+$O(n^2)$ in general, but **$O(n)$ on nearly sorted data**, because each element
+moves only a little. That makes it genuinely useful: real production sorts switch
+to insertion sort for small chunks.
+
+### Merge sort
+
+Split the list in half, sort each half — recursively, by the same method — then
+merge the two sorted halves.
+
+<Figure caption="Splitting costs nothing. The work is the merging, and there are only log n levels of it.">
+  <MergeSortTree />
+</Figure>
+
+Merging two sorted lists is easy: repeatedly take the smaller of the two front
+elements. Each level of merging touches all $n$ items, and there are $\log_2 n$
+levels, which is where $O(n \log n)$ comes from.
+
+It needs extra memory for the merged output, which is its one real cost.
+
+| Sort | Best | Average | Worst | Extra memory | Stable |
+| --- | --- | --- | --- | --- | --- |
+| Bubble | $O(n)$ | $O(n^2)$ | $O(n^2)$ | $O(1)$ | Yes |
+| Selection | $O(n^2)$ | $O(n^2)$ | $O(n^2)$ | $O(1)$ | No |
+| Insertion | $O(n)$ | $O(n^2)$ | $O(n^2)$ | $O(1)$ | Yes |
+| Merge | $O(n\log n)$ | $O(n\log n)$ | $O(n\log n)$ | $O(n)$ | Yes |
+
+## Big-O
+
+Big-O says how the work grows with $n$, and deliberately ignores everything else.
+
+<Figure caption="Constant factors move a curve up and down. They cannot change its shape, and the shape is what decides whether a program finishes.">
+  <ComplexityCurves />
+</Figure>
+
+Two rules explain why it looks the way it does.
+
+**Constants are dropped.** $3n$ and $n$ are both $O(n)$. A constant depends on
+the machine, the language and the compiler, so it cannot distinguish one
+algorithm from another.
+
+**Only the fastest-growing term survives.** $n^2 + 500n + 9000$ is $O(n^2)$. At
+$n = 10$ the other terms dominate; at $n = 100{,}000$ the $n^2$ term is ten
+thousand times larger than everything else put together.
+
+<Aside kind="why" title="Why the shape beats the constant, with numbers">
+Suppose an $O(n^2)$ algorithm is written in tuned C and an $O(n \log n)$ one in
+Python, so each step of the first is **100 times faster**.
+
+| $n$ | $n^2$ steps ÷ 100 | $n \log_2 n$ steps |
+| --- | --- | --- |
+| 100 | 100 | 664 |
+| 1,000 | 10,000 | 9,966 |
+| 10,000 | 1,000,000 | 132,877 |
+| 1,000,000 | 10,000,000,000 | 19,931,569 |
+
+The fast implementation wins at $n = 100$, draws at about $n = 1{,}000$, and by a
+million is five hundred times slower — *despite each step being a hundred times
+faster*.
+
+That is the whole argument for caring about complexity. Hardware and clever
+coding buy you a constant factor. Only a better algorithm changes the shape, and
+the shape is what decides whether the program finishes at all.
+</Aside>
+
+<Py caption="Every algorithm on this page, run and counted. The comparison counts, not the timings, are the point — they are the same on any machine.">{`
+def linear_search(data, target):
+    for index, value in enumerate(data):
+        if value == target:
+            return index, index + 1
+    return None, len(data)
+
+def binary_search(data, target):
+    low, high, comparisons = 0, len(data) - 1, 0
+    while low <= high:
+        mid = (low + high) // 2
+        comparisons += 1
+        if data[mid] == target:
+            return mid, comparisons
+        if data[mid] < target:
+            low = mid + 1
+        else:
+            high = mid - 1
+    return None, comparisons
+
+def bubble_sort(data):
+    items, comparisons, swaps = list(data), 0, 0
+    for end in range(len(items) - 1, 0, -1):
+        swapped = False
+        for i in range(end):
+            comparisons += 1
+            if items[i] > items[i + 1]:
+                items[i], items[i + 1] = items[i + 1], items[i]
+                swaps += 1
+                swapped = True
+        if not swapped:
+            break                        # already in order
+    return items, comparisons, swaps
+
+def selection_sort(data):
+    items, comparisons, swaps = list(data), 0, 0
+    for start in range(len(items)):
+        smallest = start
+        for i in range(start + 1, len(items)):
+            comparisons += 1
+            if items[i] < items[smallest]:
+                smallest = i
+        if smallest != start:
+            items[start], items[smallest] = items[smallest], items[start]
+            swaps += 1
+    return items, comparisons, swaps
+
+def insertion_sort(data):
+    items, comparisons, moves = list(data), 0, 0
+    for i in range(1, len(items)):
+        held, j = items[i], i - 1
+        while j >= 0:
+            comparisons += 1
+            if items[j] <= held:
+                break
+            items[j + 1] = items[j]
+            moves += 1
+            j -= 1
+        items[j + 1] = held
+    return items, comparisons, moves
+
+def merge_sort(data, counter=None):
+    if counter is None:
+        counter = [0]
+    if len(data) <= 1:
+        return data, counter[0]
+    middle = len(data) // 2
+    left, _ = merge_sort(data[:middle], counter)
+    right, _ = merge_sort(data[middle:], counter)
+    merged, i, j = [], 0, 0
+    while i < len(left) and j < len(right):
+        counter[0] += 1
+        if left[i] <= right[j]:
+            merged.append(left[i]); i += 1
+        else:
+            merged.append(right[j]); j += 1
+    merged.extend(left[i:]); merged.extend(right[j:])
+    return merged, counter[0]
+
+sorted_data = [3, 8, 12, 19, 24, 31, 40, 47, 55, 62, 70, 81]
+print("searching a sorted list of", len(sorted_data), "for 47")
+print("   linear:", linear_search(sorted_data, 47)[1], "comparisons")
+print("   binary:", binary_search(sorted_data, 47)[1], "comparisons")
+print()
+
+shuffled = [38, 27, 43, 3, 9, 82, 10, 55, 1, 77, 19, 64]
+nearly = sorted(shuffled)
+nearly[3], nearly[4] = nearly[4], nearly[3]      # one pair out of place
+
+print(f"{'sort':<12}{'random':>20}{'nearly sorted':>22}")
+for name, function in (("bubble", bubble_sort), ("selection", selection_sort), ("insertion", insertion_sort)):
+    a = function(shuffled)
+    b = function(nearly)
+    print(f"{name:<12}{a[1]:>12} comps {b[1]:>15} comps")
+
+merged, merge_comparisons = merge_sort(shuffled)
+print(f"{'merge':<12}{merge_comparisons:>12} comps")
+print()
+print("sorted:", merged)
+
+print()
+print("how the counts grow with n")
+print(f"{'n':>8}{'bubble n^2':>14}{'merge n log n':>16}")
+import random
+random.seed(1)
+for n in (16, 64, 256, 1024):
+    sample = random.sample(range(n * 10), n)
+    _, bubble_comparisons, _ = bubble_sort(sample)
+    _, merge_count = merge_sort(sample)
+    print(f"{n:>8}{bubble_comparisons:>14,}{merge_count:>16,}")
+print()
+print("Sixty-four times the data makes bubble sort ~4000x slower, merge sort ~90x.")
+`}</Py>
+
+<Takeaway>
+Sorted data buys you $O(\log n)$ searching, and sorting itself is $O(n \log n)$
+if you use a divide-and-conquer method. Constant factors decide which of two
+similar algorithms wins; the exponent decides whether the program finishes.
+</Takeaway>

@@ -320,8 +320,8 @@ export const COMMANDS: Command[] = [
   },
   {
     name: "nvim",
-    summary: "edit a file, with vim keys",
-    usage: "nvim <path>",
+    summary: "edit a file with vim keys",
+    usage: "nvim <path>   :w :wq :q! :e :sav :s/a/b/g and the rest",
     async run(args, ctx) {
       if (!args[0]) return ctx.print("nvim: needs a filename", "err");
       await ctx.edit(args[0]);
@@ -445,7 +445,7 @@ and is saved between visits.
 Try:
   ls -la
   tree
-  nvim hello.py        write some Python, then :wq
+  nvim hello.py        vim keys; :w :wq :q! :e :sav all work
   python hello.py
   grep -i loop notes/*.md
   help                 everything else

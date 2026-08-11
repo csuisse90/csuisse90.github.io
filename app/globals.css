@@ -1440,6 +1440,7 @@ pre.listing {
 }
 
 .splashSprite {
+  border-radius: 22%;
   opacity: 0;
   animation:
     splashFade 620ms cubic-bezier(0.16, 1, 0.3, 1) forwards,
@@ -2969,6 +2970,44 @@ html[data-ai-open="true"]
   box-shadow: 0 18px 50px rgba(11, 13, 12, 0.28);
 }
 
+.term[data-full="true"] {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  border: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.term[data-full="true"] .termView {
+  height: auto;
+  flex: 1;
+}
+
+.termFull {
+  margin-left: auto;
+  border: 1px solid #232b28;
+  background: transparent;
+  color: #6d7a76;
+  font: inherit;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.15rem 0.5rem;
+  cursor: pointer;
+}
+
+.termFull:hover {
+  color: var(--term-fg);
+  border-color: #35403c;
+}
+
+button.termDot {
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
 .termLoading {
   padding: 2rem;
   color: #6d7a76;
@@ -3162,8 +3201,9 @@ html[data-ai-open="true"]
 
 .offlineNote {
   position: fixed;
+  /* Clears the Ask button, which sits in the same corner. */
   right: 1rem;
-  bottom: 1rem;
+  bottom: 4.2rem;
   z-index: 45;
   padding: 0.45rem 0.7rem;
   background: var(--paper-lift);
