@@ -2994,10 +2994,20 @@ html[data-ai-open="true"]
 
 .monitorGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+  /* Exactly three narrow panels, so three columns rather than auto-fit, which
+     left a dead cell on a wide screen. */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1px;
   background: #1d2321;
   border-bottom: 1px solid #1d2321;
+}
+
+@media (max-width: 62rem) {
+  .monitorGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 40rem) {
+  .monitorGrid { grid-template-columns: minmax(0, 1fr); }
 }
 
 .monitorPanel {
@@ -3032,6 +3042,10 @@ html[data-ai-open="true"]
   gap: 1px;
   height: 3.4rem;
   margin-bottom: 0.6rem;
+  /* An idle machine draws almost nothing, so the plot area is marked out — an
+     empty chart should not look like a missing one. */
+  background: linear-gradient(#101514, #101514) no-repeat;
+  border-bottom: 1px solid #232b28;
 }
 
 .monitorGraph span {
