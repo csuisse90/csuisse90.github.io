@@ -37,10 +37,23 @@ export default function SystemMonitor({
   const ticks = useRef(0);
 
   useEffect(() => {
-    void collect().then(setSpec);
-    void navigator.storage?.estimate?.().then((e) =>
-      setQuota({ usage: e.usage ?? 0, quota: e.quota ?? 0 }),
+    // A rejection here would otherwise leave the panel reading "reading…" for
+    // ever, with nothing in the console to say why.
+    collect().then(setSpec, (e) => {
+      console.error("could not read the machine", e);
+      setSpec([]);
+    });
+    navigator.storage?.estimate?.().then(
+      (e) => setQuota({ usage: e.usage ?? 0, quota: e.quota ?? 0 }),
+      () => {},
     );
+
+    // Tells the floating chrome to stand aside; see body[data-monitor] in the
+    // stylesheet.
+    document.body.dataset.monitor = "open";
+    return () => {
+      delete document.body.dataset.monitor;
+    };
   }, []);
 
   // Frames actually painted, which is the honest measure of whether the page
@@ -138,8 +151,8 @@ export default function SystemMonitor({
       <div className="monitorGrid">
         <Panel title="cpu" meta={`${navigator.hardwareConcurrency ?? "?"} logical cores`}>
           <Graph values={load} colour="var(--term-accent)" />
-          <Row label="main thread" value={`${Math.round((load.at(-1) ?? 0) * 100)}% busy`} />
-          <Row label="frame rate" value={`${Math.round((frames.at(-1) ?? 0) * 60)} fps`} />
+          <Row label="main thread" value={`${Math.round(last(load) * 100)}% busy`} />
+          <Row label="frame rate" value={`${Math.round(last(frames) * 60)} fps`} />
           <Note>
             No browser exposes system-wide CPU load. This is event-loop lag on
             this tab&apos;s main thread — the only load a page can actually see.
@@ -194,6 +207,8 @@ export default function SystemMonitor({
         <Panel title="hardware" meta="what this machine will admit to" wide>
           {spec === null ? (
             <Note>reading…</Note>
+          ) : spec.length === 0 ? (
+            <Note>This browser would not answer. The console has the reason.</Note>
           ) : (
             spec.map((r) => (
               <div key={r.label} className="monitorSpec">
@@ -210,6 +225,11 @@ export default function SystemMonitor({
       </div>
     </div>
   );
+}
+
+/** Array.prototype.at needs Safari 15.4; indexing needs nothing. */
+function last(values: number[]): number {
+  return values.length ? values[values.length - 1] : 0;
 }
 
 function Panel({

@@ -13,9 +13,16 @@ export function useLogicCore(): LogicCore | null {
   useEffect(() => {
     let alive = true;
     if (!pending) pending = createLogicCore();
-    pending.then((c) => {
-      if (alive) setCore(c);
-    });
+    pending
+      .then((c) => {
+        if (alive) setCore(c);
+      })
+      .catch((e) => {
+        // Without this the promise rejects silently and the caller waits for a
+        // module that is never coming, showing "starting…" for ever.
+        console.error("the wasm core failed to load", e);
+        pending = null;
+      });
     return () => {
       alive = false;
     };

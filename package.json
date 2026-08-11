@@ -8,7 +8,8 @@
     "typecheck": "tsc --noEmit",
     "content": "bun run scripts/content.ts",
     "check": "bun run scripts/content.ts && bun run scripts/checkSnippets.ts && bun run scripts/checkShell.ts && bun run scripts/renderDiagrams.tsx && bun run scripts/checkDiagrams.ts && tsc --noEmit",
-    "diagrams": "bun run scripts/renderDiagrams.tsx && bun run scripts/checkDiagrams.ts"
+    "diagrams": "bun run scripts/renderDiagrams.tsx && bun run scripts/checkDiagrams.ts",
+    "browsers": "bun run scripts/checkBrowsers.ts"
   },
   "dependencies": {
     "@codemirror/lang-markdown": "^6.5.2",
@@ -34,6 +35,7 @@
     "@types/node": "^22.10.7",
     "@types/react": "^19.0.7",
     "@types/react-dom": "^19.0.3",
+    "playwright": "^1.62.1",
     "typescript": "^5.7.3"
   }
 }

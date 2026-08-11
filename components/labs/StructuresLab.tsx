@@ -464,11 +464,14 @@ function TreeView({ root }: { root: Node | null }) {
   );
 }
 
+/** Copies the nodes along the insertion path rather than writing through them.
+ *  Assigning to node.left would edit the tree React still holds as the previous
+ *  state, which is exactly what Strict Mode's double-invoked updaters expose. */
 function insert(node: Node | null, value: number): Node {
   if (!node) return { value, left: null, right: null };
-  if (value < node.value) node.left = insert(node.left, value);
-  else if (value > node.value) node.right = insert(node.right, value);
-  return { ...node };
+  if (value < node.value) return { ...node, left: insert(node.left, value) };
+  if (value > node.value) return { ...node, right: insert(node.right, value) };
+  return node;
 }
 
 function contains(node: Node | null, value: number): boolean {

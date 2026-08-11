@@ -18,7 +18,7 @@ cards:
   - q: >-
       What is the height of a tree?
     a: >-
-      The number of levels, or the length of the longest path from the root to a leaf.
+      The number of levels. Counting edges instead of levels gives a number one smaller, so say which you mean.
   - q: >-
       What is a binary tree?
     a: >-
@@ -67,7 +67,7 @@ practice:
       - >-
           A subtree is a node together with all of its descendants.
       - >-
-          The height is the number of levels, or the longest path from the root to a leaf.
+          The height is the number of levels — equivalently, one more than the number of edges on the longest root-to-leaf path.
   - marks: 3
     q: >-
       State the property that defines a binary search tree and explain why it makes searching efficient.
@@ -155,7 +155,9 @@ Trees are drawn upside down: the **root** at the top, **leaves** at the bottom.
 - **Subtree** — any node together with everything below it. This is the important
   one: every subtree is itself a tree, which is why nearly every tree algorithm
   is recursive.
-- **Height** — the number of levels, or the longest root-to-leaf path.
+- **Height** — the number of levels. The same tree measured in *edges* rather
+  than levels gives a number one smaller, so a question wanting one and given
+  the other will mark it wrong. The code on this page counts levels.
 - **Binary tree** — every node has at most two children.
 
 ## The binary search tree rule

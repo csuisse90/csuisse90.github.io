@@ -87,14 +87,16 @@ self.addEventListener("fetch", (event) => {
     (async () => {
       // Hashed assets can never change under a given name, so the cache is
       // always right and the network is never consulted.
-      const cached = await caches.match(request, { ignoreSearch: true });
+      const cached = await caches.match(request, { ignoreSearch: true, cacheName: CACHE });
       if (cached && url.pathname.startsWith("/_next/static/")) return cached;
 
       try {
         const fresh = await fetch(request);
-        if (fresh.ok) {
+        // Cache.put rejects a partial or redirected response, and this call is
+        // not awaited, so an unguarded put becomes an unhandled rejection.
+        if (fresh.ok && fresh.status !== 206 && !fresh.redirected) {
           const cache = await caches.open(CACHE);
-          cache.put(request, fresh.clone());
+          cache.put(request, fresh.clone()).catch(() => {});
         }
         return fresh;
       } catch {

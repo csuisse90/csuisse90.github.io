@@ -46,7 +46,12 @@ function read(): Store {
 
 function write(next: Store) {
   cache = next;
-  window.localStorage.setItem(KEY, JSON.stringify(next));
+  try {
+    window.localStorage.setItem(KEY, JSON.stringify(next));
+  } catch {
+    // A full or refused store must not take the grading button down with it.
+    // The deck still works for this session; it just will not survive a reload.
+  }
   listeners.forEach((fn) => fn());
 }
 

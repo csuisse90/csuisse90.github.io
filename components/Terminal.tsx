@@ -90,7 +90,14 @@ export default function Terminal() {
 
   const save = useCallback(() => {
     const fs = fsRef.current;
-    if (fs) window.localStorage.setItem(DISK, fs.dumpJson());
+    if (!fs) return;
+    try {
+      window.localStorage.setItem(DISK, fs.dumpJson());
+    } catch {
+      // Out of quota, or storage refused in a private window. Losing the disk
+      // between visits is a far better outcome than every command failing —
+      // and save() runs inside a finally, so a throw here would escape run().
+    }
   }, []);
 
   // What :w, :e and :saveas reach the disk through.
@@ -171,7 +178,11 @@ export default function Terminal() {
 
       setHistory((h) => {
         const next = [...h.filter((x) => x !== trimmed), trimmed].slice(-200);
-        window.localStorage.setItem(HISTORY, JSON.stringify(next));
+        try {
+          window.localStorage.setItem(HISTORY, JSON.stringify(next));
+        } catch {
+          // See save(): history is a convenience, not worth failing a command.
+        }
         return next;
       });
 
@@ -213,8 +224,13 @@ export default function Terminal() {
         // came from.
         const error = e as Error;
         print(`${name}: ${error?.name ?? "error"}: ${error?.message || String(e)}`, "err");
-        const frame = error?.stack?.split("\n").find((l) => /\S/.test(l) && !l.includes(error.message));
-        if (frame) print(`  at ${frame.trim().slice(0, 120)}`, "note");
+        // V8 writes "at fn (url)", JSC writes "fn@url" — take the first line
+        // that is not the message itself and print it as it came.
+        const frame = error?.stack
+          ?.split("\n")
+          .map((l) => l.trim())
+          .find((l) => l && !l.includes(error.message) && !l.startsWith(error.name));
+        if (frame) print(`  ${frame.slice(0, 120)}`, "note");
         print("  `diag` reports what the core is offering.", "note");
       } finally {
         setBusy(false);

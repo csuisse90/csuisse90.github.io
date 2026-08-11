@@ -46,6 +46,8 @@ function makeData(shape: Shape, n: number): number[] {
   if (shape === "sorted") return base;
   if (shape === "reversed") return base.reverse();
   if (shape === "nearly") {
+    // n === 1 has no pair to swap, and swapping past the end would leave a hole.
+    if (n < 2) return base;
     const out = [...base];
     for (let k = 0; k < Math.max(1, Math.round(n / 8)); k++) {
       const i = Math.floor(next() * (n - 1));
@@ -207,7 +209,8 @@ export default function SortingLab() {
   const totals = useMemo(
     () =>
       ALGORITHMS.map((a) => {
-        const last = record(a.id, input).at(-1);
+        const trace = record(a.id, input);
+        const last = trace[trace.length - 1];
         return { ...a, comparisons: last?.comparisons ?? 0, moves: last?.moves ?? 0 };
       }),
     [input],
@@ -397,9 +400,10 @@ export default function SortingLab() {
           </div>
           <p className="caption">
             Switch the starting data to <strong>nearly sorted</strong> and watch
-            insertion sort collapse to almost nothing while selection sort does
-            not move at all. That difference is the whole reason best-case
-            complexity is quoted separately.
+            insertion sort collapse to almost nothing while selection sort makes
+            exactly the same number of comparisons it always does. That
+            difference is the whole reason best-case complexity is quoted
+            separately.
           </p>
         </div>
       </div>

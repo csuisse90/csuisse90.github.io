@@ -394,13 +394,20 @@ print("how the counts grow with n")
 print(f"{'n':>8}{'bubble n^2':>14}{'merge n log n':>16}")
 import random
 random.seed(1)
+growth = {}
 for n in (16, 64, 256, 1024):
     sample = random.sample(range(n * 10), n)
     _, bubble_comparisons, _ = bubble_sort(sample)
     _, merge_count = merge_sort(sample)
+    growth[n] = (bubble_comparisons, merge_count)
     print(f"{n:>8}{bubble_comparisons:>14,}{merge_count:>16,}")
+
+# Worked out from the numbers above rather than written in, so it cannot drift
+# away from what the run actually produced.
+first, last = growth[16], growth[1024]
 print()
-print("Sixty-four times the data makes bubble sort ~4000x slower, merge sort ~90x.")
+print(f"64 times the data costs bubble sort {last[0] / first[0]:,.0f}x the comparisons")
+print(f"and merge sort {last[1] / first[1]:,.0f}x. Squaring against n log n, in one line.")
 `}</Py>
 
 <Takeaway>

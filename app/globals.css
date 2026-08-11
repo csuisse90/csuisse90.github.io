@@ -226,6 +226,7 @@ h3.display {
   height: 100vh;
   overflow-y: auto;
   background: rgba(251, 251, 249, 0.6);
+  -webkit-backdrop-filter: blur(3px);
   backdrop-filter: blur(3px);
 }
 
@@ -2066,6 +2067,7 @@ html[data-ai-open="true"]
   place-items: center;
   padding: 1.5rem;
   background: rgba(243, 243, 240, 0.86);
+  -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
 }
 
@@ -2904,6 +2906,7 @@ html[data-ai-open="true"]
   display: flex;
   flex-direction: column;
   background: rgba(243, 243, 240, 0.97);
+  -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
   cursor: zoom-out;
 }
@@ -3081,10 +3084,12 @@ html[data-ai-open="true"]
 
 /* The monitor is a full-screen takeover, so the floating chrome that normally
    sits in the corners has to get out of the way. Its own stacking context is
-   not enough — these are fixed to the root. */
-body:has(.monitor) .aiToggle,
-body:has(.monitor) .offlineNote,
-body:has(.monitor) .deckButton {
+   not enough — these are fixed to the root. The attribute is set by the monitor
+   itself rather than matched with :has(), which Firefox only understood from
+   version 121. */
+body[data-monitor] .aiToggle,
+body[data-monitor] .offlineNote,
+body[data-monitor] .deckButton {
   display: none;
 }
 
@@ -3360,6 +3365,7 @@ button.termDot {
   place-items: center;
   padding: 1.5rem;
   background: rgba(11, 13, 12, 0.82);
+  -webkit-backdrop-filter: blur(3px);
   backdrop-filter: blur(3px);
 }
 

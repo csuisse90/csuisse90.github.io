@@ -56,4 +56,34 @@ em++ -std=c++17 -O3 -flto \
   -sDISABLE_EXCEPTION_CATCHING=1 \
   -o "$root/lib/wasm/logicCore.js"
 
+# Engines that implement resizable ArrayBuffers expose a growable wasm memory's
+# buffer as one, and TextDecoder.decode refuses a view onto a resizable buffer —
+# by specification, in every engine. Emscripten's decoder hands it exactly that,
+# so every string crossing the boundary throws a TypeError on Safari 26, Chrome
+# 151 and Firefox 153, while older builds of the same browsers are fine. Copying
+# the bytes out first fixes it; the copy is skipped where the buffer is not
+# resizable, so nothing pays for it on engines that never had the problem.
+python3 - "$root/lib/wasm/logicCore.js" <<'PATCH'
+import sys
+
+path = sys.argv[1]
+glue = open(path).read()
+before = "UTF8Decoder.decode(heapOrArray.subarray(idx,endPtr))"
+after = (
+    "UTF8Decoder.decode(heapOrArray.buffer.resizable?"
+    "heapOrArray.slice(idx,endPtr):heapOrArray.subarray(idx,endPtr))"
+)
+if after in glue:
+    print("wasm glue already patched for resizable buffers")
+elif before in glue:
+    open(path, "w").write(glue.replace(before, after, 1))
+    print("patched the wasm glue for resizable ArrayBuffers")
+else:
+    sys.exit(
+        "could not find emscripten's TextDecoder call to patch.\n"
+        "The toolchain has changed shape. Check whether it now handles\n"
+        "resizable buffers itself before removing this step."
+    )
+PATCH
+
 echo "built lib/wasm/logicCore.js ($(wc -c <"$root/lib/wasm/logicCore.js") bytes)"

@@ -107,7 +107,8 @@ export async function collect(): Promise<Reading[]> {
   out.push({ label: "host", value: `${platform}${high?.platformVersion ? ` ${high.platformVersion}` : ""}`, kind: "reported" });
   out.push({ label: "arch", value: architecture, kind: high?.architecture ? "reported" : "estimated", note: high?.architecture ? undefined : "read out of the user agent string" });
 
-  const brand = nav.userAgentData?.brands?.filter((b) => !/Not.?A.?Brand/i.test(b.brand)).at(-1);
+  const brands = nav.userAgentData?.brands?.filter((b) => !/Not.?A.?Brand/i.test(b.brand));
+  const brand = brands?.[brands.length - 1];
   out.push({
     label: "engine",
     value: brand ? `${brand.brand} ${brand.version}` : shortUserAgent(navigator.userAgent),
