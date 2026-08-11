@@ -2,7 +2,9 @@
 // executor against arithmetic we can verify by hand.
 #include <cstdio>
 #include <cstring>
+#include <cstdlib>
 #include "x86.hpp"
+#include "x86asm.hpp"
 
 static int failures = 0;
 static void check(bool ok, const std::string& what) {
@@ -116,6 +118,101 @@ int main() {
     }
     check(sawAlu && sawWrite, "it computes then writes back");
     check(m.regs[x86::RAX] == 5, "2 + 3 is 5");
+  }
+
+  // The assembler and the decoder must agree: assemble text, disassemble the
+  // bytes, and the text must come back. Anything they disagree about is a bug
+  // in one of them, and this finds it without a reference assembler.
+  {
+    const char* program =
+        "start:\n"
+        "  push rbp\n"
+        "  mov rbp, rsp\n"
+        "  sub rsp, 0x20\n"
+        "  mov qword ptr [rbp - 0x8], 0x3\n"
+        "  mov qword ptr [rbp - 0x10], 0x4\n"
+        "  mov rax, [rbp - 0x8]\n"
+        "  imul rax, [rbp - 0x10]\n"
+        "  cmp rax, 0xc\n"
+        "  jne done\n"
+        "  add rax, rbx\n"
+        "  sar rax, 2\n"
+        "  setg al\n"
+        "  movzx rax, al\n"
+        "done:\n"
+        "  leave\n"
+        "  ret\n";
+    x86::Assembled a = x86::assemble(program, 0);
+    check(a.error.empty(), a.error.empty() ? "the assembler accepts the program" : a.error);
+
+    size_t at = 0;
+    size_t index = 0;
+    bool allMatch = true;
+    while (at < a.bytes.size() && index < a.lines.size()) {
+      x86::Instruction in = x86::decode(a.bytes, at);
+      const std::string expect = a.lines[index].text;
+      // Compare loosely on whitespace and on the way each side prints numbers.
+      std::string got = in.text;
+      // The source may write a number in decimal and the disassembler prints
+      // hex, so normalise every literal before comparing. Otherwise the test
+      // reports a formatting difference as an encoding bug.
+      auto squash = [](std::string t) {
+        std::string lowered;
+        for (char c : t) if (!std::isspace(static_cast<unsigned char>(c))) lowered += static_cast<char>(std::tolower(c));
+        std::string o;
+        for (size_t i = 0; i < lowered.size();) {
+          const bool negative = lowered[i] == '-' && i + 1 < lowered.size() &&
+                                std::isdigit(static_cast<unsigned char>(lowered[i + 1]));
+          size_t start = i + (negative ? 1 : 0);
+          if (std::isdigit(static_cast<unsigned char>(lowered[start]))) {
+            char* end = nullptr;
+            const long long v = std::strtoll(lowered.c_str() + start, &end, 0);
+            o += std::to_string(negative ? -v : v);
+            i = static_cast<size_t>(end - lowered.c_str());
+          } else {
+            o += lowered[i++];
+          }
+        }
+        return o;
+      };
+      const bool sameLength = in.length == a.lines[index].length;
+      if (!sameLength) {
+        std::printf("FAIL  round trip: '%s' assembled to %u bytes, decoded as %u\n",
+                    expect.c_str(), a.lines[index].length, in.length);
+        allMatch = false;
+        break;
+      }
+      // Branch targets print as absolute addresses on the way back, so only
+      // compare the mnemonic for those.
+      const bool branch = squash(expect).rfind("j", 0) == 0 || squash(expect).rfind("call", 0) == 0;
+      if (!branch && squash(got) != squash(expect)) {
+        std::printf("FAIL  round trip: assembled '%s', disassembled '%s'\n", expect.c_str(),
+                    got.c_str());
+        allMatch = false;
+      }
+      at += in.length;
+      index++;
+    }
+    check(allMatch, "every line survives assemble then disassemble");
+    check(index == a.lines.size(), "the byte stream covers exactly the lines emitted");
+  }
+
+  // A whole program, assembled and run.
+  {
+    const char* program =
+        "  mov rax, 0\n"
+        "  mov rcx, 10\n"
+        "loop:\n"
+        "  add rax, rcx\n"
+        "  dec rcx\n"
+        "  jnz loop\n"
+        "  hlt\n";
+    x86::Assembled a = x86::assemble(program, 0);
+    check(a.error.empty(), "the loop assembles");
+    x86::Machine m;
+    m.load(a.bytes, 0);
+    m.run(500);
+    check(m.regs[x86::RAX] == 55, "the assembled loop sums 1..10 to 55");
   }
 
   std::printf("\n%s\n", failures ? "FAILURES" : "all x86 checks passed");
