@@ -447,6 +447,7 @@ Try:
   tree
   nvim hello.py        vim keys; :w :wq :q! :e :sav all work
   python hello.py
+  python code/bst.py
   grep -i loop notes/*.md
   help                 everything else
 `,
@@ -470,6 +471,150 @@ for i in range(1, 6):
     return [n for n, prime in enumerate(sieve) if prime]
 
 print(primes_below(60))
+`,
+  ],
+  [
+    "/home/student/code/stack.py",
+    `# B4.1.2 — a stack, built from the operations rather than borrowed.
+class Stack:
+    def __init__(self):
+        self._items = []
+
+    def push(self, value):
+        self._items.append(value)
+
+    def pop(self):
+        if self.is_empty():
+            raise IndexError("stack underflow")
+        return self._items.pop()
+
+    def peek(self):
+        return self._items[-1]
+
+    def is_empty(self):
+        return not self._items
+
+
+def brackets_match(text):
+    pairs = {")": "(", "]": "[", "}": "{"}
+    stack = Stack()
+    for character in text:
+        if character in "([{":
+            stack.push(character)
+        elif character in pairs:
+            if stack.is_empty() or stack.pop() != pairs[character]:
+                return False
+    return stack.is_empty()
+
+
+for expression in ("(a[b]{c})", "(a[b)c]", "((a)"):
+    print(f"{expression:12} {brackets_match(expression)}")
+`,
+  ],
+  [
+    "/home/student/code/bst.py",
+    `# B4.1.4 — insert, search and the three traversals.
+class Node:
+    def __init__(self, value):
+        self.value = value
+        self.left = None
+        self.right = None
+
+
+def insert(node, value):
+    if node is None:
+        return Node(value)
+    if value < node.value:
+        node.left = insert(node.left, value)
+    elif value > node.value:
+        node.right = insert(node.right, value)
+    return node
+
+
+def walk(node, order, out=None):
+    out = [] if out is None else out
+    if node is None:
+        return out
+    if order == "pre":
+        out.append(node.value)
+    walk(node.left, order, out)
+    if order == "in":
+        out.append(node.value)
+    walk(node.right, order, out)
+    if order == "post":
+        out.append(node.value)
+    return out
+
+
+root = None
+for v in (50, 30, 70, 20, 40, 60, 85):
+    root = insert(root, v)
+
+print("in-order  ", walk(root, "in"), "<- sorted, for free")
+print("pre-order ", walk(root, "pre"))
+print("post-order", walk(root, "post"))
+`,
+  ],
+  [
+    "/home/student/code/sorts.py",
+    `# B4.1.6 — the same data through two sorts, counting comparisons.
+def bubble_sort(data):
+    items, comparisons = list(data), 0
+    for end in range(len(items) - 1, 0, -1):
+        swapped = False
+        for i in range(end):
+            comparisons += 1
+            if items[i] > items[i + 1]:
+                items[i], items[i + 1] = items[i + 1], items[i]
+                swapped = True
+        if not swapped:
+            break
+    return items, comparisons
+
+
+def merge_sort(data, counter=None):
+    counter = [0] if counter is None else counter
+    if len(data) <= 1:
+        return data, counter[0]
+    middle = len(data) // 2
+    left, _ = merge_sort(data[:middle], counter)
+    right, _ = merge_sort(data[middle:], counter)
+    out, i, j = [], 0, 0
+    while i < len(left) and j < len(right):
+        counter[0] += 1
+        if left[i] <= right[j]:
+            out.append(left[i]); i += 1
+        else:
+            out.append(right[j]); j += 1
+    out.extend(left[i:]); out.extend(right[j:])
+    return out, counter[0]
+
+
+import random
+random.seed(1)
+sample = random.sample(range(1000), 64)
+
+print("bubble:", bubble_sort(sample)[1], "comparisons")
+print("merge :", merge_sort(sample)[1], "comparisons")
+print("sorted the same?", bubble_sort(sample)[0] == merge_sort(sample)[0])
+`,
+  ],
+  [
+    "/home/student/notes/complexity.md",
+    `# Complexity, the short version
+
+Big-O says how the work grows with n. Drop the constants; keep the
+fastest-growing term.
+
+  array index      O(1)
+  linear search    O(n)
+  binary search    O(log n)     sorted data only
+  bubble sort      O(n^2)
+  merge sort       O(n log n)   extra memory O(n)
+
+A thousand times more data adds ten comparisons to a binary search and
+makes bubble sort a million times slower. The shape decides whether the
+program finishes; the constant only decides how fast it feels.
 `,
   ],
   [

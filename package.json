@@ -7,7 +7,7 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "content": "bun run scripts/content.ts",
-    "check": "bun run scripts/content.ts && bun run scripts/checkSnippets.ts && bun run scripts/renderDiagrams.tsx && bun run scripts/checkDiagrams.ts && tsc --noEmit",
+    "check": "bun run scripts/content.ts && bun run scripts/checkSnippets.ts && bun run scripts/checkShell.ts && bun run scripts/renderDiagrams.tsx && bun run scripts/checkDiagrams.ts && tsc --noEmit",
     "diagrams": "bun run scripts/renderDiagrams.tsx && bun run scripts/checkDiagrams.ts"
   },
   "dependencies": {

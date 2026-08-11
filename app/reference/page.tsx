@@ -41,7 +41,7 @@ export default function ReferencePage() {
       <PageHead
         code="REF · One page, everything"
         title="Reference sheet"
-        lede="Every definition, formula and method across A1 to A4, with nothing in between. Built for the night before."
+        lede="Every definition, formula and method across both themes, A1 to B4, with nothing in between. Built for the night before."
       />
 
       <h2 className="display">The gates at a glance</h2>
@@ -346,6 +346,196 @@ export default function ReferencePage() {
         </p>
       </div>
 
+      <h2 className="display">B1 · Computational thinking</h2>
+
+      <div className="prose">
+        <p>
+          <strong>Decomposition:</strong> break one problem into smaller ones
+          that can be solved, tested and replaced separately.{" "}
+          <strong>Abstraction:</strong> remove detail that does not matter, so
+          what remains can be reasoned about. <strong>Pattern recognition:</strong>{" "}
+          notice what repeats and write it once.
+        </p>
+        <p>
+          An algorithm must be <strong>unambiguous</strong>, must{" "}
+          <strong>terminate</strong>, and must be <strong>correct for every
+          valid input</strong>.
+        </p>
+        <p>
+          Flowchart shapes: oval start and stop, parallelogram input and output,
+          rectangle process, diamond decision. Every decision has exactly two
+          labelled exits.
+        </p>
+        <p>
+          A <strong>trace table</strong> has one column per variable and one row
+          per change. Write the value at the moment it changes, not at the end.
+        </p>
+      </div>
+
+      <h2 className="display">B2 · Programming</h2>
+
+      <SpecList
+        title="Operators that cost marks"
+        meta="B2.1.1"
+        termWidth="7rem"
+        rows={[
+          { term: "/", body: "True division. 7 / 2 is 3.5, a real." },
+          { term: "//", body: "Integer division, discarding the remainder. 7 // 2 is 3." },
+          { term: "%", body: "Remainder. Tests divisibility, and wraps an index round a range." },
+          { term: "=", body: "Assigns a value to a name." },
+          { term: "==", body: "Compares two values and produces a boolean." },
+          { term: "+", body: "On strings this concatenates: \"7\" + \"2\" is \"72\", not 9." },
+        ]}
+      />
+
+      <div className="prose">
+        <p>
+          <strong>Static typing</strong> fixes the type of the variable and
+          checks before running. <strong>Dynamic typing</strong> gives the type
+          to the value and checks as each line executes.
+        </p>
+        <p>
+          Never compare two reals with <code>==</code>. They are approximations,
+          so compare the absolute difference against a small tolerance. Never
+          store money as a real.
+        </p>
+        <p>
+          <strong>Selection:</strong> an <code>if</code>/<code>elif</code> chain
+          runs exactly one branch, so test the most restrictive condition first.
+          Separate <code>if</code>s all run.
+        </p>
+        <p>
+          <strong>Iteration:</strong> count-controlled when the number of
+          repetitions is known, condition-controlled when it is not. Every path
+          through a <code>while</code> body must move towards the condition
+          becoming false.
+        </p>
+        <p>
+          <strong>Short circuiting:</strong> <code>A and B</code> stops if{" "}
+          <code>A</code> is false, which lets a guard protect the test after it.
+        </p>
+        <p>
+          A <strong>parameter</strong> is the name in the definition; an{" "}
+          <strong>argument</strong> is the value at the call. A{" "}
+          <strong>side effect</strong> is anything a function does other than
+          return a value.
+        </p>
+      </div>
+
+      <SpecList
+        title="The four collections"
+        meta="B2.1.3"
+        termWidth="7rem"
+        rows={[
+          { term: "List", body: "Ordered, changeable, duplicates allowed, reached by position." },
+          { term: "Tuple", body: "Ordered and fixed. For a group of values that belongs together." },
+          { term: "Dictionary", body: "Key to value, keys unique, reached by key in about constant time." },
+          { term: "Set", body: "No order, no duplicates, fast at answering whether something is a member." },
+        ]}
+      />
+
+      <h2 className="display">B3 · Object-oriented programming</h2>
+
+      <SpecList
+        title="The vocabulary, exactly"
+        meta="B3.1"
+        termWidth="9rem"
+        rows={[
+          { term: "Class", body: "A blueprint: what every object of this kind has and can do. Written once." },
+          { term: "Object", body: "One instance, with its own memory holding its own attribute values." },
+          { term: "Attribute", body: "A variable belonging to an object. Instance variables differ per object; class variables are shared." },
+          { term: "Method", body: "A function belonging to a class, stored once and told which object to work on." },
+          { term: "Constructor", body: "Runs on creation and sets the starting state, so no object exists half-built." },
+          { term: "Encapsulation", body: "Data private, access through methods, so an invalid state cannot be reached." },
+          { term: "Invariant", body: "Something true of every object at all times, established by the constructor and preserved by every method." },
+          { term: "Inheritance", body: "A subclass gains the superclass's attributes and methods. Requires is-a." },
+          { term: "Overriding", body: "A subclass replacing an inherited method with its own version." },
+          { term: "Polymorphism", body: "The same call behaving differently per object, so no branch lists the types." },
+          { term: "Abstract class", body: "Cannot be instantiated; defines an interface every subclass must implement." },
+          { term: "Composition", body: "Building from other objects — has-a. Looser than inheritance and swappable at run time." },
+        ]}
+      />
+
+      <div className="prose">
+        <h3 className="display">UML in one paragraph</h3>
+        <p>
+          A box in three parts: name, attributes, methods. <code>+</code>{" "}
+          public, <code>−</code> private, <code>#</code> protected. Plain line is
+          association; open diamond is aggregation, where the parts outlive the
+          whole; filled diamond is composition, where they do not; hollow
+          triangle points at the superclass. Multiplicities on the ends:{" "}
+          <code>1</code>, <code>0..1</code>, <code>1..*</code>, <code>*</code>.
+        </p>
+        <p>
+          <strong>Cohesion</strong> high, <strong>coupling</strong> loose. A
+          class should have one reason to change.
+        </p>
+      </div>
+
+      <h2 className="display">B4 · Abstract data types and algorithms</h2>
+
+      <SpecList
+        title="Operations you may be asked to name"
+        meta="B4.1"
+        termWidth="9rem"
+        rows={[
+          { term: "Stack", body: "push · pop · peek · isEmpty. Last in, first out. Undo, the call stack, bracket matching." },
+          { term: "Queue", body: "enqueue · dequeue · peek · isEmpty. First in, first out. Spoolers, buffers, scheduling." },
+          { term: "Circular queue", body: "front and rear advance with (index + 1) mod size. Keep a count, or leave one slot spare, or full and empty look identical." },
+          { term: "Linked list", body: "Nodes of value plus next, reached through a head pointer, ending at null." },
+          { term: "Binary search tree", body: "At every node: smaller left, larger right. Insert as a leaf; search by comparing and descending." },
+          { term: "Traversals", body: "In-order gives sorted output; pre-order rebuilds the tree; post-order finishes children before parents." },
+        ]}
+      />
+
+      <div className="prose">
+        <h3 className="display">Rewiring a linked list</h3>
+        <p>
+          Insert after <code>p</code>: <code>new.next ← p.next</code> first,
+          then <code>p.next ← new</code>. Copy the old pointer out before
+          overwriting it, or the rest of the list is lost. Delete: set{" "}
+          <code>previous.next ← current.next</code>; deleting the head means
+          moving the head pointer.
+        </p>
+
+        <h3 className="display">Recursion</h3>
+        <p>
+          A <strong>base case</strong> that returns without recursing, and a{" "}
+          <strong>recursive case</strong> on a strictly smaller problem. Every
+          unreturned call holds a stack frame, so depth <M>{"n"}</M> costs{" "}
+          <M>{"n"}</M> frames — which is why deep recursion overflows where a
+          loop would not.
+        </p>
+      </div>
+
+      <SpecList
+        title="Complexity, worst case"
+        meta="B4.1.6"
+        termWidth="11rem"
+        rows={[
+          { term: "Array index", body: "O(1). One calculation: base + index × size." },
+          { term: "Linear search", body: "O(n). Any order. About n / 2 comparisons on average." },
+          { term: "Binary search", body: "O(log n). Sorted only. About 20 comparisons for a million items." },
+          { term: "Bubble sort", body: "O(n²), but O(n) on already-sorted data if a swap flag is used. Stable." },
+          { term: "Selection sort", body: "O(n²) always, but at most n swaps. Not stable." },
+          { term: "Insertion sort", body: "O(n²), but close to O(n) on nearly sorted data. Stable." },
+          { term: "Merge sort", body: "O(n log n) always, at the cost of another array of size n. Stable." },
+          { term: "Dictionary lookup", body: "About O(1). The size of the collection barely enters into it." },
+        ]}
+      />
+
+      <div className="prose">
+        <p>
+          Big-O drops constants and keeps only the fastest-growing term, because
+          the shape decides whether a program finishes and the constant does
+          not. <M>{"n^2 + 500n + 9000"}</M> is <M>{"O(n^2)"}</M>.
+        </p>
+        <p>
+          Sorting first only repays itself if the data will be searched many
+          times: <M>{"n\\log n + k\\log n"}</M> against <M>{"k \\times n"}</M>.
+        </p>
+      </div>
+
       <h2 className="display">Method summaries</h2>
       <div className="prose">
         <h3 className="display">Truth table from an expression</h3>
@@ -391,13 +581,74 @@ export default function ReferencePage() {
           <li>Work backwards through the brackets.</li>
           <li>Dot every junction where a signal branches.</li>
         </ol>
+
+        <h3 className="display">Trace table</h3>
+        <ol>
+          <li>One column per variable, plus one for any output.</li>
+          <li>One row per change, in the order the lines execute.</li>
+          <li>Write the value at the moment it changes, not at the end.</li>
+          <li>
+            Include the iteration that fails the loop condition — that is where
+            off-by-one errors become visible.
+          </li>
+        </ol>
+
+        <h3 className="display">Binary search by hand</h3>
+        <ol>
+          <li>
+            Write <code>low</code>, <code>high</code> and{" "}
+            <code>mid = (low + high) // 2</code> for each step.
+          </li>
+          <li>Compare the target with the value at <code>mid</code>.</li>
+          <li>
+            Smaller, so set <code>high = mid - 1</code>; larger, so set{" "}
+            <code>low = mid + 1</code>.
+          </li>
+          <li>
+            Stop when the values match, or when <code>low &gt; high</code>,
+            which means it is not there.
+          </li>
+        </ol>
+
+        <h3 className="display">Building a binary search tree</h3>
+        <ol>
+          <li>The first value becomes the root.</li>
+          <li>
+            For each later value, start at the root and go left if smaller,
+            right if larger.
+          </li>
+          <li>Insert it at the first empty place you reach — always a leaf.</li>
+          <li>
+            State the traversal asked for by writing the rule at every node, not
+            just the root.
+          </li>
+        </ol>
+
+        <h3 className="display">Tracing a sort</h3>
+        <ol>
+          <li>Write the list after each complete pass, not after each swap.</li>
+          <li>
+            Bubble: the largest remaining value reaches the end on every pass.
+          </li>
+          <li>
+            Selection: the smallest remaining value is swapped into the next
+            position.
+          </li>
+          <li>
+            Insertion: the left-hand part is always sorted; each new element
+            slides back into it.
+          </li>
+        </ol>
       </div>
 
       <p className="annotation">
-        <b>Night-before checklist.</b> Can you draw all six required symbols
-        from memory? Can you fill an eight-row table without dropping a row? Can
-        you state both De Morgan laws? Can you group a Karnaugh map without
-        circling three cells? That is the topic.
+        <b>Night-before checklist.</b> Theme A: can you draw all six required
+        symbols from memory, fill an eight-row table without dropping a row,
+        state both De Morgan laws, and group a Karnaugh map without circling
+        three cells? Theme B: can you say what a constructor guarantees, insert
+        a node into a linked list in the right order, write out the three
+        traversals, and give the complexity of all four sorts? That is the
+        course.
       </p>
     </>
   );

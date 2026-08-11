@@ -1,5 +1,10 @@
 // Drives the shell's command layer against the real wasm filesystem, so the
 // terminal is verified without a browser. Run:  bun run scripts/checkShell.ts
+import { existsSync, mkdtempSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
+import { spawnSync } from "node:child_process";
+
 import createLogicCore from "../lib/wasm/logicCore.js";
 import { COMMANDS, STARTER_FILES, type Context } from "../lib/shell";
 
@@ -93,6 +98,23 @@ if (!error && second.read("/home/student/hello.py").includes("squared")) {
 } else {
   failures++;
   console.log(`FAIL  the disk round-trips through save and restore (${error})`);
+}
+
+// The starter files are the first thing anybody runs, so a broken one is worse
+// than an empty disk. Same interpreter the snippet checker uses.
+const PYTHON = existsSync(".venv-check/bin/python") ? ".venv-check/bin/python" : "python3";
+const scratch = mkdtempSync(join(tmpdir(), "starters-"));
+for (const [path, body] of STARTER_FILES) {
+  if (!path.endsWith(".py")) continue;
+  const file = join(scratch, path.split("/").pop() as string);
+  writeFileSync(file, body);
+  const result = spawnSync(PYTHON, [file], { encoding: "utf8" });
+  if (result.status === 0) {
+    console.log(`ok    ${path} runs`);
+  } else {
+    failures++;
+    console.log(`FAIL  ${path}\n${(result.stderr || "").replace(/^/gm, "      | ")}`);
+  }
 }
 
 console.log(`\n${failures ? `${failures} FAILURES` : "all shell checks passed"}`);

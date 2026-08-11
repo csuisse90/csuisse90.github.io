@@ -1,12 +1,19 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+
 import { COMPARISONS } from "@/lib/comparisons";
+import manifest from "@/lib/generated/content.json";
+import type { Manifest } from "@/lib/content";
 import RichText from "./RichText";
+
+const { pages } = manifest as unknown as Manifest;
 
 export default function Compare({ initial }: { initial?: string }) {
   const [id, setId] = useState(initial ?? COMPARISONS[0].id);
   const pair = COMPARISONS.find((c) => c.id === id) ?? COMPARISONS[0];
+  const source = pages.find((p) => p.code === pair.page);
 
   return (
     <>
@@ -60,6 +67,15 @@ export default function Compare({ initial }: { initial?: string }) {
             <RichText text={pair.tell} />
           </div>
         </div>
+
+        {source && (
+          <div className="prereqs" style={{ marginTop: "1.25rem" }}>
+            <span className="prereqMark">Taught in</span>
+            <Link href={source.href}>
+              {source.code} {source.title}
+            </Link>
+          </div>
+        )}
       </div>
     </>
   );

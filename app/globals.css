@@ -2954,6 +2954,25 @@ html[data-ai-open="true"]
    The terminal. Deliberately its own world: black, monospace, no hairlines.
    ========================================================================== */
 
+/* ---- lab controls -------------------------------------------------------- */
+
+.labControls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 1.4rem;
+  margin: 1.4rem 0 2rem;
+}
+
+.labControlHead {
+  display: block;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 0.5rem;
+}
+
 .term {
   --term-bg: #0b0d0c;
   --term-fg: #d7dedb;

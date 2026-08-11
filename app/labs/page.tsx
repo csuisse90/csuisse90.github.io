@@ -17,10 +17,16 @@ const LABS = [
     body: "A blank canvas. Place gates, wire them together, toggle the switches and get a truth table back automatically." },
   { href: "/expression/", title: "Expression lab", code: "A1.2.4",
     body: "Type a Boolean expression and get its diagram, truth table, minterms and simplest form at once." },
-  { href: "/karnaugh-maps/", title: "Karnaugh lab", code: "A1.2.4",
+  { href: "/a/a1/karnaugh-maps/", title: "Karnaugh lab", code: "A1.2.8",
     body: "Click cells on a live Karnaugh map and see the simplified expression and its groups recomputed as you go." },
   { href: "/labs/sql/", title: "SQL lab", code: "A3",
     body: "Write queries against a working database, join tables, and read the errors when you get it wrong." },
+  { href: "/labs/structures/", title: "Data structures lab", code: "B4.1",
+    body: "Push and pop a stack, wrap a circular queue round its array, rewire a linked list and grow a binary search tree — each operation reporting what it cost." },
+  { href: "/labs/sorting/", title: "Sorting lab", code: "B4.1.6",
+    body: "Step bubble, selection, insertion and merge sort through the same data, counting comparisons and moves as they go." },
+  { href: "/python/", title: "Terminal", code: "B2",
+    body: "A shell with a filesystem, thirty commands, Python with the scientific libraries, and an editor with vim keys." },
 ];
 
 export default function LabsPage() {
