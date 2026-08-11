@@ -109,7 +109,7 @@ export async function markWithApi(
   q: Question,
   answer: string,
   signal?: AbortSignal,
-): Promise<Marking | null> {
+): Promise<Marking | { error: string }> {
   const result = await askAi(prompt(q, answer), {
     signal,
     system: SYSTEM,
@@ -117,8 +117,12 @@ export async function markWithApi(
     temperature: 0.1,
     maxTokens: 800,
   });
-  if ("error" in result) return null;
-  return parse(result.text, q, "api");
+  if ("error" in result) return { error: result.error };
+
+  const marking = parse(result.text, q, "api");
+  // A model that answers with prose instead of JSON is a different failure
+  // from one that never answers, and the reader should be told which.
+  return marking ?? { error: "The reply could not be read as a marking." };
 }
 
 // ---------------------------------------------------------------------------

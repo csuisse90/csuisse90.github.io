@@ -16,7 +16,7 @@ type State =
   | { at: "writing" }
   | { at: "marking" }
   | { at: "marked"; marking: Marking }
-  | { at: "stuck" };
+  | { at: "stuck"; why?: string };
 
 function Scheme({ q }: { q: Question }) {
   return (
@@ -51,13 +51,13 @@ function One({ q, n }: { q: Question; n: number }) {
     abort.current = new AbortController();
 
     const viaApi = await markWithApi(q, answer, abort.current.signal);
-    if (viaApi) return setState({ at: "marked", marking: viaApi });
+    if (!("error" in viaApi)) return setState({ at: "marked", marking: viaApi });
 
     if (localReady()) {
       const viaLocal = await markLocally(q, answer);
       if (viaLocal) return setState({ at: "marked", marking: viaLocal });
     }
-    setState({ at: "stuck" });
+    setState({ at: "stuck", why: viaApi.error });
   }
 
   async function markHere() {
@@ -122,6 +122,7 @@ function One({ q, n }: { q: Question; n: number }) {
           <div className="markNote">
             <p>
               The marker could not be reached.{" "}
+              {state.why && <span className="markWhy">{state.why}</span>}{" "}
               {hasWebGpu() && !localReady() ? (
                 <>
                   You can run a small marker in this browser instead. It downloads about a

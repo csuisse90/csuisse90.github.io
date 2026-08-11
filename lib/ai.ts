@@ -15,7 +15,24 @@
 
 export const PROXY_URL = process.env.NEXT_PUBLIC_AI_PROXY ?? "";
 
-export const MODEL = "nvidia/nemotron-3-super-120b-a12b:free";
+// Free models come and go, and a busy one accepts the request and then never
+// answers — which is worse than an error, because the caller waits for ever.
+// So: an ordered list, a deadline on each, and move on. Measured on 2026-08-11:
+// gemma-4-26b answers marking prompts in about 5 s, gpt-oss-20b in about 22 s
+// but marks the most carefully, and nemotron-3-super — which used to be the
+// only model here — hangs indefinitely.
+export const MODELS = [
+  "google/gemma-4-26b-a4b-it:free",
+  "openai/gpt-oss-20b:free",
+  "nvidia/nemotron-3-nano-30b-a3b:free",
+  "google/gemma-4-31b-it:free",
+] as const;
+
+export const MODEL = MODELS[0];
+
+/** How long to wait for one model before trying the next. Streaming replies get
+ *  longer, because the deadline is only for the first token. */
+const DEADLINE_MS = 30_000;
 
 // The key is obfuscated rather than secret. Everything in a static bundle is
 // readable by anyone who opens the network tab; this only keeps it out of plain
@@ -106,11 +123,34 @@ export async function askAi(
     maxTokens?: number;
   } = {},
 ): Promise<AskResult> {
+  const tried: string[] = [];
+
+  for (const model of MODELS) {
+    const result = await attempt(model, prompt, opts);
+    if ("text" in result) return result;
+    // No point asking a second model whether the key is valid, or carrying on
+    // after the reader pressed stop.
+    if (result.fatal) return { error: result.error };
+    tried.push(`${model.split("/").pop()} — ${result.error}`);
+  }
+
+  return {
+    error: `No model answered. ${tried.join("; ")}`,
+  };
+}
+
+type Attempt = { text: string } | { error: string; fatal?: boolean };
+
+async function attempt(
+  model: string,
+  prompt: string,
+  opts: Parameters<typeof askAi>[1] & object,
+): Promise<Attempt> {
   // Web search runs at OpenRouter's end: it searches, pastes the results into
   // the prompt and the model cites them. It is billed per result, so if the
   // key has no credit the request is retried without it rather than failing.
   const body = {
-    model: MODEL,
+    model,
     messages: [
       { role: "system", content: opts.system ?? SYSTEM },
       { role: "user", content: prompt },
@@ -132,12 +172,27 @@ export async function askAi(
     headers["X-Title"] = "IB CS HL";
   }
 
+  // Our own deadline, chained to the caller's cancellation. Written by hand
+  // rather than with AbortSignal.any, which is too new to rely on.
+  const controller = new AbortController();
+  let timedOut = false;
+  const deadline = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, DEADLINE_MS);
+  const cancel = () => controller.abort();
+  opts.signal?.addEventListener("abort", cancel);
+  const done = () => {
+    clearTimeout(deadline);
+    opts.signal?.removeEventListener("abort", cancel);
+  };
+
   const send = () =>
     fetch(url, {
       method: "POST",
       headers,
       body: JSON.stringify(body),
-      signal: opts.signal,
+      signal: controller.signal,
     });
 
   try {
@@ -152,15 +207,17 @@ export async function askAi(
 
     if (!res.ok) {
       const detail = await res.text();
-      if (res.status === 401) return { error: "The key was rejected — it may have been rotated." };
-      if (res.status === 429) return { error: "Rate limited — the free tier needs a moment." };
-      return { error: `Request failed (${res.status}). ${detail.slice(0, 200)}` };
+      if (res.status === 401) {
+        return { error: "The key was rejected — it may have been rotated.", fatal: true };
+      }
+      if (res.status === 429) return { error: "rate limited" };
+      return { error: `HTTP ${res.status} ${detail.slice(0, 120)}` };
     }
 
     if (!opts.onToken || !res.body) {
       const data = await res.json();
       const text: string | undefined = data?.choices?.[0]?.message?.content;
-      if (!text) return { error: data?.error?.message ?? "The model returned nothing." };
+      if (!text?.trim()) return { error: data?.error?.message ?? "returned nothing" };
       return { text: text.trim() };
     }
 
@@ -172,8 +229,8 @@ export async function askAi(
     let full = "";
 
     for (;;) {
-      const { done, value } = await reader.read();
-      if (done) break;
+      const { done: finished, value } = await reader.read();
+      if (finished) break;
       buffered += decoder.decode(value, { stream: true });
       const lines = buffered.split("\n");
       buffered = lines.pop() ?? "";
@@ -186,6 +243,9 @@ export async function askAi(
           const chunk = JSON.parse(payload);
           const piece: string = chunk?.choices?.[0]?.delta?.content ?? "";
           if (piece) {
+            // The deadline is for the first token. Once a model is talking,
+            // let it finish.
+            clearTimeout(deadline);
             full += piece;
             opts.onToken(piece);
           }
@@ -195,10 +255,15 @@ export async function askAi(
       }
     }
 
-    if (!full.trim()) return { error: "The model returned nothing." };
+    if (!full.trim()) return { error: "returned nothing" };
     return { text: full.trim() };
   } catch (e) {
-    if (e instanceof DOMException && e.name === "AbortError") return { error: "Cancelled." };
-    return { error: "Could not reach the model." };
+    if (timedOut) return { error: `no reply in ${DEADLINE_MS / 1000}s` };
+    if (e instanceof DOMException && e.name === "AbortError") {
+      return { error: "Cancelled.", fatal: true };
+    }
+    return { error: "could not be reached" };
+  } finally {
+    done();
   }
 }
