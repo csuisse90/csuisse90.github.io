@@ -53,28 +53,12 @@ export default function ReferencePage() {
         </div>
         <div className="panelBody">
           {SUMMARY.map(([name, latex, rule]) => (
-            <div
-              key={name}
-              style={{
-                display: "grid",
-                gridTemplateColumns: "5rem 9rem minmax(0,1fr)",
-                gap: "1rem",
-                padding: "0.45rem 0",
-                borderBottom: "1px solid var(--hairline)",
-                alignItems: "baseline",
-                fontSize: "0.92rem",
-              }}
-            >
-              <span
-                className="mono"
-                style={{ letterSpacing: "0.14em", color: "var(--ink)" }}
-              >
-                {name}
-              </span>
+            <div className="defRow" key={name}>
+              <span className="mono defName">{name}</span>
               <span>
                 <M>{latex}</M>
               </span>
-              <span style={{ color: "var(--ink-soft)" }}>{rule}</span>
+              <span className="defRule">{rule}</span>
             </div>
           ))}
         </div>
@@ -82,24 +66,20 @@ export default function ReferencePage() {
 
       <h2 className="display">Symbols and tables</h2>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(19rem, 1fr))",
-          gap: "1.25rem",
-        }}
-      >
+      <div className="gateGrid">
         {gateIds.map((id) => {
           const data = circuit(id);
           return (
-            <div key={id}>
-              <CircuitView
-                data={data}
-                interactive={false}
-                animate={false}
-                maxHeight={150}
-              />
-              <div style={{ marginTop: "0.5rem" }}>
+            <div className="gateCell" key={id}>
+              <div className="gateDiagram">
+                <CircuitView
+                  data={data}
+                  interactive={false}
+                  animate={false}
+                  maxHeight={150}
+                />
+              </div>
+              <div className="gateTable">
                 <TruthTable table={data.truthTable} />
               </div>
             </div>
@@ -116,23 +96,8 @@ export default function ReferencePage() {
         </div>
         <div className="panelBody">
           {LAWS.map(([name, latex]) => (
-            <div
-              key={name}
-              style={{
-                display: "grid",
-                gridTemplateColumns: "10rem minmax(0,1fr)",
-                gap: "1rem",
-                padding: "0.4rem 0",
-                borderBottom: "1px solid var(--hairline)",
-                alignItems: "baseline",
-              }}
-            >
-              <span
-                className="mono"
-                style={{ textTransform: "uppercase", letterSpacing: "0.1em" }}
-              >
-                {name}
-              </span>
+            <div className="specRow" key={name} style={{ ["--spec-term" as string]: "10rem" }}>
+              <span className="mono specName">{name}</span>
               <span>
                 <M>{latex}</M>
               </span>

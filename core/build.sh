@@ -18,7 +18,8 @@ set -euo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 root="$(dirname "$here")"
 sources=("$here/logic.cpp" "$here/qm.cpp" "$here/expr.cpp" "$here/layout.cpp" "$here/shell.cpp"
-         "$here/x86.cpp" "$here/x86exec.cpp" "$here/x86asm.cpp" "$here/pycomp.cpp")
+         "$here/x86.cpp" "$here/x86exec.cpp" "$here/x86asm.cpp" "$here/pycomp.cpp"
+         "$here/alu.cpp")
 
 if [[ "${1:-}" == "--sprite" ]]; then
   out="$(mktemp -d)/sprite"
@@ -39,7 +40,11 @@ if [[ "${1:-}" == "--test" ]]; then
   clang++ -std=c++17 -O1 -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers \
     -I"$here" "$here/x86.cpp" "$here/x86exec.cpp" "$here/x86asm.cpp" "$here/pycomp.cpp" \
     "$here/pytest.cpp" -o "$dir/pytest"
-  "$dir/coretest" && "$dir/x86test" && "$dir/pytest"
+  # -O2 because this one is exhaustive: every 8-bit input pair through every
+  # operation, which is 327,680 settlings of a 201-gate network.
+  clang++ -std=c++17 -O2 -Wall -Wextra -Wno-unused-parameter \
+    -I"$here" "$here/logic.cpp" "$here/alu.cpp" "$here/alutest.cpp" -o "$dir/alutest"
+  "$dir/coretest" && "$dir/x86test" && "$dir/pytest" && "$dir/alutest"
   exit $?
 fi
 

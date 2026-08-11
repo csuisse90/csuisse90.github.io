@@ -14,6 +14,7 @@ const { units } = manifest as unknown as Manifest;
  *  content manifest. */
 const TOOLS = [
   { href: "/labs/", label: "All labs", code: "IDX" },
+  { href: "/machine/", label: "The machine", code: "A1·B2" },
   { href: "/expression/", label: "Expression canvas", code: "A1.2" },
   { href: "/builder/", label: "Circuit builder", code: "A1.2" },
   { href: "/labs/numbers/", label: "Number lab", code: "A1.2" },

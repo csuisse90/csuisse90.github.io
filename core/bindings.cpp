@@ -5,10 +5,224 @@
 #include "qm.hpp"
 #include "shell.hpp"
 #include "json.hpp"
+#include "alu.hpp"
+#include "pycomp.hpp"
+#include "x86.hpp"
+#include "x86asm.hpp"
 
 using namespace emscripten;
 
 namespace {
+
+
+// ---- the vertical machine: Python down to gates ---------------------------
+
+/** Compiles Python and returns every stage, so the panes can be filled from
+ *  one call rather than five. */
+std::string compilePython(const std::string& source) {
+  const py::Compiled c = py::compile(source);
+  jw::Out j;
+  j.beginObj();
+  j.key("ok");
+  j.boolean(c.ok);
+  j.key("error");
+  j.str(c.error);
+  j.key("errorLine");
+  j.num(c.errorLine);
+
+  j.key("tokens");
+  j.beginArr();
+  for (const py::Token& t : c.tokens) {
+    j.beginObj();
+    j.key("kind");
+    j.str(t.kind == py::Token::Name ? "name"
+          : t.kind == py::Token::Number ? "number"
+          : t.kind == py::Token::String ? "string"
+          : t.kind == py::Token::Op ? "op"
+          : t.kind == py::Token::Indent ? "indent"
+          : t.kind == py::Token::Dedent ? "dedent"
+          : t.kind == py::Token::Newline ? "newline" : "end");
+    j.key("text");
+    j.str(t.text);
+    j.key("line");
+    j.num(t.line);
+    j.endObj();
+  }
+  j.endArr();
+
+  j.key("tree");
+  j.str(c.tree);
+
+  j.key("ir");
+  j.beginArr();
+  for (const py::Ir& i : c.ir) {
+    j.beginObj();
+    j.key("op");
+    j.str(i.op);
+    j.key("text");
+    j.str(i.text);
+    j.key("line");
+    j.num(i.line);
+    j.endObj();
+  }
+  j.endArr();
+
+  j.key("assembly");
+  j.str(c.assembly);
+  j.key("assemblyToSource");
+  j.beginArr();
+  for (int line : c.assemblyToSource) j.num(line);
+  j.endArr();
+  j.endObj();
+  return j.done();
+}
+
+/** Assembles text and reports the bytes, plus where every line landed. */
+std::string assembleX86(const std::string& source) {
+  const x86::Assembled a = x86::assemble(source, 0);
+  jw::Out j;
+  j.beginObj();
+  j.key("error");
+  j.str(a.error);
+  j.key("bytes");
+  j.beginArr();
+  for (uint8_t b : a.bytes) j.num(b);
+  j.endArr();
+  j.key("lines");
+  j.beginArr();
+  for (const x86::AsmLine& l : a.lines) {
+    j.beginObj();
+    j.key("address");
+    j.num(static_cast<double>(l.address));
+    j.key("length");
+    j.num(l.length);
+    j.key("sourceLine");
+    j.num(l.sourceLine);
+    j.key("text");
+    j.str(l.text);
+    j.endObj();
+  }
+  j.endArr();
+  j.key("labels");
+  j.beginObj();
+  for (const auto& [name, address] : a.labels) {
+    j.key(name);
+    j.num(static_cast<double>(address));
+  }
+  j.endObj();
+  j.endObj();
+  return j.done();
+}
+
+std::string disassembleAt(const std::string& base64, int at) {
+  // Binary must not travel as a std::string: embind encodes one as UTF-8, so
+  // every byte above 0x7f becomes two and the image is quietly corrupted.
+  const std::string decoded = sh::base64Decode(base64);
+  std::vector<uint8_t> code(decoded.begin(), decoded.end());
+  const x86::Instruction in = x86::decode(code, static_cast<uint64_t>(at));
+  jw::Out j;
+  j.beginObj();
+  j.key("text");
+  j.str(in.text);
+  j.key("length");
+  j.num(in.length);
+  j.endObj();
+  return j.done();
+}
+
+/** A machine the browser can hold on to and step. */
+class Cpu {
+ public:
+  Cpu() : machine_(1 << 18) {}
+
+  /** Base64 rather than raw bytes: see disassembleAt. */
+  void loadBytes(const std::string& base64, int at) {
+    const std::string decoded = sh::base64Decode(base64);
+    std::vector<uint8_t> code(decoded.begin(), decoded.end());
+    machine_.load(code, static_cast<uint64_t>(at));
+  }
+  void reset(double entry, double stack) {
+    machine_.regs = {};
+    machine_.flags = x86::Flags{};
+    machine_.rip = static_cast<uint64_t>(entry);
+    machine_.regs[x86::RSP] = static_cast<uint64_t>(stack);
+    machine_.halted = false;
+    machine_.fault.clear();
+    machine_.output.clear();
+    machine_.instructionsRun = 0;
+    machine_.cyclesRun = 0;
+  }
+
+  /** One instruction, with every micro-operation it took. */
+  std::string step() {
+    const std::vector<x86::MicroStep> trace = machine_.step();
+    jw::Out j;
+    j.beginObj();
+    j.key("micro");
+    j.beginArr();
+    for (const x86::MicroStep& s : trace) {
+      j.beginObj();
+      j.key("transfer");
+      j.str(s.transfer);
+      j.key("lines");
+      j.str(x86::controlLineNames(s.controlLines));
+      j.endObj();
+    }
+    j.endArr();
+    j.endObj();
+    return j.done();
+  }
+
+  void run(int budget) { machine_.run(static_cast<uint64_t>(budget)); }
+
+  std::string state() const {
+    jw::Out j;
+    j.beginObj();
+    j.key("regs");
+    j.beginArr();
+    for (uint64_t v : machine_.regs) j.num(static_cast<double>(v));
+    j.endArr();
+    j.key("rip");
+    j.num(static_cast<double>(machine_.rip));
+    j.key("flags");
+    j.beginObj();
+    j.key("carry");
+    j.boolean(machine_.flags.carry);
+    j.key("zero");
+    j.boolean(machine_.flags.zero);
+    j.key("sign");
+    j.boolean(machine_.flags.sign);
+    j.key("overflow");
+    j.boolean(machine_.flags.overflow);
+    j.endObj();
+    j.key("halted");
+    j.boolean(machine_.halted);
+    j.key("fault");
+    j.str(machine_.fault);
+    j.key("output");
+    j.str(machine_.output);
+    j.key("instructions");
+    j.num(static_cast<double>(machine_.instructionsRun));
+    j.key("cycles");
+    j.num(static_cast<double>(machine_.cyclesRun));
+    j.endObj();
+    return j.done();
+  }
+
+  /** A window of memory as numbers, for the memory pane. */
+  std::string memory(int at, int count) const {
+    jw::Out j;
+    j.beginArr();
+    for (int i = 0; i < count; i++) {
+      j.num(static_cast<double>(machine_.read(static_cast<uint64_t>(at + i), 1)));
+    }
+    j.endArr();
+    return j.done();
+  }
+
+ private:
+  x86::Machine machine_;
+};
 
 std::string buildFromExpr(lg::Circuit& c, const std::string& src) {
   return lg::buildFromExpression(c, src);
@@ -167,4 +381,19 @@ EMSCRIPTEN_BINDINGS(logicCore) {
   function("spriteGeometry", &lg::spriteGeometryJson);
   function("analyseExpression", &lg::analyseExpression);
   function("buildFromExpression", &buildFromExpr);
+
+  function("compilePython", &compilePython);
+  function("assembleX86", &assembleX86);
+  function("disassembleAt", &disassembleAt);
+  function("aluDescribe", &alu::describeJson);
+  function("aluEvaluate", &alu::evaluateJson);
+
+  class_<Cpu>("Cpu")
+      .constructor<>()
+      .function("loadBytes", &Cpu::loadBytes)
+      .function("reset", &Cpu::reset)
+      .function("step", &Cpu::step)
+      .function("run", &Cpu::run)
+      .function("state", &Cpu::state)
+      .function("memory", &Cpu::memory);
 }

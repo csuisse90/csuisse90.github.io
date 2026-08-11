@@ -4,11 +4,10 @@ import { useState } from "react";
 import Link from "next/link";
 
 import { COMPARISONS } from "@/lib/comparisons";
-import manifest from "@/lib/generated/content.json";
-import type { Manifest } from "@/lib/content";
+import pageIndex from "@/lib/generated/pageIndex.json";
 import RichText from "./RichText";
 
-const { pages } = manifest as unknown as Manifest;
+const pages = pageIndex as { code: string; title: string; href: string }[];
 
 export default function Compare({ initial }: { initial?: string }) {
   const [id, setId] = useState(initial ?? COMPARISONS[0].id);

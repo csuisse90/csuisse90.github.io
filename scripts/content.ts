@@ -158,6 +158,14 @@ const target = join(root, "lib", "generated", "content.json");
 mkdirSync(dirname(target), { recursive: true });
 writeFileSync(target, JSON.stringify(manifest));
 
+// A second, tiny artifact: just enough to turn a syllabus code into a link.
+// Client components that only need that must not import the whole manifest —
+// it carries every card and mark scheme, and JSON cannot be tree-shaken.
+writeFileSync(
+  join(root, "lib", "generated", "pageIndex.json"),
+  JSON.stringify(pages.map((p) => ({ code: p.code, title: p.title, href: p.href }))),
+);
+
 const cards = pages.reduce((n, p) => n + (p.cards?.length ?? 0), 0);
 const questions = pages.reduce((n, p) => n + (p.practice?.length ?? 0), 0);
 const marks = pages.reduce(

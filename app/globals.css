@@ -330,7 +330,13 @@ h3.display {
     border-bottom: 1px solid var(--hairline);
   }
   .main {
-    padding: 2rem 1.15rem 5rem;
+    /* The contents toggle is fixed in the top right corner from this width
+       down, so the page has to start below it rather than under it. */
+    padding: 3.6rem 1.15rem 5rem;
+  }
+  /* Thumb-sized rows once the sidebar is a menu rather than a rail. */
+  .navLink {
+    padding: 0.5rem 0.4rem;
   }
 }
 
@@ -853,7 +859,8 @@ table.kmap td .cellIndex {
   padding: 1rem;
   text-decoration: none;
   color: inherit;
-  display: block;
+  display: flex;
+  flex-direction: column;
 }
 
 .card:hover {
@@ -866,13 +873,135 @@ table.kmap td .cellIndex {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   font-size: 0.92rem;
-  margin-bottom: 0.35rem;
+  line-height: 1.25;
+  margin-bottom: 0.45rem;
+  /* Two lines' worth, whether or not the title needs them: without it the body
+     text of a one-line card starts higher than its neighbours' and the row
+     reads as ragged even though the cards are the same height. */
+  min-height: 2.5em;
+}
+
+/* Below this the grid is a single column, so there is no neighbour to line up
+   with and the reserved second line is only wasted space. */
+@media (max-width: 33rem) {
+  .card .cardTitle {
+    min-height: 0;
+  }
 }
 
 .card .cardBody {
   font-size: 0.85rem;
   line-height: 1.55;
   color: var(--ink-soft);
+}
+
+/* A diagram with its truth table beside it is a two-column grid written as an
+   inline style in the figure component. On a phone that leaves a 220px diagram
+   next to a 130px table and neither is readable, so the pair stacks. The
+   selector reaches the inline style because the component itself is owned by
+   work in progress elsewhere; `!important` is what it takes to beat one. */
+@media (max-width: 620px) {
+  [style*="minmax(0, 1fr) auto"] {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+/* ---- spec lists ---------------------------------------------------------- */
+
+.specRow {
+  display: grid;
+  grid-template-columns: var(--spec-term, 11rem) minmax(0, 1fr);
+  gap: 1rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--hairline);
+  align-items: baseline;
+}
+
+/* The panel already ends in a border; a rule under the last row doubled it. */
+.specRow:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.specCode {
+  color: var(--ink-faint);
+  font-size: 0.62rem;
+}
+
+.specName {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink);
+}
+
+.specBody {
+  font-size: 0.94rem;
+  line-height: 1.6;
+}
+
+/* The gate definitions: name, formula, rule. */
+.defRow {
+  display: grid;
+  grid-template-columns: 5rem 9rem minmax(0, 1fr);
+  gap: 1rem;
+  padding: 0.45rem 0;
+  border-bottom: 1px solid var(--hairline);
+  align-items: baseline;
+  font-size: 0.92rem;
+}
+
+.defRow:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.defName {
+  letter-spacing: 0.14em;
+  color: var(--ink);
+}
+
+.defRule {
+  color: var(--ink-soft);
+}
+
+/* A fixed term column leaves a two-word ribbon for the definition on a phone. */
+@media (max-width: 620px) {
+  .specRow {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.3rem;
+  }
+  .defRow {
+    grid-template-columns: 4.5rem minmax(0, 1fr);
+    gap: 0.25rem 1rem;
+  }
+  .defRule {
+    grid-column: 2;
+  }
+}
+
+/* The gate reference: a diagram over its truth table. Captions differ in
+   length, so without stretching the diagram cell the tables in a row started at
+   three different heights. */
+.gateGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr));
+  gap: 1.25rem;
+  margin: 1.75rem 0;
+}
+
+/* Subgrid, so the diagram row and the table row are shared across the whole
+   line: every truth table in a row then starts at the same height, whatever the
+   caption above it says. */
+.gateCell {
+  display: grid;
+  grid-row: span 2;
+  grid-template-rows: subgrid;
+  row-gap: 0.6rem;
+}
+
+.gateDiagram > .panel {
+  margin: 0;
+  height: 100%;
 }
 
 .hr {
@@ -894,6 +1023,9 @@ table.kmap td .cellIndex {
   margin: 2.5rem 0;
   white-space: nowrap;
   overflow: hidden;
+  /* The line is meant to run off the edge, but a hard cut mid-word reads as a
+     bug. Fade the last of it out so the clipping is obviously on purpose. */
+  mask-image: linear-gradient(to right, #000 88%, transparent 100%);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1398,15 +1530,36 @@ pre.listing {
 
 /* ---- HL-only topics ------------------------------------------------------ */
 
+/* The badge trails the title it qualifies, so it needs a word space in front of
+   it, and it must never be split from that title's last word or hyphenated. */
 .hlTag {
-  margin-left: auto;
+  display: inline-block;
+  margin-left: 0.45rem;
   font-family: var(--font-mono), monospace;
   font-size: 0.52rem;
   letter-spacing: 0.14em;
   color: var(--claude);
   border: 1px solid var(--claude);
   padding: 0 0.22rem;
-  line-height: 1.5;
+  line-height: 1.4;
+  white-space: nowrap;
+  /* Cap height, not baseline: the title is set in capitals, so a baseline-set
+     badge reads as having slipped below the line. */
+  vertical-align: 0.12em;
+}
+
+/* In the sidebar the row is a flex line of code, title and badge, and the badge
+   belongs at the far end of it. */
+.navLink .hlTag {
+  margin-left: auto;
+  align-self: center;
+}
+
+/* The kicker is already a flex line with its own gap; it was pushing the badge
+   to the far right of the page, orphaned from the code it qualifies. */
+.kicker .hlTag {
+  margin-left: 0;
+  vertical-align: baseline;
 }
 
 .navLink[data-hl="true"] {
@@ -1440,23 +1593,19 @@ pre.listing {
   pointer-events: none;
 }
 
-.splashSprite {
-  border-radius: 22%;
+.splashMark {
+  font-family: var(--font-archivo), sans-serif;
+  font-weight: 700;
+  font-size: clamp(1.6rem, 6vw, 3rem);
+  letter-spacing: 0.2em;
+  color: var(--ink);
   opacity: 0;
-  animation:
-    splashFade 620ms cubic-bezier(0.16, 1, 0.3, 1) forwards,
-    splashGrow 3200ms cubic-bezier(0.33, 0.6, 0.4, 1) forwards;
-  will-change: transform, opacity;
+  animation: splashFade 700ms ease-out forwards;
 }
 
 @keyframes splashFade {
   from { opacity: 0; }
   to { opacity: 1; }
-}
-
-@keyframes splashGrow {
-  from { transform: scale(0.55); }
-  to { transform: scale(1.6); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1476,8 +1625,6 @@ pre.listing {
 html[data-ai-open="true"] .shell {
   padding-right: var(--ai-width);
 }
-
-html[data-ai-open="true"] 
 
 @media (max-width: 900px) {
   html[data-ai-open="true"] .shell {
@@ -1723,7 +1870,8 @@ html[data-ai-open="true"]
 
 .tableWrap {
   overflow-x: auto;
-  margin: 1.5rem 0;
+  /* Same block rhythm as panels, figures and asides. */
+  margin: 1.75rem 0;
 }
 
 .mdx table {
@@ -1773,13 +1921,21 @@ html[data-ai-open="true"]
 }
 
 .figure {
-  margin: 2rem 0;
+  margin: 1.75rem 0;
 }
 
 .figureBody {
   border: 1px solid var(--hairline);
   background: var(--paper-lift);
   padding: 1rem;
+}
+
+/* A diagram component brings its own titled frame. Wrapping it in the figure's
+   frame as well drew a box inside a box with a 1rem moat between them. */
+.figureBody:has(> .panel) {
+  border: 0;
+  background: none;
+  padding: 0;
 }
 
 .figureCaption {
@@ -1792,7 +1948,7 @@ html[data-ai-open="true"]
 /* ---- asides: the beyond-syllabus material -------------------------------- */
 
 .aside {
-  margin: 1.8rem 0;
+  margin: 1.75rem 0;
   border: 1px solid var(--hairline);
   border-left-width: 2px;
   background: var(--paper-lift);
@@ -1816,8 +1972,9 @@ html[data-ai-open="true"]
 
 .asideHead {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
-  gap: 0.6rem;
+  gap: 0.35rem 0.6rem;
   width: 100%;
   padding: 0.6rem 0.8rem;
   background: none;
@@ -1851,6 +2008,16 @@ html[data-ai-open="true"]
 .asideTitle {
   font-size: 0.85rem;
   color: var(--ink-soft);
+}
+
+/* On a phone the title has no room beside the label, and wrapping it inside its
+   own flex cell left a deep ragged indent. Give it its own line, lined up under
+   the label rather than under the marker. */
+@media (max-width: 620px) {
+  .asideTitle {
+    flex-basis: 100%;
+    padding-left: 1.4rem;
+  }
 }
 
 .asideBody {
@@ -1905,6 +2072,14 @@ html[data-ai-open="true"]
   align-items: center;
   gap: 0.5rem;
   margin-top: 0.7rem;
+}
+
+/* The palette button is a full-width list item by default. In a button bar it
+   should be the width of its own label, and the row's gap should be the only
+   space between them. */
+.answerBar .paletteBtn {
+  width: auto;
+  margin-bottom: 0;
 }
 
 .paletteBtn.ghost {
@@ -2039,6 +2214,19 @@ html[data-ai-open="true"]
   transition: border-color 140ms ease, color 140ms ease;
 }
 
+/* While the sidebar is a rail, a button floating in the bottom-left corner sits
+   on top of whichever nav row happens to have scrolled under it. Squared off to
+   the rail's width it reads as the rail's footer instead. */
+@media (min-width: 901px) {
+  .deckButton {
+    left: 0;
+    bottom: 0;
+    width: var(--sidebar);
+    justify-content: center;
+    border-width: 1px 1px 0 0;
+  }
+}
+
 .deckButton:hover {
   border-color: var(--ink);
   color: var(--ink);
@@ -2160,6 +2348,11 @@ html[data-ai-open="true"]
   .paging {
     grid-template-columns: 1fr;
   }
+  /* Stacked, the two links read as a list; ranging the second one right just
+     makes it look adrift. */
+  .pagingLink[data-dir="next"] {
+    text-align: left;
+  }
 }
 
 @media (max-width: 900px) {
@@ -2169,7 +2362,7 @@ html[data-ai-open="true"]
     right: 1rem;
     top: 1rem;
     z-index: 50;
-    padding: 0.45rem 0.75rem;
+    padding: 0.6rem 0.85rem;
     font-family: var(--font-mono), monospace;
     font-size: 0.6rem;
     letter-spacing: 0.16em;
@@ -2255,7 +2448,9 @@ html[data-ai-open="true"]
   color: var(--ink-faint);
   font-size: 1rem;
   line-height: 1;
-  padding: 0;
+  /* A bare glyph is a 10px target; pad it out to something a thumb can hit. */
+  padding: 0.4rem;
+  margin: -0.4rem;
 }
 
 .deckDrop:hover {
@@ -2329,6 +2524,9 @@ html[data-ai-open="true"]
   border-collapse: collapse;
   width: 100%;
   font-size: 0.87rem;
+  /* Three columns of prose do not fit on a phone. Scroll the table inside its
+     wrapper rather than squeezing every cell into a column of single words. */
+  min-width: 34rem;
 }
 
 .compareTable th,
@@ -2337,6 +2535,9 @@ html[data-ai-open="true"]
   padding: 0.55rem 0.7rem;
   text-align: left;
   vertical-align: top;
+  /* One shared line box, so the small mono row label and the prose beside it
+     sit on the same first baseline instead of a few pixels apart. */
+  line-height: 1.4rem;
 }
 
 .compareTable thead th {
@@ -2981,6 +3182,207 @@ html[data-ai-open="true"]
   overflow-wrap: anywhere;
 }
 
+/* ---- the vertical machine ------------------------------------------------ */
+
+.machine {
+  margin: 1.5rem 0 2rem;
+}
+
+.machineBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 0;
+}
+
+.machineCount {
+  margin-left: auto;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.68rem;
+  color: var(--ink-faint);
+}
+
+.machinePick {
+  font: inherit;
+  font-size: 0.8rem;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--hairline);
+  background: var(--paper-lift);
+}
+
+.machineError {
+  border-left: 3px solid var(--alarm);
+  background: var(--paper-lift);
+  padding: 0.7rem 0.9rem;
+  margin-bottom: 1rem;
+  font-size: 0.85rem;
+}
+
+.machineGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+@media (max-width: 78rem) {
+  .machineGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 46rem) {
+  .machineGrid { grid-template-columns: minmax(0, 1fr); }
+}
+
+.machinePane[data-wide="true"] {
+  grid-column: 1 / -1;
+  margin-top: 1rem;
+}
+
+.machinePane .panelBody {
+  padding: 0.7rem 0.8rem;
+}
+
+.machineList,
+.machineLines,
+.machineMemory,
+.machineRegs {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.7rem;
+  line-height: 1.65;
+  max-height: 17rem;
+  overflow: auto;
+  white-space: pre;
+}
+
+.machineList > div[data-current="true"],
+.machineLines > div[data-current="true"] {
+  background: rgba(211, 58, 28, 0.1);
+  color: var(--alarm);
+  font-weight: 600;
+}
+
+.machineList > div[data-label="true"] {
+  color: var(--teal);
+}
+
+.machineList > div[data-done="true"] {
+  color: var(--ink-faint);
+}
+
+.machineDim {
+  color: var(--ink-faint);
+}
+
+.machineAddress {
+  display: inline-block;
+  width: 3rem;
+  margin-right: 0.6rem;
+  color: var(--ink-faint);
+}
+
+/* The source pane is a textarea with a highlighted copy underneath, the same
+   trick the Python panels use, so the caret lands where it looks like it does. */
+.machinePane .panelBody:has(.machineSource) {
+  position: relative;
+}
+
+.machineSource {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  border: 0;
+  outline: none;
+  resize: vertical;
+  background: transparent;
+  color: var(--ink);
+  caret-color: var(--alarm);
+  font-family: var(--font-mono), monospace;
+  font-size: 0.7rem;
+  line-height: 1.65;
+  padding: 0;
+}
+
+.machineLines {
+  position: absolute;
+  inset: 0.7rem 0.8rem;
+  pointer-events: none;
+  color: transparent;
+  overflow: hidden;
+}
+
+.machineRegs > div {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr) 5rem;
+  gap: 0.4rem;
+  color: var(--ink-faint);
+}
+
+.machineRegs > div[data-live="true"] {
+  color: var(--ink);
+}
+
+.machineHex {
+  color: var(--ink-faint);
+  text-align: right;
+}
+
+.machineFlags {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: 0.7rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--hairline);
+  font-family: var(--font-mono), monospace;
+  font-size: 0.68rem;
+  color: var(--ink-faint);
+}
+
+.machineFlags span[data-on="true"] {
+  color: var(--alarm);
+  font-weight: 600;
+}
+
+.machineMemory > div > span[data-zero="true"] {
+  color: var(--ink-faint);
+  opacity: 0.5;
+}
+
+.machineMemory > div > span {
+  display: inline-block;
+  width: 1.6rem;
+}
+
+.machineMemory > div > span[data-pointer="true"] {
+  color: var(--teal);
+}
+
+.machineMicro > div {
+  white-space: normal;
+  padding: 0.1rem 0;
+}
+
+.machineStep {
+  display: inline-block;
+  width: 2rem;
+  color: var(--ink-faint);
+}
+
+.machineControl {
+  display: block;
+  margin-left: 2rem;
+  font-size: 0.62rem;
+  color: var(--teal);
+}
+
+.machineOutput {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  margin: 0;
+  white-space: pre-wrap;
+  min-height: 3rem;
+}
+
 /* ---- btop ---------------------------------------------------------------- */
 
 .monitor {
@@ -3446,9 +3848,10 @@ button.termDot {
 
 .offlineNote {
   position: fixed;
-  /* Clears the Ask button, which sits in the same corner. */
-  right: 1rem;
-  bottom: 4.2rem;
+  /* Clears the Ask button, which sits in the same corner, and lines up with its
+     right edge rather than missing it by a couple of pixels. */
+  right: 1.1rem;
+  bottom: 4.4rem;
   z-index: 45;
   padding: 0.45rem 0.7rem;
   background: var(--paper-lift);
@@ -3470,4 +3873,22 @@ button.termDot {
 @keyframes offlineIn {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: none; }
+}
+
+/* ---- keyboard focus ------------------------------------------------------ */
+
+/* Several controls turn the browser's own ring off so they can restyle their
+   border, which leaves a keyboard user with nothing to follow. One ring, drawn
+   in the accent, for anything focused by keyboard. */
+:focus-visible {
+  outline: 2px solid var(--alarm);
+  outline-offset: 2px;
+}
+
+.answerBox:focus-visible,
+.aiForm input:focus-visible,
+textarea.pyCode:focus-visible,
+.pyEditor textarea.pyCode:focus-visible {
+  outline: 2px solid var(--alarm);
+  outline-offset: -2px;
 }

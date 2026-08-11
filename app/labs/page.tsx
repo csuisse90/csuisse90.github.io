@@ -5,6 +5,8 @@ import PageHead from "@/components/PageHead";
 export const metadata: Metadata = { title: "Labs" };
 
 const LABS = [
+  { href: "/machine/", title: "The machine", code: "A1 · A1.4 · B2",
+    body: "Write Python and follow it down: intermediate code, x86-64 assembly, machine-code bytes, registers, memory, and the register transfers the control unit sequences — every pane showing the same instant." },
   { href: "/labs/numbers/", title: "Number lab", code: "A1.2",
     body: "Slide a value and watch binary, hexadecimal and two's complement move together. Flip individual bits and see the place values add up." },
   { href: "/labs/cpu/", title: "CPU lab", code: "A1.1",

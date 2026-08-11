@@ -12,3 +12,10 @@ const loading = () => <p className="annotation">Loading the engine…</p>;
 
 export const LazyFaultFinder = dynamic(() => import("./FaultFinder"), { ssr: false, loading });
 export const LazyKMap = dynamic(() => import("./KMap"), { ssr: false, loading });
+
+/** The whole vertical machine — compiler, assembler, processor and gates. It
+ *  is the largest thing on the site, so nothing else waits for it. */
+export const LazyMachine = dynamic(() => import("./Machine"), {
+  ssr: false,
+  loading: () => <p className="annotation">Starting the machine…</p>,
+});

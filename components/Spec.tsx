@@ -26,37 +26,15 @@ export function SpecList({
       <div className="panelBody">
         {rows.map((r) => (
           <div
+            className="specRow"
             key={r.term}
-            style={{
-              display: "grid",
-              gridTemplateColumns: `${termWidth} minmax(0,1fr)`,
-              gap: "1rem",
-              padding: "0.6rem 0",
-              borderBottom: "1px solid var(--hairline)",
-              alignItems: "baseline",
-            }}
+            style={{ ["--spec-term" as string]: termWidth }}
           >
-            <div>
-              {r.code && (
-                <div
-                  className="mono"
-                  style={{ color: "var(--ink-faint)", fontSize: "0.62rem" }}
-                >
-                  {r.code}
-                </div>
-              )}
-              <div
-                className="mono"
-                style={{
-                  textTransform: "uppercase",
-                  letterSpacing: "0.1em",
-                  color: "var(--ink)",
-                }}
-              >
-                {r.term}
-              </div>
+            <div className="specTerm">
+              {r.code && <div className="mono specCode">{r.code}</div>}
+              <div className="mono specName">{r.term}</div>
             </div>
-            <div style={{ fontSize: "0.94rem", lineHeight: 1.6 }}>{r.body}</div>
+            <div className="specBody">{r.body}</div>
           </div>
         ))}
       </div>
