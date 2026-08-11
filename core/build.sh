@@ -17,7 +17,8 @@ set -euo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 root="$(dirname "$here")"
-sources=("$here/logic.cpp" "$here/qm.cpp" "$here/expr.cpp" "$here/layout.cpp" "$here/shell.cpp")
+sources=("$here/logic.cpp" "$here/qm.cpp" "$here/expr.cpp" "$here/layout.cpp" "$here/shell.cpp"
+         "$here/x86.cpp" "$here/x86exec.cpp")
 
 if [[ "${1:-}" == "--sprite" ]]; then
   out="$(mktemp -d)/sprite"
@@ -29,10 +30,13 @@ if [[ "${1:-}" == "--sprite" ]]; then
 fi
 
 if [[ "${1:-}" == "--test" ]]; then
-  out="$(mktemp -d)/coretest"
+  dir="$(mktemp -d)"
   clang++ -std=c++17 -O1 -Wall -Wextra -Wno-unused-parameter \
-    -I"$here" "${sources[@]}" "$here/test.cpp" -o "$out"
-  exec "$out"
+    -I"$here" "${sources[@]}" "$here/test.cpp" -o "$dir/coretest"
+  clang++ -std=c++17 -O1 -Wall -Wextra -Wno-unused-parameter \
+    -I"$here" "$here/x86.cpp" "$here/x86exec.cpp" "$here/x86test.cpp" -o "$dir/x86test"
+  "$dir/coretest" && "$dir/x86test"
+  exit $?
 fi
 
 if ! command -v em++ >/dev/null 2>&1; then
