@@ -208,7 +208,14 @@ export default function Terminal() {
       try {
         await command.run(args, ctx);
       } catch (e) {
-        print(`${name}: ${e instanceof Error ? e.message : String(e)}`, "err");
+        // "Type error" on its own is useless to whoever hits it and useless to
+        // whoever has to fix it, so report the kind, the message and where it
+        // came from.
+        const error = e as Error;
+        print(`${name}: ${error?.name ?? "error"}: ${error?.message || String(e)}`, "err");
+        const frame = error?.stack?.split("\n").find((l) => /\S/.test(l) && !l.includes(error.message));
+        if (frame) print(`  at ${frame.trim().slice(0, 120)}`, "note");
+        print("  `diag` reports what the core is offering.", "note");
       } finally {
         setBusy(false);
         setCwd(shortCwd(fs.cwd()));

@@ -4,6 +4,11 @@
 #   ./core/build.sh --test    native build + run the sanity checks (clang++)
 #   ./core/build.sh           emscripten build -> lib/wasm/logicCore.js
 #
+# STACK_SIZE is set explicitly because emscripten's default dropped from 5 MB to
+# 64 KB, which is a silent behaviour change for anything built with a newer
+# toolchain: an overflow does not raise, it corrupts, and it corrupts
+# differently in different engines.
+#
 # The wasm is embedded in the .js as base64 (-sSINGLE_FILE). That costs ~33% of
 # an already tiny module and buys one large thing: no runtime file lookup, so
 # the same artifact loads under webpack, under Node during the static export,
@@ -46,6 +51,7 @@ em++ -std=c++17 -O3 -flto \
   -sALLOW_MEMORY_GROWTH=1 \
   -sINITIAL_MEMORY=16MB \
   -sFILESYSTEM=0 \
+  -sSTACK_SIZE=1MB \
   -sEXPORT_NAME=createLogicCore \
   -sDISABLE_EXCEPTION_CATCHING=1 \
   -o "$root/lib/wasm/logicCore.js"

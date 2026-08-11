@@ -632,6 +632,81 @@ export const COMMANDS: Command[] = [
     },
   },
   {
+    name: "diag",
+    summary: "check that the shell, the core and the browser agree",
+    usage: "diag",
+    run(_args, ctx) {
+      // A page kept open across a deploy can end up running new command code
+      // against an older core. That shows up as an unhelpful error somewhere
+      // far away, so this names the mismatch directly.
+      const wanted = [
+        "shTokenise",
+        "fsExpand",
+        "fsComplete",
+        "fsGrep",
+        "textSort",
+        "textUniq",
+        "textNumber",
+        "textReverse",
+        "textCut",
+        "textHexDump",
+        "base64Encode",
+        "base64Decode",
+      ] as const;
+      const methods = [
+        "exists",
+        "isDirectory",
+        "listJson",
+        "treeJson",
+        "statJson",
+        "dumpJson",
+        "loadJson",
+        "read",
+        "write",
+      ] as const;
+
+      const missingFunctions = wanted.filter(
+        (n) => typeof (ctx.core as unknown as Record<string, unknown>)[n] !== "function",
+      );
+      const missingMethods = methods.filter(
+        (n) => typeof (ctx.fs as unknown as Record<string, unknown>)[n] !== "function",
+      );
+
+      ctx.print(`commands       ${COMMANDS.length}`);
+      ctx.print(`core functions ${wanted.length - missingFunctions.length} of ${wanted.length}`);
+      ctx.print(`fs methods     ${methods.length - missingMethods.length} of ${methods.length}`);
+
+      if (missingFunctions.length || missingMethods.length) {
+        ctx.print("", "out");
+        ctx.print(`missing: ${[...missingFunctions, ...missingMethods].join(", ")}`, "err");
+        ctx.print("This page is older than the engine it loaded. Reload it.", "err");
+        return;
+      }
+
+      // Exercise the calls the shell actually depends on, so a broken one is
+      // named here rather than surfacing later as a mystery.
+      const probes: [string, () => unknown][] = [
+        ["fs.exists", () => ctx.fs.exists(".")],
+        ["fs.isDirectory", () => ctx.fs.isDirectory(".")],
+        ["fs.listJson", () => JSON.parse(ctx.fs.listJson("."))],
+        ["fs.treeJson", () => JSON.parse(ctx.fs.treeJson("."))],
+        ["fs.dumpJson", () => ctx.fs.dumpJson().length],
+        ["core.shTokenise", () => JSON.parse(ctx.core.shTokenise("a b"))],
+        ["core.textSort", () => JSON.parse(ctx.core.textSort("b\na\n", false, false))],
+      ];
+      ctx.print("");
+      for (const [label, probe] of probes) {
+        try {
+          probe();
+          ctx.print(`ok    ${label}`);
+        } catch (e) {
+          const error = e as Error;
+          ctx.print(`FAIL  ${label}: ${error?.name}: ${error?.message || String(e)}`, "err");
+        }
+      }
+    },
+  },
+  {
     name: "reset",
     summary: "empty the filesystem and start again",
     usage: "reset",
