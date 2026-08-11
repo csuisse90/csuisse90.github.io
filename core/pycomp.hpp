@@ -54,8 +54,16 @@ struct Compiled {
   std::string assembly;
   /** Maps an assembly line index back to a source line, for the UI. */
   std::vector<int> assemblyToSource;
+
+  /** Which optimisation level produced this, and what it did. Level 0 is a
+   *  direct translation with nothing removed — the one worth reading. Level 1
+   *  folds constants and runs a peephole pass, and says so line by line. */
+  int optLevel = 0;
+  std::vector<std::string> optimisations;
 };
 
-Compiled compile(const std::string& source);
+/** optLevel is 0 or 1. Anything higher is treated as 1 rather than refused,
+ *  because a level that silently does nothing is worse than one that says so.*/
+Compiled compile(const std::string& source, int optLevel = 0);
 
 }  // namespace py

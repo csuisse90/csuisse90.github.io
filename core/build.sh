@@ -1,8 +1,14 @@
 #!/usr/bin/env bash
-# Builds the logic engine.
+# Builds the two wasm modules.
 #
 #   ./core/build.sh --test    native build + run the sanity checks (clang++)
-#   ./core/build.sh           emscripten build -> lib/wasm/logicCore.js
+#   ./core/build.sh           emscripten build -> lib/wasm/{logicCore,machineCore}.js
+#
+# Two modules, not one. The logic core is what every page needs: gates,
+# circuits, the shell and its filesystem. The machine core is the Python
+# compiler, the assembler, the x86-64 processor and the gate-level ALU, which
+# only /machine/ and the terminal's `cc` ask for. Keeping them apart means a
+# reader on a circuit page never downloads a compiler.
 #
 # STACK_SIZE is set explicitly because emscripten's default dropped from 5 MB to
 # 64 KB, which is a silent behaviour change for anything built with a newer
@@ -17,9 +23,11 @@ set -euo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 root="$(dirname "$here")"
-sources=("$here/logic.cpp" "$here/qm.cpp" "$here/expr.cpp" "$here/layout.cpp" "$here/shell.cpp"
-         "$here/x86.cpp" "$here/x86exec.cpp" "$here/x86asm.cpp" "$here/pycomp.cpp"
-         "$here/alu.cpp")
+
+logicSources=("$here/logic.cpp" "$here/qm.cpp" "$here/expr.cpp" "$here/layout.cpp"
+              "$here/shell.cpp" "$here/base64.cpp")
+machineSources=("$here/logic.cpp" "$here/x86.cpp" "$here/x86exec.cpp" "$here/x86asm.cpp"
+                "$here/pycomp.cpp" "$here/alu.cpp" "$here/base64.cpp")
 
 if [[ "${1:-}" == "--sprite" ]]; then
   out="$(mktemp -d)/sprite"
@@ -33,7 +41,8 @@ fi
 if [[ "${1:-}" == "--test" ]]; then
   dir="$(mktemp -d)"
   clang++ -std=c++17 -O1 -Wall -Wextra -Wno-unused-parameter \
-    -I"$here" "${sources[@]}" "$here/test.cpp" -o "$dir/coretest"
+    -I"$here" "${logicSources[@]}" "$here/x86.cpp" "$here/x86exec.cpp" "$here/x86asm.cpp" \
+    "$here/pycomp.cpp" "$here/alu.cpp" "$here/test.cpp" -o "$dir/coretest"
   clang++ -std=c++17 -O1 -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers \
     -I"$here" "$here/x86.cpp" "$here/x86exec.cpp" "$here/x86asm.cpp" "$here/x86test.cpp" \
     -o "$dir/x86test"
@@ -54,29 +63,34 @@ if ! command -v em++ >/dev/null 2>&1; then
 fi
 
 mkdir -p "$root/lib/wasm"
-em++ -std=c++17 -O3 -flto \
-  -I"$here" "${sources[@]}" "$here/bindings.cpp" \
-  --bind \
-  -sMODULARIZE=1 \
-  -sEXPORT_ES6=1 \
-  -sSINGLE_FILE=1 \
-  -sENVIRONMENT=web \
-  -sALLOW_MEMORY_GROWTH=1 \
-  -sINITIAL_MEMORY=16MB \
-  -sFILESYSTEM=0 \
-  -sSTACK_SIZE=1MB \
-  -sEXPORT_NAME=createLogicCore \
-  -sDISABLE_EXCEPTION_CATCHING=1 \
-  -o "$root/lib/wasm/logicCore.js"
 
-# Engines that implement resizable ArrayBuffers expose a growable wasm memory's
-# buffer as one, and TextDecoder.decode refuses a view onto a resizable buffer —
-# by specification, in every engine. Emscripten's decoder hands it exactly that,
-# so every string crossing the boundary throws a TypeError on Safari 26, Chrome
-# 151 and Firefox 153, while older builds of the same browsers are fine. Copying
-# the bytes out first fixes it; the copy is skipped where the buffer is not
-# resizable, so nothing pays for it on engines that never had the problem.
-python3 - "$root/lib/wasm/logicCore.js" <<'PATCH'
+build() {
+  local name="$1" entry="$2" exportName="$3"
+  shift 3
+  em++ -std=c++17 -O3 -flto \
+    -I"$here" "$@" "$entry" \
+    --bind \
+    -sMODULARIZE=1 \
+    -sEXPORT_ES6=1 \
+    -sSINGLE_FILE=1 \
+    -sENVIRONMENT=web,worker \
+    -sALLOW_MEMORY_GROWTH=1 \
+    -sINITIAL_MEMORY=16MB \
+    -sFILESYSTEM=0 \
+    -sSTACK_SIZE=1MB \
+    -sEXPORT_NAME="$exportName" \
+    -sDISABLE_EXCEPTION_CATCHING=1 \
+    -o "$root/lib/wasm/$name.js"
+
+  # Engines that implement resizable ArrayBuffers expose a growable wasm
+  # memory's buffer as one, and TextDecoder.decode refuses a view onto a
+  # resizable buffer — by specification, in every engine. Emscripten's decoder
+  # hands it exactly that, so every string crossing the boundary throws a
+  # TypeError on Safari 26, Chrome 151 and Firefox 153, while older builds of
+  # the same browsers are fine. Copying the bytes out first fixes it; the copy
+  # is skipped where the buffer is not resizable, so nothing pays for it on
+  # engines that never had the problem.
+  python3 - "$root/lib/wasm/$name.js" <<'PATCH'
 import sys
 
 path = sys.argv[1]
@@ -87,10 +101,10 @@ after = (
     "heapOrArray.slice(idx,endPtr):heapOrArray.subarray(idx,endPtr))"
 )
 if after in glue:
-    print("wasm glue already patched for resizable buffers")
+    print("  glue already patched for resizable buffers")
 elif before in glue:
     open(path, "w").write(glue.replace(before, after, 1))
-    print("patched the wasm glue for resizable ArrayBuffers")
+    print("  patched the glue for resizable ArrayBuffers")
 else:
     sys.exit(
         "could not find emscripten's TextDecoder call to patch.\n"
@@ -99,4 +113,8 @@ else:
     )
 PATCH
 
-echo "built lib/wasm/logicCore.js ($(wc -c <"$root/lib/wasm/logicCore.js") bytes)"
+  echo "built lib/wasm/$name.js ($(wc -c <"$root/lib/wasm/$name.js") bytes)"
+}
+
+build logicCore "$here/bindings.cpp" createLogicCore "${logicSources[@]}"
+build machineCore "$here/machineBindings.cpp" createMachineCore "${machineSources[@]}"

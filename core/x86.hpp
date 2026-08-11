@@ -19,7 +19,9 @@
 
 #include <array>
 #include <cstdint>
+#include <deque>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace x86 {
@@ -165,7 +167,97 @@ Instruction decode(const std::vector<uint8_t>& code, uint64_t at);
 /** Intel syntax, the same text the decoder puts in Instruction::text. */
 std::string disassemble(const Instruction& in);
 
+// ------------------------------------------------------------------- caches
+
+/** A set-associative cache, modelled at the level A1.1.2 asks for: which set a
+ *  block lands in, whether the tag matches, and what gets evicted. It changes
+ *  no results — only the count of hits and misses, which is the whole point.
+ *  A real cache would also change the timing; the pipeline model below adds the
+ *  miss penalty so the two numbers agree. */
+struct Cache {
+  struct Line {
+    bool valid = false;
+    uint64_t tag = 0;
+    uint64_t block = 0;    // the block address, for the display
+    uint64_t used = 0;     // for least-recently-used replacement
+    bool dirty = false;
+  };
+
+  bool enabled = false;
+  int lineBytes = 16;
+  int sets = 8;
+  int ways = 2;
+  int missPenalty = 10;    // extra cycles charged to the pipeline on a miss
+
+  std::vector<Line> lines;  // sets * ways, set-major
+  uint64_t hits = 0;
+  uint64_t misses = 0;
+  uint64_t evictions = 0;
+  uint64_t clock = 0;
+  /** Which line was touched last, so the view can flash it. */
+  int lastLine = -1;
+  bool lastHit = false;
+
+  void configure(int sets, int ways, int lineBytes);
+  void clear();
+  /** Returns true on a hit. A write marks the line dirty; nothing is written
+   *  back, because the memory behind it is already the truth here. */
+  bool access(uint64_t address, bool write);
+};
+
+/** A five-stage pipeline — fetch, decode, execute, memory, write-back —
+ *  modelled by counting the cycles it would take rather than by simulating the
+ *  latches. That is enough to show the two things that matter: a dependent
+ *  instruction has to wait, and a taken branch throws away work already done.
+ */
+struct Pipeline {
+  bool enabled = false;
+  bool forwarding = true;   // results fed back from EX/MEM instead of via the file
+  bool predictTaken = false;
+
+  uint64_t cycles = 0;      // cycles the pipelined machine would have taken
+  uint64_t issued = 0;      // instructions issued
+  uint64_t stallCycles = 0; // lost to data hazards
+  uint64_t flushCycles = 0; // lost to mispredicted branches
+  uint64_t missCycles = 0;  // lost to cache misses
+
+  /** What the last two instructions wrote, newest first; -1 for nothing. */
+  int wrote[2] = {-1, -1};
+  bool wasLoad[2] = {false, false};
+
+  /** The last few instructions as a stage timeline, for the diagram. */
+  struct Slot {
+    uint64_t address = 0;
+    std::string text;
+    int start = 0;      // cycle the fetch happened in
+    int stall = 0;      // bubbles inserted before execute
+    bool flushed = false;
+    std::string why;    // why it stalled, in words
+  };
+  std::deque<Slot> recent;
+  size_t recentLimit = 24;
+
+  void clear();
+  /** Charges the cycles this instruction costs and records why. */
+  void observe(const Instruction& in, bool branchTaken, int missPenalty);
+};
+
 // -------------------------------------------------------------------- state
+
+/** Everything needed to put one instruction back the way it was. Registers are
+ *  small enough to copy whole; memory is not, so only the bytes that changed
+ *  are kept. That makes a step cost a few dozen bytes and makes stepping
+ *  backwards exact rather than approximate. */
+struct Undo {
+  std::array<uint64_t, REG_COUNT> regs{};
+  uint64_t rip = 0;
+  Flags flags;
+  uint32_t outputLength = 0;
+  uint32_t cycles = 0;
+  uint64_t address = 0;
+  bool wasHalted = false;
+  std::vector<std::pair<uint32_t, uint8_t>> memory;  // address, byte before
+};
 
 struct Machine {
   std::array<uint64_t, REG_COUNT> regs{};
@@ -178,11 +270,35 @@ struct Machine {
   uint64_t cyclesRun = 0;
   std::string output;         // what the program has printed
 
+  Cache cache;
+  Pipeline pipeline;
+
+  /** How many times each address was executed, and how many transfers it cost.
+   *  Keyed by address because a profile is only interesting where code is. */
+  std::unordered_map<uint64_t, uint64_t> profileCount;
+  std::unordered_map<uint64_t, uint64_t> profileCycles;
+
+  /** The history that makes stepping backwards possible. Bounded, because a
+   *  program that runs for a million instructions must not exhaust memory —
+   *  when it fills, the oldest step is dropped and only that step becomes
+   *  unreachable. */
+  bool recording = true;
+  size_t historyLimit = 200000;
+  std::deque<Undo> history;
+  /** Non-null while an instruction is running and history is being kept, so
+   *  write() can save what it is about to clobber. */
+  std::vector<std::pair<uint32_t, uint8_t>>* capture = nullptr;
+
   explicit Machine(size_t memoryBytes = 1 << 16) : memory(memoryBytes, 0) {}
 
   void load(const std::vector<uint8_t>& code, uint64_t at);
   uint64_t read(uint64_t address, uint8_t width) const;
   void write(uint64_t address, uint8_t width, uint64_t value);
+
+  /** Undoes the last instruction exactly. False when there is no history left,
+   *  either because nothing has run or because the bound discarded it. */
+  bool undo();
+  void forgetHistory();
 
   /** Runs one instruction. Returns the micro-operations it took, in order, so
    *  the caller can step through them without simulating twice. */

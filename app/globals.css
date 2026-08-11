@@ -3383,6 +3383,159 @@ html[data-ai-open="true"] .shell {
   min-height: 3rem;
 }
 
+/* ---- a marked diagram ---------------------------------------------------- */
+
+.markSheet {
+  border: 1px solid var(--hairline);
+  border-left: 3px solid var(--alarm);
+  background: var(--paper-lift);
+  padding: 0.9rem 1rem;
+  margin: 1rem 0 1.5rem;
+}
+
+.markSheet[data-full="true"] {
+  border-left-color: var(--teal);
+}
+
+.markScore {
+  font-family: var(--font-display), serif;
+  font-size: 1.6rem;
+  line-height: 1;
+  margin-bottom: 0.6rem;
+}
+
+.markPoints {
+  list-style: none;
+  margin: 0 0 0.5rem;
+  padding: 0;
+  font-size: 0.82rem;
+}
+
+.markPoints li {
+  padding: 0.12rem 0;
+  color: var(--ink-soft);
+}
+
+.markPoints li[data-got="true"] {
+  color: var(--ink);
+}
+
+.markNote {
+  margin: 0.4rem 0 0;
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+}
+
+/* The models, and the switches that turn them on. */
+
+.machineOptions {
+  border-top: 1px solid var(--hairline);
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+}
+
+.machineOptions label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  cursor: pointer;
+}
+
+.machineScrub {
+  flex: 1 1 12rem;
+  min-width: 8rem;
+  margin-left: auto;
+  accent-color: var(--teal);
+}
+
+.machineTabs {
+  display: inline-flex;
+  gap: 0.15rem;
+}
+
+.machineTabs button {
+  font: inherit;
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
+  padding: 0.1rem 0.4rem;
+  border: 1px solid transparent;
+  background: none;
+  color: var(--ink-faint);
+  cursor: pointer;
+}
+
+.machineTabs button[data-on="true"] {
+  border-color: var(--hairline);
+  background: var(--paper-lift);
+  color: var(--ink);
+}
+
+.machineNotes {
+  border-top: 1px dashed var(--hairline);
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.62rem;
+  color: var(--teal);
+}
+
+.machineStat {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.9rem;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.66rem;
+  color: var(--ink-soft);
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.4rem;
+  border-bottom: 1px solid var(--hairline);
+}
+
+/* The heat bar sits behind its row rather than beside it, so a long line of
+   assembly is never pushed off the edge by the bar. */
+.machineHeat {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: color-mix(in srgb, var(--alarm) 16%, transparent);
+  pointer-events: none;
+}
+
+.machineList > div {
+  position: relative;
+}
+
+.machineCache {
+  display: grid;
+  grid-template-columns: repeat(var(--ways), minmax(0, 1fr));
+  gap: 2px;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.58rem;
+}
+
+.machineCache > span {
+  padding: 0.2rem 0.1rem;
+  text-align: center;
+  border: 1px solid var(--hairline);
+  color: var(--ink-faint);
+  background: var(--paper);
+}
+
+.machineCache > span[data-valid="true"] {
+  color: var(--ink);
+  background: var(--paper-lift);
+}
+
+.machineCache > span[data-dirty="true"] {
+  border-color: var(--teal);
+}
+
+.machineCache > span[data-last="true"] {
+  outline: 2px solid var(--alarm);
+  outline-offset: -2px;
+}
+
 /* ---- btop ---------------------------------------------------------------- */
 
 .monitor {

@@ -16,24 +16,37 @@ export default function OfflineReady() {
 
     let alive = true;
     setState("caching");
+
+    // Nothing here is allowed to leave the note on screen for ever. A worker
+    // that is already waiting fires neither branch below, and a slow install
+    // fires them late, so a plain deadline hides the note either way.
+    const giveUp = setTimeout(() => alive && setState("idle"), 12_000);
+    let fade: ReturnType<typeof setTimeout> | undefined;
+
     navigator.serviceWorker
       .register("/sw.js")
       .then((registration) => {
         const done = () => {
           if (!alive) return;
+          clearTimeout(giveUp);
           setState("ready");
           window.localStorage.setItem("offline.told", "yes");
-          setTimeout(() => alive && setState("idle"), 6000);
+          fade = setTimeout(() => alive && setState("idle"), 4000);
         };
         if (registration.active) return done();
-        registration.installing?.addEventListener("statechange", function () {
-          if (this.state === "activated") done();
-        });
+        (registration.installing ?? registration.waiting)?.addEventListener(
+          "statechange",
+          function () {
+            if (this.state === "activated") done();
+          },
+        );
       })
       .catch(() => alive && setState("idle"));
 
     return () => {
       alive = false;
+      clearTimeout(giveUp);
+      clearTimeout(fade);
     };
   }, []);
 

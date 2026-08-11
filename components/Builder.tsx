@@ -5,13 +5,18 @@ import CircuitView from "./CircuitView";
 import TruthTable from "./TruthTable";
 import { snapshot, useLogicCore } from "@/lib/live";
 import { KIND_BLURB, PALETTE, kindIndex, type GateKind } from "@/lib/kinds";
+import { markDiagram, type DiagramTask, type Mark } from "@/lib/diagramMark";
 import type { WasmCircuit } from "@/lib/wasm/logicCore.js";
 import type { CircuitData } from "@/lib/types";
 
 type Armed = { side: "out" | "in"; nodeId: number; pin: number } | null;
 
-export default function Builder() {
+/** With a task, the canvas becomes an exam question: the same editor, plus a
+ *  marker that compares what was drawn against a model built from the
+ *  expression. Without one, it is the open builder it has always been. */
+export default function Builder({ task }: { task?: DiagramTask } = {}) {
   const core = useLogicCore();
+  const [mark, setMark] = useState<Mark | null>(null);
   const circuit = useRef<WasmCircuit | null>(null);
   const [data, setData] = useState<CircuitData | null>(null);
   const [selected, setSelected] = useState<number | null>(null);
@@ -37,6 +42,16 @@ export default function Builder() {
     if (!core || circuit.current) return;
     const c = new core.Circuit();
     circuit.current = c;
+    if (task) {
+      // A question starts with its inputs placed and nothing else: giving the
+      // student a working AND gate would be giving away most of the answer.
+      for (const name of task.inputs) c.addNode(kindIndex("INPUT"), name);
+      c.addNode(kindIndex("OUTPUT"), "Q");
+      const laid = JSON.parse(c.geometry(0));
+      for (const n of laid.nodes) c.setPosition(n.id, n.x, n.y);
+      setData(snapshot(c, "Your diagram"));
+      return;
+    }
     // A starter circuit, so the canvas is never a blank stare.
     const a = c.addNode(kindIndex("INPUT"), "A");
     const b = c.addNode(kindIndex("INPUT"), "B");
@@ -48,7 +63,7 @@ export default function Builder() {
     const geo = JSON.parse(c.geometry(0));
     for (const n of geo.nodes) c.setPosition(n.id, n.x, n.y);
     setData(snapshot(c, "Your circuit"));
-  }, [core]);
+  }, [core, task]);
 
   const nextLabel = (kind: GateKind) => {
     const c = circuit.current;
@@ -132,6 +147,23 @@ export default function Builder() {
     setArmed({ side, nodeId, pin });
   };
 
+  /** Builds the model answer from the task's expression and compares. The model
+   *  is built here rather than stored, so the mark scheme cannot drift away
+   *  from the expression the question states. */
+  const markIt = () => {
+    const c = circuit.current;
+    if (!c || !core || !task || !data) return;
+    const model = new core.Circuit();
+    const error = core.buildFromExpression(model, task.expression);
+    if (error) {
+      setMessage(`the model answer would not build: ${error}`);
+      model.delete();
+      return;
+    }
+    setMark(markDiagram(task, data, snapshot(model, "model")));
+    model.delete();
+  };
+
   const move = (id: number, x: number, y: number) => {
     const c = circuit.current;
     if (!c) return;
@@ -149,6 +181,15 @@ export default function Builder() {
 
   return (
     <>
+      {task && (
+        <div className="callout">
+          <div className="calloutHead">
+            Question — {task.marks} mark{task.marks === 1 ? "" : "s"}
+          </div>
+          <p style={{ margin: 0 }}>{task.prompt}</p>
+        </div>
+      )}
+
       <div className="builderShell">
         <div className="paletteCol">
           <div className="navHead" style={{ marginBottom: "0.4rem" }}>
@@ -178,6 +219,16 @@ export default function Builder() {
           <button className="paletteBtn" onClick={clearAll}>
             Clear all
           </button>
+          {task && (
+            <>
+              <div className="navHead" style={{ margin: "1rem 0 0.4rem" }}>
+                Answer
+              </div>
+              <button className="paletteBtn" onClick={markIt}>
+                Mark it
+              </button>
+            </>
+          )}
         </div>
 
         <div className="canvasWrap">
@@ -211,6 +262,29 @@ export default function Builder() {
         {armed && " — armed, now click the other end"}
         {message && ` — ${message}`}
       </p>
+
+      {mark && (
+        <div className="markSheet" data-full={mark.awarded === mark.outOf}>
+          <div className="markScore">
+            {mark.awarded} / {mark.outOf}
+          </div>
+          <ul className="markPoints">
+            {mark.points.map((p, i) => (
+              <li key={i} data-got={p.got}>
+                {p.got ? "✓" : "✗"} {p.text}
+              </li>
+            ))}
+          </ul>
+          {mark.notes.map((n, i) => (
+            <p key={i} className="markNote">
+              {n}
+            </p>
+          ))}
+          {mark.awarded === mark.outOf && task?.modelNote && (
+            <p className="markNote">{task.modelNote}</p>
+          )}
+        </div>
+      )}
 
       {data && data.truthTable.rows.length > 0 && (
         <>

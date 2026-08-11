@@ -1,5 +1,6 @@
 // Execution: the architectural effect of each instruction, and the
 // register transfers a control unit would sequence to produce it.
+#include <algorithm>
 #include <cstdio>
 
 #include "x86.hpp"
@@ -50,8 +51,209 @@ uint64_t Machine::read(uint64_t address, uint8_t width) const {
 
 void Machine::write(uint64_t address, uint8_t width, uint64_t value) {
   for (uint8_t i = 0; i < width; i++) {
-    if (address + i < memory.size()) memory[address + i] = static_cast<uint8_t>(value >> (8 * i));
+    if (address + i >= memory.size()) continue;
+    if (capture) capture->push_back({static_cast<uint32_t>(address + i), memory[address + i]});
+    memory[address + i] = static_cast<uint8_t>(value >> (8 * i));
   }
+}
+
+void Machine::forgetHistory() { history.clear(); }
+
+bool Machine::undo() {
+  if (history.empty()) return false;
+  const Undo u = std::move(history.back());
+  history.pop_back();
+
+  // Backwards, so that two writes to the same byte in one instruction restore
+  // the earlier value and not the later one.
+  for (auto it = u.memory.rbegin(); it != u.memory.rend(); ++it) memory[it->first] = it->second;
+
+  regs = u.regs;
+  rip = u.rip;
+  flags = u.flags;
+  output.resize(u.outputLength);
+  halted = u.wasHalted;
+  fault.clear();
+  if (instructionsRun) instructionsRun--;
+  cyclesRun -= std::min<uint64_t>(cyclesRun, u.cycles);
+
+  auto count = profileCount.find(u.address);
+  if (count != profileCount.end() && count->second) count->second--;
+  auto cycles = profileCycles.find(u.address);
+  if (cycles != profileCycles.end()) cycles->second -= std::min<uint64_t>(cycles->second, u.cycles);
+  return true;
+}
+
+// ------------------------------------------------------------------- caches
+
+void Cache::configure(int newSets, int newWays, int newLineBytes) {
+  sets = newSets < 1 ? 1 : newSets;
+  ways = newWays < 1 ? 1 : newWays;
+  lineBytes = newLineBytes < 1 ? 1 : newLineBytes;
+  clear();
+}
+
+void Cache::clear() {
+  lines.assign(static_cast<size_t>(sets) * static_cast<size_t>(ways), Line{});
+  hits = misses = evictions = clock = 0;
+  lastLine = -1;
+  lastHit = false;
+}
+
+bool Cache::access(uint64_t address, bool write) {
+  if (!enabled) return true;
+  if (lines.size() != static_cast<size_t>(sets) * static_cast<size_t>(ways)) clear();
+
+  clock++;
+  const uint64_t block = address / static_cast<uint64_t>(lineBytes);
+  const size_t set = static_cast<size_t>(block % static_cast<uint64_t>(sets));
+  const uint64_t tag = block / static_cast<uint64_t>(sets);
+  const size_t base = set * static_cast<size_t>(ways);
+
+  for (size_t w = 0; w < static_cast<size_t>(ways); w++) {
+    Line& line = lines[base + w];
+    if (line.valid && line.tag == tag) {
+      line.used = clock;
+      if (write) line.dirty = true;
+      hits++;
+      lastLine = static_cast<int>(base + w);
+      lastHit = true;
+      return true;
+    }
+  }
+
+  // A miss: fill the first empty way, or evict the one used longest ago.
+  size_t victim = base;
+  for (size_t w = 0; w < static_cast<size_t>(ways); w++) {
+    if (!lines[base + w].valid) {
+      victim = base + w;
+      break;
+    }
+    if (lines[base + w].used < lines[victim].used) victim = base + w;
+  }
+  if (lines[victim].valid) evictions++;
+  lines[victim] = Line{true, tag, block, clock, write};
+  misses++;
+  lastLine = static_cast<int>(victim);
+  lastHit = false;
+  return false;
+}
+
+// ------------------------------------------------------------------ pipeline
+
+void Pipeline::clear() {
+  cycles = issued = stallCycles = flushCycles = missCycles = 0;
+  wrote[0] = wrote[1] = -1;
+  wasLoad[0] = wasLoad[1] = false;
+  recent.clear();
+}
+
+namespace {
+
+/** Which register an instruction writes, or -1. Only register destinations
+ *  count: a store to memory cannot be forwarded to a later register read. */
+int destinationOf(const Instruction& in) {
+  switch (in.op) {
+    case Op::Cmp: case Op::Test: case Op::Jmp: case Op::Jcc: case Op::Nop:
+    case Op::Hlt: case Op::Push: case Op::Ret: case Op::Syscall:
+      return -1;
+    default:
+      break;
+  }
+  if (in.dst.kind == OperandKind::Register) return static_cast<int>(in.dst.reg);
+  return -1;
+}
+
+/** Every register an instruction reads, including the ones an address is built
+ *  from — the address adder needs them just as much as the ALU does. */
+void sourcesOf(const Instruction& in, int out[4], int& count) {
+  count = 0;
+  auto add = [&](int r) {
+    if (r < 0 || count >= 4) return;
+    for (int i = 0; i < count; i++) {
+      if (out[i] == r) return;
+    }
+    out[count++] = r;
+  };
+  for (const Operand* o : {&in.dst, &in.src}) {
+    if (o->kind == OperandKind::Memory) {
+      if (o->reg != REG_COUNT && !o->ripRelative) add(static_cast<int>(o->reg));
+      if (o->index != REG_COUNT) add(static_cast<int>(o->index));
+    }
+  }
+  // A destination register is also a source unless it is written whole.
+  const bool readsDestination = in.op != Op::Mov && in.op != Op::Lea && in.op != Op::Pop &&
+                                in.op != Op::Movzx && in.op != Op::Movsx;
+  if (in.dst.kind == OperandKind::Register && readsDestination) add(static_cast<int>(in.dst.reg));
+  if (in.src.kind == OperandKind::Register) add(static_cast<int>(in.src.reg));
+}
+
+bool isLoad(const Instruction& in) {
+  return in.src.kind == OperandKind::Memory || in.op == Op::Pop;
+}
+
+}  // namespace
+
+void Pipeline::observe(const Instruction& in, bool branchTaken, int missPenalty) {
+  if (!enabled) return;
+
+  int sources[4];
+  int count = 0;
+  sourcesOf(in, sources, count);
+
+  int stall = 0;
+  std::string why;
+  for (int i = 0; i < count; i++) {
+    for (int back = 0; back < 2; back++) {
+      if (wrote[back] != sources[i]) continue;
+      // Distance 1 is the instruction immediately before, distance 2 the one
+      // before that. Forwarding removes both except after a load, whose value
+      // does not exist until the memory stage.
+      int need = 0;
+      if (forwarding) {
+        need = (back == 0 && wasLoad[0]) ? 1 : 0;
+      } else {
+        need = back == 0 ? 2 : 1;
+      }
+      if (need > stall) {
+        stall = need;
+        why = std::string(regName(static_cast<Reg>(sources[i]), 8)) + " is not ready yet" +
+              (forwarding ? " — the load has not reached memory" : " — no forwarding");
+      }
+    }
+  }
+
+  int flush = 0;
+  if (in.op == Op::Jcc && branchTaken != predictTaken) {
+    flush = 2;
+    why = branchTaken ? "branch taken, prediction was not-taken" : "branch not taken, predicted taken";
+  } else if (in.op == Op::Jmp || in.op == Op::Call || in.op == Op::Ret) {
+    flush = 1;
+    why = "the next address is not known until this executes";
+  }
+
+  const int miss = missPenalty;
+
+  Slot slot;
+  slot.address = in.address;
+  slot.text = in.text;
+  slot.start = static_cast<int>(cycles);
+  slot.stall = stall + flush + miss;
+  slot.flushed = flush > 0;
+  slot.why = why;
+  recent.push_back(slot);
+  while (recent.size() > recentLimit) recent.pop_front();
+
+  cycles += 1 + stall + flush + miss;
+  issued++;
+  stallCycles += stall;
+  flushCycles += flush;
+  missCycles += miss;
+
+  wrote[1] = wrote[0];
+  wasLoad[1] = wasLoad[0];
+  wrote[0] = destinationOf(in);
+  wasLoad[0] = isLoad(in);
 }
 
 namespace {
@@ -105,6 +307,9 @@ namespace {
 struct Executor {
   Machine& m;
   std::vector<MicroStep>* trace;
+  /** True once any data access missed the cache, so the pipeline can be
+   *  charged for it once rather than per byte. */
+  bool dataMissed = false;
 
   void note(Micro kind, const std::string& transfer, uint32_t lines) {
     if (trace) trace->push_back({kind, transfer, lines});
@@ -147,6 +352,7 @@ struct Executor {
       }
       case OperandKind::Memory: {
         const uint64_t address = effectiveAddress(o);
+        if (!m.cache.access(address, false)) dataMissed = true;
         const uint64_t v = m.read(address, width);
         note(Micro::ReadMemory, "MDR <- mem[" + hex(address) + "]  = " + dec(signExtend(v, width)),
              MEM_READ | MDR_IN);
@@ -173,6 +379,7 @@ struct Executor {
            std::string(regName(o.reg, width)) + " <- " + dec(signExtend(value, width)), REG_IN);
     } else if (o.kind == OperandKind::Memory) {
       const uint64_t address = effectiveAddress(o);
+      if (!m.cache.access(address, true)) dataMissed = true;
       m.write(address, width, value);
       note(Micro::WriteMemory, "mem[" + hex(address) + "] <- " + dec(signExtend(value, width)),
            MEM_WRITE | MDR_OUT);
@@ -228,12 +435,14 @@ struct Executor {
 
   void push(uint64_t value) {
     m.regs[RSP] -= 8;
+    if (!m.cache.access(m.regs[RSP], true)) dataMissed = true;
     note(Micro::PushRsp, "rsp <- rsp - 8  = " + hex(m.regs[RSP]), ALU_SUB | REG_IN);
     m.write(m.regs[RSP], 8, value);
     note(Micro::WriteMemory, "mem[rsp] <- " + dec(static_cast<int64_t>(value)), MEM_WRITE | MDR_OUT);
   }
 
   uint64_t pop() {
+    if (!m.cache.access(m.regs[RSP], false)) dataMissed = true;
     const uint64_t value = m.read(m.regs[RSP], 8);
     note(Micro::ReadMemory, "MDR <- mem[rsp]  = " + dec(static_cast<int64_t>(value)),
          MEM_READ | MDR_IN);
@@ -253,6 +462,22 @@ std::vector<MicroStep> Machine::step() {
   // every relative branch target relative to the start of the window instead
   // of to the instruction, which is a silent and very confusing wrong answer.
   const Instruction in = decode(memory, rip);
+  const uint64_t startedAt = rip;
+
+  Undo undoRecord;
+  if (recording) {
+    undoRecord.regs = regs;
+    undoRecord.rip = rip;
+    undoRecord.flags = flags;
+    undoRecord.outputLength = static_cast<uint32_t>(output.size());
+    undoRecord.address = startedAt;
+    undoRecord.wasHalted = halted;
+    capture = &undoRecord.memory;
+  }
+
+  // The fetch is a memory access like any other, and counting it is the reason
+  // a tight loop shows a high hit rate: the same line is read over and over.
+  bool missed = !cache.access(rip, false);
 
   // Fetch: the bytes come from memory one at a time, and recording each one is
   // what makes the cycle visible.
@@ -476,6 +701,19 @@ std::vector<MicroStep> Machine::step() {
 
   instructionsRun++;
   cyclesRun += trace.size();
+  profileCount[startedAt]++;
+  profileCycles[startedAt] += trace.size();
+
+  if (ex.dataMissed) missed = true;
+  pipeline.observe(in, in.op == Op::Jcc && rip == static_cast<uint64_t>(in.dst.immediate),
+                   missed ? cache.missPenalty : 0);
+
+  if (recording) {
+    capture = nullptr;
+    undoRecord.cycles = static_cast<uint32_t>(trace.size());
+    history.push_back(std::move(undoRecord));
+    while (history.size() > historyLimit) history.pop_front();
+  }
   return trace;
 }
 

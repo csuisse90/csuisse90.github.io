@@ -978,10 +978,193 @@ struct Generator {
   }
 };
 
+// ------------------------------------------------------------- optimisation
+
+/** Constant folding, on the tree, before any code exists. Nothing about
+ *  `2 * 3` needs to survive to run time, and folding it here is why the
+ *  intermediate code shrinks too rather than only the assembly. Returns how
+ *  many folds it made, so the UI can say what it did. */
+int fold(Node& n, std::vector<std::string>& notes) {
+  int folds = 0;
+  for (auto& child : n.children) folds += fold(*child, notes);
+
+  auto isNum = [](const Node& c) { return c.kind == "num"; };
+
+  if (n.kind == "unary" && n.text == "-" && n.children.size() == 1 && isNum(*n.children[0])) {
+    notes.push_back("folded -" + std::to_string(n.children[0]->value));
+    n.kind = "num";
+    n.value = -n.children[0]->value;
+    n.text.clear();
+    n.children.clear();
+    return folds + 1;
+  }
+
+  if (n.kind != "binary" || n.children.size() != 2) return folds;
+  if (!isNum(*n.children[0]) || !isNum(*n.children[1])) return folds;
+
+  const long long a = n.children[0]->value;
+  const long long b = n.children[1]->value;
+  long long value = 0;
+  if (n.text == "+") value = a + b;
+  else if (n.text == "-") value = a - b;
+  else if (n.text == "*") value = a * b;
+  else if ((n.text == "//" || n.text == "%") && b != 0) {
+    // Python floors; C++ truncates. Getting this wrong would make the
+    // optimised program disagree with the unoptimised one, which is the one
+    // thing an optimiser may never do.
+    long long q = a / b;
+    long long r = a % b;
+    if (r != 0 && ((r < 0) != (b < 0))) {
+      q -= 1;
+      r += b;
+    }
+    value = n.text == "//" ? q : r;
+  } else {
+    return folds;
+  }
+
+  notes.push_back("folded " + std::to_string(a) + " " + n.text + " " + std::to_string(b) + " = " +
+                  std::to_string(value));
+  n.kind = "num";
+  n.value = value;
+  n.text.clear();
+  n.children.clear();
+  return folds + 1;
+}
+
+std::string trimmed(const std::string& s) {
+  size_t a = s.find_first_not_of(" \t");
+  if (a == std::string::npos) return "";
+  size_t b = s.find_last_not_of(" \t");
+  return s.substr(a, b - a + 1);
+}
+
+bool writesRax(const std::string& t) {
+  if (t.rfind("pop rax", 0) == 0) return true;
+  if (t.rfind("call", 0) == 0) return true;   // the return value arrives in rax
+  const size_t comma = t.find(',');
+  if (comma == std::string::npos) return false;
+  const std::string destination = trimmed(t.substr(0, comma));
+  return destination.size() > 4 && destination.substr(destination.size() - 4) == " rax";
+}
+
+bool isControl(const std::string& t) {
+  return t.empty() || t.back() == ':' || t.rfind("j", 0) == 0 || t.rfind("call", 0) == 0 ||
+         t.rfind("ret", 0) == 0 || t.rfind("leave", 0) == 0 || t.rfind("hlt", 0) == 0;
+}
+
+/** A peephole optimiser: it looks at two or three neighbouring instructions and
+ *  rewrites them when the pair is silly. Every rule here removes work the code
+ *  generator created because it generates each expression in isolation — which
+ *  is exactly why real compilers have this pass. */
+int peephole(std::string& assembly, std::vector<int>& map, std::vector<std::string>& notes) {
+  std::vector<std::string> lines;
+  std::string current;
+  for (char c : assembly) {
+    if (c == '\n') {
+      lines.push_back(current);
+      current.clear();
+    } else {
+      current += c;
+    }
+  }
+  map.resize(lines.size(), 0);
+
+  std::vector<bool> dead(lines.size(), false);
+  int changes = 0;
+  auto text = [&](size_t i) { return trimmed(lines[i]); };
+  auto next = [&](size_t i) -> size_t {
+    for (size_t j = i + 1; j < lines.size(); j++) {
+      if (!dead[j] && !text(j).empty()) return j;
+    }
+    return lines.size();
+  };
+
+  for (size_t i = 0; i < lines.size(); i++) {
+    if (dead[i]) continue;
+    const std::string a = text(i);
+
+    // mov rax, X / mov rcx, rax / pop rax  ->  mov rcx, X / pop rax.
+    // The pop proves rax is dead, so the value never needed to go there.
+    if (a.rfind("mov rax, ", 0) == 0 && a.find("rcx") == std::string::npos) {
+      const size_t j = next(i);
+      const size_t k = j < lines.size() ? next(j) : lines.size();
+      if (k < lines.size() && text(j) == "mov rcx, rax" && text(k) == "pop rax") {
+        lines[j] = "  mov rcx, " + a.substr(9);
+        dead[i] = true;
+        notes.push_back("dropped a round trip through rax: " + lines[j].substr(2));
+        changes++;
+        continue;
+      }
+    }
+
+    // push rax / <a few instructions that leave rax alone> / pop rax.
+    // Saving a register and restoring it unchanged is pure cost.
+    if (a == "push rax") {
+      size_t j = next(i);
+      bool safe = true;
+      int span = 0;
+      while (j < lines.size() && span < 4) {
+        const std::string t = text(j);
+        if (t == "pop rax") break;
+        if (isControl(t) || writesRax(t) || t.rfind("push", 0) == 0 || t.rfind("pop", 0) == 0) {
+          safe = false;
+          break;
+        }
+        j = next(j);
+        span++;
+      }
+      if (safe && j < lines.size() && text(j) == "pop rax") {
+        dead[i] = true;
+        dead[j] = true;
+        notes.push_back("removed a push/pop pair that saved rax over nothing");
+        changes++;
+        continue;
+      }
+    }
+
+    // mov [rbp - k], rax / mov rax, [rbp - k]: the value is already there.
+    if (a.rfind("mov [rbp", 0) == 0 && a.size() > 7 && a.substr(a.size() - 5) == ", rax") {
+      const std::string slot = a.substr(4, a.size() - 9);
+      const size_t j = next(i);
+      if (j < lines.size() && text(j) == "mov rax, " + slot) {
+        dead[j] = true;
+        notes.push_back("dropped a reload of " + slot + ", which rax already held");
+        changes++;
+        continue;
+      }
+    }
+
+    // A jump to the very next line.
+    if (a.rfind("jmp ", 0) == 0) {
+      const size_t j = next(i);
+      if (j < lines.size() && text(j) == a.substr(4) + ":") {
+        dead[i] = true;
+        notes.push_back("removed a jump to the following line");
+        changes++;
+      }
+    }
+  }
+
+  if (!changes) return 0;
+  std::string rebuilt;
+  std::vector<int> rebuiltMap;
+  for (size_t i = 0; i < lines.size(); i++) {
+    if (dead[i]) continue;
+    rebuilt += lines[i];
+    rebuilt += "\n";
+    rebuiltMap.push_back(i < map.size() ? map[i] : 0);
+  }
+  assembly = rebuilt;
+  map = rebuiltMap;
+  return changes;
+}
+
 }  // namespace
 
-Compiled compile(const std::string& source) {
+Compiled compile(const std::string& source, int optLevel) {
   Compiled out;
+  out.optLevel = optLevel;
   try {
     out.tokens = lex(source);
 
@@ -997,6 +1180,7 @@ Compiled compile(const std::string& source) {
       }
       program->children.push_back(parser.parseStatement());
     }
+    if (optLevel >= 1) fold(*program, out.optimisations);
     render(*program, out.tree, 0);
 
     // Functions first, so a call can be checked against a name that exists.
@@ -1090,6 +1274,8 @@ Compiled compile(const std::string& source) {
       add("  ret", child->line);
       g.strings = f.strings;
     }
+
+    if (optLevel >= 1) peephole(out.assembly, out.assemblyToSource, out.optimisations);
 
     // The runtime: printing and allocation, written once in assembly.
     out.assembly += R"(

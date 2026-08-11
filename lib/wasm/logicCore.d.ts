@@ -80,28 +80,8 @@ export type LogicCore = {
   spriteGeometry(): string;
   buildFromExpression(circuit: WasmCircuit, src: string): string;
 
-  /** The vertical machine: Python down to gates. Each returns JSON. */
-  compilePython(source: string): string;
-  assembleX86(source: string): string;
-  /** The bytes are base64: raw binary in a string is mangled by UTF-8. */
-  disassembleAt(base64: string, at: number): string;
-  aluDescribe(width: number): string;
-  aluEvaluate(width: number, a: number, b: number, op: number): string;
-  Cpu: new () => WasmCpu;
 };
 
-export type WasmCpu = {
-  /** Base64, not raw bytes. */
-  loadBytes(base64: string, at: number): void;
-  reset(entry: number, stack: number): void;
-  /** JSON: { micro: [{ transfer, lines }] } */
-  step(): string;
-  run(budget: number): void;
-  /** JSON: registers, rip, flags, halted, fault, output, counts. */
-  state(): string;
-  memory(at: number, count: number): string;
-  delete(): void;
-};
 
 declare const createLogicCore: (opts?: unknown) => Promise<LogicCore>;
 export default createLogicCore;

@@ -27,6 +27,10 @@ const COMMANDS = [
   "uname -a",
   "df",
   "ps",
+  "cc hello.py",
+  "run a.out",
+  "smash",
+  "smash --safe",
 ];
 
 type Report = {
@@ -35,6 +39,7 @@ type Report = {
   consoleErrors: string[];
   termErrors: { command: string; text: string }[];
   otherPageErrors: { path: string; error: string }[];
+  checks: { name: string; ok: boolean; detail: string }[];
 };
 
 const ENGINES: Record<string, () => Promise<Browser>> = {
@@ -44,7 +49,14 @@ const ENGINES: Record<string, () => Promise<Browser>> = {
 };
 
 async function checkTerminal(engine: string, browser: Browser): Promise<Report> {
-  const report: Report = { engine, pageErrors: [], consoleErrors: [], termErrors: [], otherPageErrors: [] };
+  const report: Report = {
+    engine,
+    pageErrors: [],
+    consoleErrors: [],
+    termErrors: [],
+    otherPageErrors: [],
+    checks: [],
+  };
   const page = await browser.newPage();
 
   page.on("pageerror", (err) => report.pageErrors.push(err.stack ?? String(err)));
@@ -92,7 +104,81 @@ async function checkTerminal(engine: string, browser: Browser): Promise<Report> 
     await p.close();
   }
 
+  await checkMachine(browser, report);
+  await checkDiagrams(browser, report);
+
   return report;
+}
+
+/** The machine page, driven the way a reader would drive it: step, step back,
+ *  run to the end, and look at each model. Every one of these goes through the
+ *  worker, so a worker that failed to start shows up here rather than as a
+ *  page that quietly never fills in. */
+async function checkMachine(browser: Browser, report: Report) {
+  const page = await browser.newPage();
+  page.on("pageerror", (err) => report.otherPageErrors.push({ path: "/machine/", error: err.stack ?? String(err) }));
+
+  const note = (name: string, ok: boolean, detail = "") => report.checks.push({ name, ok, detail });
+
+  await page.goto(`${BASE}/machine/`, { waitUntil: "networkidle" });
+  await page.waitForSelector(".machineGrid", { timeout: 60_000 });
+  // The first compile happens on load; wait for the assembly pane to fill.
+  await page.waitForFunction(
+    () => (document.querySelectorAll(".machineList > div").length ?? 0) > 5,
+    undefined,
+    { timeout: 60_000 },
+  );
+
+  const counter = () =>
+    page.locator(".machineCount").first().textContent().then((t) => t ?? "");
+
+  await page.getByRole("button", { name: "Step an instruction ▶" }).click();
+  await page.waitForFunction(() => /\b1 instructions/.test(document.querySelector(".machineCount")?.textContent ?? ""), undefined, { timeout: 30_000 });
+  note("machine: one step", true, await counter());
+
+  await page.getByRole("button", { name: "◀ Back one" }).click();
+  await page.waitForFunction(() => /\b0 instructions/.test(document.querySelector(".machineCount")?.textContent ?? ""), undefined, { timeout: 30_000 });
+  note("machine: steps backwards", true, await counter());
+
+  await page.getByRole("button", { name: "To the end" }).click();
+  await page.waitForFunction(
+    () => (document.querySelector(".machineOutput")?.textContent ?? "").trim() === "55",
+    undefined,
+    { timeout: 60_000 },
+  );
+  note("machine: runs in the worker and prints 55", true, await counter());
+
+  for (const tab of ["profile", "cache", "pipeline"]) {
+    await page.locator(`.machineTabs button:text-is("${tab}")`).click();
+    // The pane that owns the tabs, not the last pane on the page — that one is
+    // the output, and it is filled whatever tab is showing.
+    const filled = await page
+      .locator(".machinePane:has(.machineTabs)")
+      .textContent()
+      .then((t) => (t ?? "").length > 60);
+    note(`machine: the ${tab} view has something in it`, filled);
+  }
+
+  await page.close();
+}
+
+/** A diagram question, answered wrongly on purpose: the empty canvas must be
+ *  marked, and must not score full marks. */
+async function checkDiagrams(browser: Browser, report: Report) {
+  const page = await browser.newPage();
+  page.on("pageerror", (err) => report.otherPageErrors.push({ path: "/diagrams/", error: err.stack ?? String(err) }));
+
+  await page.goto(`${BASE}/diagrams/`, { waitUntil: "networkidle" });
+  await page.waitForSelector(".builderShell", { timeout: 60_000 });
+  await page.getByRole("button", { name: "Mark it" }).click();
+  await page.waitForSelector(".markSheet", { timeout: 30_000 });
+  const score = (await page.locator(".markScore").textContent()) ?? "";
+  report.checks.push({
+    name: "diagrams: an unfinished answer is marked and does not get full marks",
+    ok: /\/ 4$/.test(score.trim()) && !score.trim().startsWith("4"),
+    detail: score.trim(),
+  });
+  await page.close();
 }
 
 async function main() {
@@ -119,6 +205,10 @@ async function main() {
   let failed = false;
   for (const r of reports) {
     console.log(`\n----- ${r.engine} -----`);
+    for (const c of r.checks) {
+      console.log(`${c.ok ? "ok  " : "FAIL"} ${c.name}${c.detail ? `  — ${c.detail}` : ""}`);
+      if (!c.ok) failed = true;
+    }
     if (!r.pageErrors.length && !r.consoleErrors.length && !r.termErrors.length && !r.otherPageErrors.length) {
       console.log("clean: no page errors, console errors, or terminal `err` lines");
       continue;

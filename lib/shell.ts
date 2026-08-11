@@ -707,6 +707,120 @@ export const COMMANDS: Command[] = [
     },
   },
   {
+    name: "cc",
+    summary: "compile Python to x86-64 machine code",
+    usage: "cc [-O0|-O1] [-S] <file.py>   writes <file>.s and a.out",
+    async run(args, ctx) {
+      const { flags, rest } = parse(args.filter((a) => a !== "-O0" && a !== "-O1"));
+      const optLevel = args.includes("-O1") ? 1 : 0;
+      const path = rest[0];
+      if (!path) return ctx.print("cc: give it a .py file", "err");
+      if (!ctx.fs.exists(path)) return ctx.print(`cc: ${path}: no such file`, "err");
+
+      // Loaded on demand: the compiler is a separate wasm module, and a reader
+      // who never types `cc` should never download it.
+      const { machineClient } = await import("./machine");
+      const client = machineClient();
+
+      const compiled = await client.compile(ctx.fs.read(path), optLevel);
+      if (!compiled.ok) return ctx.print(`cc: ${compiled.error}`, "err");
+      for (const note of compiled.optimisations) ctx.print(`  -O1: ${note}`, "note");
+
+      const base = path.replace(/\.py$/, "");
+      ctx.fs.write(`${base}.s`, compiled.assembly, now());
+      if (flags.has("S")) {
+        ctx.print(`wrote ${base}.s — assembly only, as asked`);
+        return;
+      }
+
+      const assembled = await client.assemble(compiled.assembly);
+      if (assembled.error) return ctx.print(`cc: ${assembled.error}`, "err");
+
+      let binary = "";
+      for (const b of assembled.bytes) binary += String.fromCharCode(b);
+      ctx.fs.write(
+        "a.out",
+        JSON.stringify({ entry: assembled.labels.main ?? 0, bytes: btoa(binary) }),
+        now(),
+      );
+      ctx.print(
+        `wrote ${base}.s and a.out — ${assembled.bytes.length} bytes of machine code, ` +
+          `${assembled.lines.length} instructions`,
+      );
+      ctx.print("run it with: run a.out", "note");
+    },
+  },
+  {
+    name: "run",
+    summary: "run a compiled a.out on the x86-64 core",
+    usage: "run [a.out]",
+    async run(args, ctx) {
+      const path = args[0] ?? "a.out";
+      if (!ctx.fs.exists(path)) {
+        return ctx.print(`run: ${path}: no such file — compile something with cc first`, "err");
+      }
+      let image: { entry: number; bytes: string };
+      try {
+        image = JSON.parse(ctx.fs.read(path));
+        if (typeof image.bytes !== "string") throw new Error("no bytes");
+      } catch {
+        return ctx.print(`run: ${path} is not a program this can run`, "err");
+      }
+
+      const { machineClient } = await import("./machine");
+      const client = machineClient();
+      const bytes = Array.from(atob(image.bytes), (c) => c.charCodeAt(0));
+      await client.load(bytes, image.entry, 0x7000);
+      const result = await client.run(20_000_000, undefined);
+
+      for (const line of result.state.output.split("\n")) {
+        if (line !== "" || result.state.output.endsWith("\n")) ctx.print(line);
+      }
+      if (result.state.fault) ctx.print(`run: ${result.state.fault}`, "err");
+      ctx.print(
+        `[${result.state.instructions.toLocaleString()} instructions, ` +
+          `${result.state.cycles.toLocaleString()} register transfers]`,
+        "note",
+      );
+    },
+  },
+  {
+    name: "smash",
+    summary: "overflow a buffer on the real processor and watch it happen",
+    usage: "smash [--safe]",
+    async run(args, ctx) {
+      const safe = args.includes("--safe");
+      const { machineClient } = await import("./machine");
+      const { SMASH_SOURCE, SAFE_SOURCE } = await import("./smash");
+      const client = machineClient();
+
+      const assembled = await client.assemble(safe ? SAFE_SOURCE : SMASH_SOURCE);
+      if (assembled.error) return ctx.print(`smash: ${assembled.error}`, "err");
+
+      const owned = assembled.labels.owned ?? 0;
+      const bytes = Array.from(assembled.bytes);
+      await client.load(bytes, assembled.labels.main ?? 0, 0x7000);
+      const result = await client.run(100_000, undefined);
+
+      ctx.print(
+        safe
+          ? "copying 8 bytes into an 8-byte buffer:"
+          : "copying 24 bytes into an 8-byte buffer:",
+        "note",
+      );
+      for (const line of result.state.output.split("\n")) if (line) ctx.print(line);
+      ctx.print("", "out");
+      ctx.print(
+        safe
+          ? "The return address was never touched, so greet returned to main."
+          : `The last eight bytes of the copy landed on greet's saved return address, ` +
+            `so ret jumped to owned() at 0x${owned.toString(16)}.`,
+        "note",
+      );
+      if (!safe) ctx.print("Try `smash --safe` to see the same program with a correct bound.", "note");
+    },
+  },
+  {
     name: "reset",
     summary: "empty the filesystem and start again",
     usage: "reset",
