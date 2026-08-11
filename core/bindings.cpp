@@ -59,6 +59,39 @@ std::string shTokenise(const std::string& line) {
   return j.done();
 }
 
+/** The text tools all return a JSON array of lines, so the shell can join them
+ *  however it likes without another parse on the C++ side. */
+std::string jsonLines(const std::vector<std::string>& lines) {
+  jw::Out j;
+  j.beginArr();
+  for (const std::string& line : lines) j.str(line);
+  j.endArr();
+  return j.done();
+}
+
+std::string textSort(const std::string& text, bool reverse, bool numeric) {
+  return jsonLines(sh::sortLines(sh::lines(text), reverse, numeric));
+}
+
+std::string textUniq(const std::string& text, bool withCounts) {
+  return jsonLines(sh::uniqueLines(sh::lines(text), withCounts));
+}
+
+std::string textNumber(const std::string& text) {
+  return jsonLines(sh::numberLines(sh::lines(text)));
+}
+
+std::string textReverse(const std::string& text) {
+  return jsonLines(sh::reverseLines(sh::lines(text)));
+}
+
+std::string textCut(const std::string& text, const std::string& delimiter, int field) {
+  char d = delimiter.empty() ? '\t' : delimiter[0];
+  return jsonLines(sh::cutFields(sh::lines(text), d, field < 1 ? 1 : static_cast<size_t>(field)));
+}
+
+std::string textHexDump(const std::string& text) { return jsonLines(sh::hexDump(text)); }
+
 std::string shCount(const std::string& text) {
   sh::Counts c = sh::count(text);
   jw::Out j;
@@ -120,6 +153,14 @@ EMSCRIPTEN_BINDINGS(logicCore) {
   function("fsGrep", &fsGrep);
   function("shTokenise", &shTokenise);
   function("shCount", &shCount);
+  function("textSort", &textSort);
+  function("textUniq", &textUniq);
+  function("textNumber", &textNumber);
+  function("textReverse", &textReverse);
+  function("textCut", &textCut);
+  function("textHexDump", &textHexDump);
+  function("base64Encode", &sh::base64Encode);
+  function("base64Decode", &sh::base64Decode);
   function("globMatch", &sh::globMatch);
 
   function("minimise", &lg::minimiseJson);

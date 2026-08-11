@@ -17,6 +17,7 @@ import type { WasmFs } from "@/lib/wasm/logicCore.js";
 import type { Files } from "./VimEditor";
 
 const VimEditor = dynamic(() => import("./VimEditor"), { ssr: false });
+const SystemMonitor = dynamic(() => import("./SystemMonitor"), { ssr: false });
 
 const DISK = "terminal.disk.v1";
 const HISTORY = "terminal.history.v1";
@@ -47,6 +48,7 @@ export default function Terminal() {
   const [history, setHistory] = useState<string[]>([]);
   const [at, setAt] = useState(-1);
   const [full, setFull] = useState(false);
+  const [monitoring, setMonitoring] = useState(false);
 
   const view = useRef<HTMLDivElement | null>(null);
   const field = useRef<HTMLInputElement | null>(null);
@@ -144,6 +146,19 @@ export default function Terminal() {
   );
   const closeEditor = useRef<() => void>(() => {});
 
+  const monitor = useCallback(
+    () =>
+      new Promise<void>((resolve) => {
+        setMonitoring(true);
+        closeMonitor.current = () => {
+          setMonitoring(false);
+          resolve();
+        };
+      }),
+    [],
+  );
+  const closeMonitor = useRef<() => void>(() => {});
+
   const run = useCallback(
     async (raw: string) => {
       const fs = fsRef.current;
@@ -182,8 +197,10 @@ export default function Terminal() {
         print,
         python,
         edit,
+        monitor,
         clear: () => setLines([]),
         history,
+        exec: (line: string) => runRef.current(line),
       };
 
       setBusy(true);
@@ -197,8 +214,13 @@ export default function Terminal() {
         save();
       }
     },
-    [core, cwd, print, python, edit, history, save],
+    [core, cwd, print, python, edit, monitor, history, save],
   );
+
+  // `time <command>` runs another command, and the ref keeps that from making
+  // run depend on itself.
+  const runRef = useRef(run);
+  runRef.current = run;
 
   function onKey(e: React.KeyboardEvent<HTMLInputElement>) {
     const fs = fsRef.current;
@@ -313,7 +335,7 @@ export default function Terminal() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={onKey}
-              disabled={busy || editing !== null}
+              disabled={busy || editing !== null || monitoring}
               spellCheck={false}
               autoCapitalize="off"
               autoCorrect="off"
@@ -324,6 +346,17 @@ export default function Terminal() {
           </div>
         </div>
       </div>
+
+      {monitoring && (
+        <SystemMonitor
+          fs={fsRef.current}
+          pythonLoaded={py.current !== null}
+          onClose={() => {
+            closeMonitor.current();
+            requestAnimationFrame(() => field.current?.focus());
+          }}
+        />
+      )}
 
       {editing && fsRef.current && (
         <VimEditor

@@ -60,6 +60,15 @@ export type LogicCore = {
   /** JSON {lines, words, chars}. */
   shCount(text: string): string;
   globMatch(pattern: string, name: string): boolean;
+  /** Each returns a JSON array of lines. */
+  textSort(text: string, reverse: boolean, numeric: boolean): string;
+  textUniq(text: string, withCounts: boolean): string;
+  textNumber(text: string): string;
+  textReverse(text: string): string;
+  textCut(text: string, delimiter: string, field: number): string;
+  textHexDump(text: string): string;
+  base64Encode(text: string): string;
+  base64Decode(text: string): string;
   Circuit: new () => WasmCircuit;
   minimise(
     numVars: number,

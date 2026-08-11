@@ -23,6 +23,7 @@ const ctx: Context = {
   print: (text) => out.push(...text.split("\n")),
   python: async (source) => `[python ran ${source.length} chars]`,
   edit: async () => {},
+  monitor: async () => {},
   clear: () => (out = []),
   history: [],
 };
@@ -99,6 +100,47 @@ if (!error && second.read("/home/student/hello.py").includes("squared")) {
   failures++;
   console.log(`FAIL  the disk round-trips through save and restore (${error})`);
 }
+
+await check("sort notes/loops.md", "sort orders the lines", (o) => {
+  const lines = o.split("\n").filter(Boolean);
+  return [...lines].sort().join("\n") === lines.join("\n");
+});
+await check("nl hello.py", "nl numbers from one", (o) => /^\s+1\s{2}/.test(o));
+await check("rev hello.py", "rev turns each line round", (o) => o.includes(")6 ,1(egnar"));
+await check("xxd hello.py", "xxd shows an offset, hex and the printable column", (o) =>
+  /^00000000: [0-9a-f]{4} /.test(o) && o.includes("#"),
+);
+await check("base64 hello.py", "base64 encodes", (o) => /^[A-Za-z0-9+/=\s]+$/.test(o.trim()));
+
+// base64 -d has to be given a file, so encode one first and read it back.
+await run("base64 hello.py > encoded.txt");
+fs.write(
+  "/home/student/encoded.txt",
+  core.base64Encode(fs.read("/home/student/hello.py")),
+  1,
+);
+await check(
+  "base64 -d encoded.txt",
+  "base64 -d gets the original back",
+  (o) => o.trim() === fs.read("/home/student/hello.py").trim(),
+);
+await check("base64 -d hello.py", "base64 -d refuses input that is not base64", (o) =>
+  o.includes("not valid base64"),
+);
+
+fs.write("/home/student/marks.csv", "ada:91\nalan:55\nada:91\n", 1);
+await check("cut -d: -f2 marks.csv", "cut takes a field", (o) => o === "91\n55\n91");
+await check("uniq marks.csv", "uniq leaves non-adjacent duplicates alone", (o) =>
+  o.split("\n").length === 3,
+);
+await check("sort marks.csv", "sorting first makes the duplicates adjacent", (o) =>
+  o.startsWith("ada:91\nada:91"),
+);
+
+await check("uname -a", "uname -a describes the environment", (o) => o.includes("wasm32"));
+await check("ps", "ps lists the wasm core", (o) => o.includes("logicCore.wasm"));
+await check("man grep", "man explains one command", (o) => o.includes("grep [-iv]"));
+await check("man zzz", "man reports an unknown command", (o) => o.includes("no entry"));
 
 // The starter files are the first thing anybody runs, so a broken one is worse
 // than an empty disk. Same interpreter the snippet checker uses.

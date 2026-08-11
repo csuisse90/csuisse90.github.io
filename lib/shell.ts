@@ -17,8 +17,12 @@ export type Context = {
   python: (source: string) => Promise<string>;
   /** Opens the editor on a file and resolves when it is closed. */
   edit: (path: string) => Promise<void>;
+  /** Opens the system monitor and resolves when it is closed. */
+  monitor: () => Promise<void>;
   clear: () => void;
   history: string[];
+  /** Runs another command line, so `time` can measure one. */
+  exec?: (line: string) => Promise<void>;
 };
 
 export type Command = {
@@ -400,6 +404,231 @@ export const COMMANDS: Command[] = [
         ctx.print(`${human(size).padStart(7)}  ${row.path}`);
       }
       ctx.print(`${human(total).padStart(7)}  total`, "note");
+    },
+  },
+  {
+    name: "sort",
+    summary: "sort the lines of a file",
+    usage: "sort [-r] [-n] <file>",
+    run(args, ctx) {
+      const { flags, rest } = parse(args);
+      const path = rest[0];
+      if (!path) return ctx.print("sort: needs a file", "err");
+      if (!ctx.fs.exists(path)) return ctx.print(`sort: ${path}: no such file`, "err");
+      const out = JSON.parse(
+        ctx.core.textSort(ctx.fs.read(path), flags.has("r"), flags.has("n")),
+      ) as string[];
+      ctx.print(out.join("\n"));
+    },
+  },
+  {
+    name: "uniq",
+    summary: "collapse repeated adjacent lines",
+    usage: "uniq [-c] <file>   (sort it first — uniq only sees neighbours)",
+    run(args, ctx) {
+      const { flags, rest } = parse(args);
+      const path = rest[0];
+      if (!path) return ctx.print("uniq: needs a file", "err");
+      if (!ctx.fs.exists(path)) return ctx.print(`uniq: ${path}: no such file`, "err");
+      const out = JSON.parse(ctx.core.textUniq(ctx.fs.read(path), flags.has("c"))) as string[];
+      ctx.print(out.join("\n"));
+    },
+  },
+  {
+    name: "nl",
+    summary: "number the lines of a file",
+    usage: "nl <file>",
+    run(args, ctx) {
+      const path = args[0];
+      if (!path) return ctx.print("nl: needs a file", "err");
+      if (!ctx.fs.exists(path)) return ctx.print(`nl: ${path}: no such file`, "err");
+      ctx.print((JSON.parse(ctx.core.textNumber(ctx.fs.read(path))) as string[]).join("\n"));
+    },
+  },
+  {
+    name: "rev",
+    summary: "reverse each line",
+    usage: "rev <file>",
+    run(args, ctx) {
+      const path = args[0];
+      if (!path) return ctx.print("rev: needs a file", "err");
+      if (!ctx.fs.exists(path)) return ctx.print(`rev: ${path}: no such file`, "err");
+      ctx.print((JSON.parse(ctx.core.textReverse(ctx.fs.read(path))) as string[]).join("\n"));
+    },
+  },
+  {
+    name: "cut",
+    summary: "take one field from each line",
+    usage: "cut -d<char> -f<n> <file>",
+    run(args, ctx) {
+      let delimiter = "\t";
+      let field = 1;
+      const rest: string[] = [];
+      for (const arg of args) {
+        if (arg.startsWith("-d")) delimiter = arg.slice(2) || "\t";
+        else if (arg.startsWith("-f")) field = Number(arg.slice(2)) || 1;
+        else rest.push(arg);
+      }
+      const path = rest[0];
+      if (!path) return ctx.print("cut: needs a file", "err");
+      if (!ctx.fs.exists(path)) return ctx.print(`cut: ${path}: no such file`, "err");
+      const out = JSON.parse(
+        ctx.core.textCut(ctx.fs.read(path), delimiter[0], field),
+      ) as string[];
+      ctx.print(out.join("\n"));
+    },
+  },
+  {
+    name: "xxd",
+    summary: "show a file as hexadecimal — see A1.2.3",
+    usage: "xxd <file>",
+    run(args, ctx) {
+      const path = args[0];
+      if (!path) return ctx.print("xxd: needs a file", "err");
+      if (!ctx.fs.exists(path)) return ctx.print(`xxd: ${path}: no such file`, "err");
+      ctx.print((JSON.parse(ctx.core.textHexDump(ctx.fs.read(path))) as string[]).join("\n"));
+    },
+  },
+  {
+    name: "base64",
+    summary: "encode or decode base64 — see A1.2.3",
+    usage: "base64 [-d] <file>",
+    run(args, ctx) {
+      const { flags, rest } = parse(args);
+      const path = rest[0];
+      if (!path) return ctx.print("base64: needs a file", "err");
+      if (!ctx.fs.exists(path)) return ctx.print(`base64: ${path}: no such file`, "err");
+      const text = ctx.fs.read(path);
+      if (!flags.has("d")) return ctx.print(ctx.core.base64Encode(text));
+      const decoded = ctx.core.base64Decode(text);
+      if (!decoded && text.trim()) return ctx.print("base64: not valid base64", "err");
+      ctx.print(decoded);
+    },
+  },
+  {
+    name: "btop",
+    summary: "live system monitor — what the browser will admit about this machine",
+    usage: "btop        q or esc to quit",
+    async run(_args, ctx) {
+      await ctx.monitor();
+    },
+  },
+  {
+    name: "htop",
+    summary: "the same monitor btop opens",
+    usage: "htop",
+    async run(_args, ctx) {
+      await ctx.monitor();
+    },
+  },
+  {
+    name: "neofetch",
+    summary: "the machine, in one screenful",
+    usage: "neofetch",
+    async run(_args, ctx) {
+      const { collect } = await import("./systemInfo");
+      const art = [
+        "  █████ ████      ████  ████    █   █ █",
+        "    █   █   █    █     █        █   █ █",
+        "    █   ████     █      ███     █████ █",
+        "    █   █   █    █         █    █   █ █",
+        "  █████ ████      ████ ████     █   █ █████",
+      ];
+      art.forEach((line) => ctx.print(line, "banner"));
+      ctx.print("");
+      for (const reading of await collect()) {
+        ctx.print(`  ${reading.label.padEnd(12)}${reading.value}`, "note");
+      }
+      ctx.print("");
+      ctx.print("  `btop` for the live version, with graphs.", "note");
+    },
+  },
+  {
+    name: "uname",
+    summary: "the environment this shell is running in",
+    usage: "uname [-a]",
+    run(args, ctx) {
+      if (!args.includes("-a")) return ctx.print("IBCSHL");
+      const cores = navigator.hardwareConcurrency ?? "?";
+      ctx.print(
+        `IBCSHL ibcshl wasm32 ${cores} cores ${navigator.language} — a C++ core compiled to WebAssembly, running in your browser`,
+      );
+    },
+  },
+  {
+    name: "free",
+    summary: "memory this tab is using",
+    usage: "free",
+    run(_args, ctx) {
+      const memory = (
+        performance as Performance & {
+          memory?: { usedJSHeapSize: number; totalJSHeapSize: number; jsHeapSizeLimit: number };
+        }
+      ).memory;
+      if (!memory) {
+        ctx.print("free: this browser does not expose heap size", "err");
+        return ctx.print("Only Chromium does. Try `btop` for what is available.", "note");
+      }
+      ctx.print("              used       allocated        limit");
+      ctx.print(
+        `heap    ${human(memory.usedJSHeapSize).padStart(10)}${human(memory.totalJSHeapSize).padStart(16)}${human(memory.jsHeapSizeLimit).padStart(13)}`,
+      );
+      ctx.print("This is the tab's JavaScript heap, not the machine's RAM.", "note");
+    },
+  },
+  {
+    name: "df",
+    summary: "how much of the filesystem is used",
+    usage: "df",
+    async run(_args, ctx) {
+      const image = ctx.fs.dumpJson().length;
+      const entries = JSON.parse(ctx.fs.treeJson("/")) as { directory: boolean }[];
+      ctx.print("filesystem            size   files   directories");
+      ctx.print(
+        `wasm-disk       ${human(image).padStart(12)}${String(entries.filter((e) => !e.directory).length).padStart(8)}${String(entries.filter((e) => e.directory).length).padStart(14)}`,
+      );
+      const quota = await navigator.storage?.estimate?.().catch(() => undefined);
+      if (quota?.quota) {
+        ctx.print(
+          `origin quota    ${human(quota.quota).padStart(12)}   ${human(quota.usage ?? 0)} used`,
+        );
+      }
+    },
+  },
+  {
+    name: "ps",
+    summary: "what is actually running in this tab",
+    usage: "ps",
+    run(_args, ctx) {
+      ctx.print("NAME              STATE       WHAT IT IS");
+      ctx.print("logicCore.wasm    running     C++ shell, filesystem and logic engine");
+      ctx.print(
+        `service-worker    ${(navigator.serviceWorker?.controller ? "running" : "idle").padEnd(12)}serves this site with no network`,
+      );
+      ctx.print("Use `btop` for live figures.", "note");
+    },
+  },
+  {
+    name: "time",
+    summary: "measure how long another command takes",
+    usage: "time <command...>",
+    async run(args, ctx) {
+      if (!args.length) return ctx.print("time: needs a command", "err");
+      if (!ctx.exec) return ctx.print("time: not available here", "err");
+      const start = performance.now();
+      await ctx.exec(args.join(" "));
+      ctx.print(`\nreal  ${(performance.now() - start).toFixed(1)} ms`, "note");
+    },
+  },
+  {
+    name: "man",
+    summary: "the same as help",
+    usage: "man <command>",
+    run(args, ctx) {
+      const target = COMMANDS.find((c) => c.name === args[0]);
+      if (!target) return ctx.print(`man: no entry for ${args[0] ?? ""}`, "err");
+      ctx.print(`${target.name} — ${target.summary}`);
+      ctx.print(`  ${target.usage}`, "note");
     },
   },
   {

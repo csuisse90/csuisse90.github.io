@@ -95,4 +95,34 @@ struct Counts {
 };
 Counts count(const std::string& text);
 
+/** Splits on newlines, dropping a single trailing empty line so a file ending
+ *  in "\n" does not produce a phantom last line. */
+std::vector<std::string> lines(const std::string& text);
+
+/** sort: -r reverses, -n compares by leading number rather than lexically. */
+std::vector<std::string> sortLines(const std::vector<std::string>& in, bool reverse,
+                                   bool numeric);
+
+/** uniq: collapses runs of identical adjacent lines. With counts, each line is
+ *  prefixed by how many times it repeated. */
+std::vector<std::string> uniqueLines(const std::vector<std::string>& in, bool withCounts);
+
+/** nl: prefixes each line with its number, right-aligned in six columns. */
+std::vector<std::string> numberLines(const std::vector<std::string>& in);
+
+/** rev: reverses the characters of each line. */
+std::vector<std::string> reverseLines(const std::vector<std::string>& in);
+
+/** cut -d<delimiter> -f<field>: one-based field selection, empty when short. */
+std::vector<std::string> cutFields(const std::vector<std::string>& in, char delimiter,
+                                   size_t field);
+
+/** xxd: canonical hex dump, sixteen bytes per row with the printable column. */
+std::vector<std::string> hexDump(const std::string& text);
+
+/** base64, for A1.2.3 — how bytes travel through something that only carries
+ *  text. Decoding returns an empty string on malformed input. */
+std::string base64Encode(const std::string& text);
+std::string base64Decode(const std::string& text);
+
 }  // namespace sh

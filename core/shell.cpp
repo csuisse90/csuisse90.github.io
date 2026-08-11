@@ -2,6 +2,8 @@
 
 #include <algorithm>
 #include <cctype>
+#include <limits>
+#include <string>
 
 #include "json.hpp"
 
@@ -533,6 +535,198 @@ Counts count(const std::string& text) {
   }
   if (!text.empty() && text.back() != '\n') c.lines++;
   return c;
+}
+
+std::vector<std::string> lines(const std::string& text) {
+  std::vector<std::string> out;
+  size_t start = 0;
+  while (start <= text.size()) {
+    size_t stop = text.find('\n', start);
+    if (stop == std::string::npos) {
+      out.push_back(text.substr(start));
+      break;
+    }
+    out.push_back(text.substr(start, stop - start));
+    start = stop + 1;
+  }
+  // A file ending in a newline has no empty last line, whatever split says.
+  if (!out.empty() && out.back().empty()) out.pop_back();
+  return out;
+}
+
+namespace {
+
+/** The leading number of a line, for `sort -n`. Lines without one sort first,
+ *  which is what coreutils does. */
+double leadingNumber(const std::string& line) {
+  size_t at = 0;
+  while (at < line.size() && (line[at] == ' ' || line[at] == '\t')) at++;
+  size_t start = at;
+  if (at < line.size() && (line[at] == '-' || line[at] == '+')) at++;
+  bool digits = false;
+  while (at < line.size() && std::isdigit(static_cast<unsigned char>(line[at]))) {
+    at++;
+    digits = true;
+  }
+  if (at < line.size() && line[at] == '.') {
+    at++;
+    while (at < line.size() && std::isdigit(static_cast<unsigned char>(line[at]))) {
+      at++;
+      digits = true;
+    }
+  }
+  if (!digits) return -std::numeric_limits<double>::infinity();
+  return std::stod(line.substr(start, at - start));
+}
+
+const char* const BASE64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+}  // namespace
+
+std::vector<std::string> sortLines(const std::vector<std::string>& in, bool reverse,
+                                   bool numeric) {
+  std::vector<std::string> out = in;
+  // Stable, so equal keys keep their original order — which is what makes
+  // sorting by one field and then another do what people expect.
+  std::stable_sort(out.begin(), out.end(),
+                   [numeric](const std::string& a, const std::string& b) {
+                     if (numeric) {
+                       double x = leadingNumber(a);
+                       double y = leadingNumber(b);
+                       if (x != y) return x < y;
+                       return a < b;
+                     }
+                     return a < b;
+                   });
+  if (reverse) std::reverse(out.begin(), out.end());
+  return out;
+}
+
+std::vector<std::string> uniqueLines(const std::vector<std::string>& in, bool withCounts) {
+  std::vector<std::string> out;
+  size_t i = 0;
+  while (i < in.size()) {
+    size_t run = 1;
+    while (i + run < in.size() && in[i + run] == in[i]) run++;
+    if (withCounts) {
+      std::string count = std::to_string(run);
+      out.push_back(std::string(run < 1000 ? 7 - count.size() : 1, ' ') + count + " " + in[i]);
+    } else {
+      out.push_back(in[i]);
+    }
+    i += run;
+  }
+  return out;
+}
+
+std::vector<std::string> numberLines(const std::vector<std::string>& in) {
+  std::vector<std::string> out;
+  for (size_t i = 0; i < in.size(); i++) {
+    std::string n = std::to_string(i + 1);
+    out.push_back(std::string(n.size() < 6 ? 6 - n.size() : 1, ' ') + n + "  " + in[i]);
+  }
+  return out;
+}
+
+std::vector<std::string> reverseLines(const std::vector<std::string>& in) {
+  std::vector<std::string> out;
+  out.reserve(in.size());
+  for (const std::string& line : in) out.push_back(std::string(line.rbegin(), line.rend()));
+  return out;
+}
+
+std::vector<std::string> cutFields(const std::vector<std::string>& in, char delimiter,
+                                   size_t field) {
+  std::vector<std::string> out;
+  for (const std::string& line : in) {
+    size_t start = 0;
+    size_t seen = 0;
+    std::string picked;
+    while (true) {
+      size_t stop = line.find(delimiter, start);
+      seen++;
+      std::string part = stop == std::string::npos ? line.substr(start)
+                                                   : line.substr(start, stop - start);
+      if (seen == field) {
+        picked = part;
+        break;
+      }
+      if (stop == std::string::npos) break;
+      start = stop + 1;
+    }
+    out.push_back(picked);
+  }
+  return out;
+}
+
+std::vector<std::string> hexDump(const std::string& text) {
+  static const char* digits = "0123456789abcdef";
+  std::vector<std::string> out;
+  for (size_t offset = 0; offset < text.size(); offset += 16) {
+    std::string address;
+    for (int shift = 28; shift >= 0; shift -= 4) {
+      address += digits[(offset >> shift) & 0xf];
+    }
+    std::string hex;
+    std::string printable;
+    for (size_t i = 0; i < 16; i++) {
+      if (i && i % 2 == 0) hex += ' ';
+      if (offset + i < text.size()) {
+        unsigned char byte = static_cast<unsigned char>(text[offset + i]);
+        hex += digits[byte >> 4];
+        hex += digits[byte & 0xf];
+        printable += (byte >= 32 && byte < 127) ? static_cast<char>(byte) : '.';
+      } else {
+        hex += "  ";
+      }
+    }
+    out.push_back(address + ": " + hex + "  " + printable);
+  }
+  return out;
+}
+
+std::string base64Encode(const std::string& text) {
+  std::string out;
+  for (size_t i = 0; i < text.size(); i += 3) {
+    unsigned value = static_cast<unsigned char>(text[i]) << 16;
+    size_t have = 1;
+    if (i + 1 < text.size()) {
+      value |= static_cast<unsigned char>(text[i + 1]) << 8;
+      have = 2;
+    }
+    if (i + 2 < text.size()) {
+      value |= static_cast<unsigned char>(text[i + 2]);
+      have = 3;
+    }
+    out += BASE64[(value >> 18) & 0x3f];
+    out += BASE64[(value >> 12) & 0x3f];
+    out += have > 1 ? BASE64[(value >> 6) & 0x3f] : '=';
+    out += have > 2 ? BASE64[value & 0x3f] : '=';
+  }
+  return out;
+}
+
+std::string base64Decode(const std::string& text) {
+  int table[256];
+  for (int i = 0; i < 256; i++) table[i] = -1;
+  for (int i = 0; i < 64; i++) table[static_cast<unsigned char>(BASE64[i])] = i;
+
+  std::string out;
+  unsigned value = 0;
+  int bits = 0;
+  for (char ch : text) {
+    if (ch == '=' ) break;
+    if (ch == '\n' || ch == '\r' || ch == ' ') continue;
+    int digit = table[static_cast<unsigned char>(ch)];
+    if (digit < 0) return "";  // malformed: say so rather than guess
+    value = (value << 6) | static_cast<unsigned>(digit);
+    bits += 6;
+    if (bits >= 8) {
+      bits -= 8;
+      out += static_cast<char>((value >> bits) & 0xff);
+    }
+  }
+  return out;
 }
 
 }  // namespace sh

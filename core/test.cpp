@@ -335,6 +335,64 @@ void testPersistence() {
 
 }  // namespace
 
+void testTextTools() {
+  const std::vector<std::string> words = {"pear", "apple", "pear", "fig"};
+
+  check(sh::lines("a\nb\n") == std::vector<std::string>({"a", "b"}),
+        "a trailing newline does not make an extra line");
+  check(sh::lines("a\nb") == std::vector<std::string>({"a", "b"}),
+        "a missing final newline still gives both lines");
+
+  check(sh::sortLines(words, false, false) ==
+            std::vector<std::string>({"apple", "fig", "pear", "pear"}),
+        "sort orders lexically");
+  check(sh::sortLines(words, true, false) ==
+            std::vector<std::string>({"pear", "pear", "fig", "apple"}),
+        "sort -r reverses");
+  check(sh::sortLines({"10", "9", "100"}, false, false) ==
+            std::vector<std::string>({"10", "100", "9"}),
+        "sorting numbers as text puts 9 last, which is the classic bug");
+  check(sh::sortLines({"10", "9", "100"}, false, true) ==
+            std::vector<std::string>({"9", "10", "100"}),
+        "sort -n compares by value");
+
+  const std::vector<std::string> sorted = sh::sortLines(words, false, false);
+  check(sh::uniqueLines(sorted, false) ==
+            std::vector<std::string>({"apple", "fig", "pear"}),
+        "uniq collapses an adjacent run");
+  check(sh::uniqueLines({"a", "b", "a"}, false) ==
+            std::vector<std::string>({"a", "b", "a"}),
+        "uniq only collapses neighbours, so unsorted input keeps duplicates");
+  check(sh::uniqueLines(sorted, true).back().find("2 pear") != std::string::npos,
+        "uniq -c reports how many times a line repeated");
+
+  check(sh::numberLines({"first"})[0].find("1  first") != std::string::npos,
+        "nl numbers from one");
+  check(sh::reverseLines({"abc"}) == std::vector<std::string>({"cba"}),
+        "rev turns a line round");
+
+  const std::vector<std::string> csv = {"ada:91:7", "alan:55:4"};
+  check(sh::cutFields(csv, ':', 2) == std::vector<std::string>({"91", "55"}),
+        "cut picks a field, counting from one");
+  check(sh::cutFields(csv, ':', 9) == std::vector<std::string>({"", ""}),
+        "cut past the end gives nothing rather than failing");
+
+  const std::vector<std::string> dump = sh::hexDump("Hi!");
+  check(dump.size() == 1, "three bytes are one row");
+  check(dump[0].find("4869 21") != std::string::npos, "xxd shows the bytes in hex");
+  check(dump[0].find("Hi!") != std::string::npos, "xxd shows the printable column");
+  check(sh::hexDump(std::string(17, 'x')).size() == 2, "seventeen bytes wrap to two rows");
+
+  check(sh::base64Encode("Man") == "TWFu", "base64 encodes three bytes into four characters");
+  check(sh::base64Encode("Ma") == "TWE=", "base64 pads two bytes with one =");
+  check(sh::base64Encode("M") == "TQ==", "base64 pads one byte with two =");
+  check(sh::base64Decode("TWFu") == "Man", "base64 decodes back");
+  check(sh::base64Decode(sh::base64Encode("any bytes \x01\x02 at all")) ==
+            "any bytes \x01\x02 at all",
+        "base64 round-trips bytes that are not text");
+  check(sh::base64Decode("not base64!!").empty(), "malformed base64 is refused");
+}
+
 int main() {
   testGates();
   testPropagationDelay();
@@ -351,6 +409,7 @@ int main() {
   testFsListing();
   testExpandAndComplete();
   testGrepAndCount();
+  testTextTools();
   testPersistence();
   std::printf("\n%s\n", failures ? "FAILURES" : "all checks passed");
   return failures ? 1 : 0;
